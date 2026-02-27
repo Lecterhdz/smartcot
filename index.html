@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a1a1a">
+    <title>SmartCot - Cotizador Industrial Inteligente</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏭</text></svg>">
+    <!-- Dexie.js para IndexedDB -->
+    <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js"></script>
+    <!-- jsPDF para reportes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
+            color: white;
+            padding: 25px 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .license-info {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #1a1a1a;
+        }
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .btn-action {
+            padding: 25px;
+            border: none;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #1a1a1a, #333333);
+            color: white;
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #f5f7fa, #e8ecef);
+            color: #333;
+        }
+        .btn-action:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        .form-group {
+            margin: 20px 0;
+        }
+        .form-group label {
+            display: block;
+            margin: 0 0 8px 0;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #1a1a1a;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f5f7fa;
+            font-weight: 600;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .alert-warning {
+            background: #FFF3E0;
+            color: #E65100;
+            border-left: 5px solid #FF9800;
+        }
+        .alert-success {
+            background: #E8F5E9;
+            color: #2E7D32;
+            border-left: 5px solid #4CAF50;
+        }
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .stats-grid, .button-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div>
+                <h1 style="margin:0;font-size:28px;">🏭 SmartCot</h1>
+                <p style="margin:5px 0 0 0;opacity:0.9;">Cotizador Industrial Inteligente</p>
+            </div>
+            <div style="display:flex;gap:15px;align-items:center;">
+                <div class="license-info" id="license-info">
+                    🔓 Licencia: Cargando...
+                </div>
+                <button onclick="app.cerrarSesion()" style="background:rgba(255,255,255,0.2);color:white;border:1px solid white;padding:10px 20px;border-radius:8px;cursor:pointer;">🚪 Salir</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="max-width:1200px;margin:0 auto;padding:30px 20px;">
+        <!-- PANTALLA: DASHBOARD -->
+        <section id="dashboard-screen" class="screen active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-cotizaciones">0</div>
+                    <div class="stat-label">📋 Cotizaciones</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-clientes">0</div>
+                    <div class="stat-label">👥 Clientes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-ingresos">$0</div>
+                    <div class="stat-label">💰 Ingresos Totales</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-margen">0%</div>
+                    <div class="stat-label">📊 Margen Promedio</div>
+                </div>
+            </div>
+
+            <div class="button-grid">
+                <button class="btn-action btn-primary" onclick="app.mostrarPantalla('nueva-cotizacion')">
+                    <span style="font-size:32px;">📝</span>
+                    <div>
+                        <div>Nueva Cotización</div>
+                        <div style="font-size:13px;font-weight:400;opacity:0.9;">Crear cotización desde cero</div>
+                    </div>
+                </button>
+                <button class="btn-action btn-secondary" onclick="app.mostrarPantalla('historial')">
+                    <span style="font-size:32px;">📋</span>
+                    <div>
+                        <div>Historial</div>
+                        <div style="font-size:13px;font-weight:400;opacity:0.9;">Ver cotizaciones guardadas</div>
+                    </div>
+                </button>
+                <button class="btn-action btn-secondary" onclick="app.mostrarPantalla('clientes')">
+                    <span style="font-size:32px;">👥</span>
+                    <div>
+                        <div>Clientes</div>
+                        <div style="font-size:13px;font-weight:400;opacity:0.9;">Gestionar base de clientes</div>
+                    </div>
+                </button>
+                <button class="btn-action btn-secondary" onclick="app.mostrarPantalla('configuracion')">
+                    <span style="font-size:32px;">⚙️</span>
+                    <div>
+                        <div>Configuración</div>
+                        <div style="font-size:13px;font-weight:400;opacity:0.9;">Ajustes y respaldo</div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Alertas SmartMargin -->
+            <div id="smartmargin-alertas" style="margin:30px 0;"></div>
+        </section>
+
+        <!-- PANTALLA: NUEVA COTIZACIÓN -->
+        <section id="nueva-cotizacion" class="screen">
+            <div class="card">
+                <h2 style="margin:0 0 20px 0;">📝 Nueva Cotización</h2>
+                
+                <div class="form-group">
+                    <label>Cliente:</label>
+                    <select id="cot-cliente">
+                        <option value="">Seleccionar cliente...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Descripción del Proyecto:</label>
+                    <textarea id="cot-descripcion" placeholder="Describa el trabajo a realizar..." style="min-height:80px;"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Ubicación:</label>
+                    <input type="text" id="cot-ubicacion" placeholder="Ciudad, Estado">
+                </div>
+
+                <h3 style="margin:30px 0 15px 0;">📦 Materiales</h3>
+                <div id="materiales-lista"></div>
+                <button class="btn btn-secondary" onclick="app.agregarMaterial()" style="padding:10px 20px;margin:10px 0;">➕ Agregar Material</button>
+
+                <h3 style="margin:30px 0 15px 0;">👷 Mano de Obra</h3>
+                <div id="mano-obra-lista"></div>
+                <button class="btn btn-secondary" onclick="app.agregarManoObra()" style="padding:10px 20px;margin:10px 0;">➕ Agregar Mano de Obra</button>
+
+                <h3 style="margin:30px 0 15px 0;">📊 Costos Indirectos</h3>
+                <div id="indirectos-lista"></div>
+                <button class="btn btn-secondary" onclick="app.agregarIndirecto()" style="padding:10px 20px;margin:10px 0;">➕ Agregar Indirecto</button>
+
+                <div class="form-group" style="background:#f5f7fa;padding:20px;border-radius:10px;margin:30px 0;">
+                    <h4 style="margin:0 0 15px 0;">💰 Resumen Financiero</h4>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
+                        <div>
+                            <label style="font-size:13px;color:#666;">Subtotal:</label>
+                            <div id="resumen-subtotal" style="font-size:20px;font-weight:700;">$0.00</div>
+                        </div>
+                        <div>
+                            <label style="font-size:13px;color:#666;">Indirectos:</label>
+                            <div id="resumen-indirectos" style="font-size:20px;font-weight:700;">$0.00</div>
+                        </div>
+                        <div>
+                            <label style="font-size:13px;color:#666;">Utilidad (<span id="lbl-utilidad">15</span>%):</label>
+                            <div id="resumen-utilidad" style="font-size:20px;font-weight:700;">$0.00</div>
+                        </div>
+                        <div>
+                            <label style="font-size:13px;color:#666;">IVA (<span id="lbl-iva">16</span>%):</label>
+                            <div id="resumen-iva" style="font-size:20px;font-weight:700;">$0.00</div>
+                        </div>
+                        <div style="grid-column:1/-1;background:#1a1a1a;color:white;padding:15px;border-radius:8px;">
+                            <label style="font-size:13px;opacity:0.9;">TOTAL FINAL:</label>
+                            <div id="resumen-total" style="font-size:28px;font-weight:700;">$0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Margen de Utilidad (%):</label>
+                    <input type="number" id="cot-utilidad" value="15" min="0" max="100" onchange="app.calcularTotal()">
+                </div>
+
+                <div id="smartmargin-warning" class="alert alert-warning" style="display:none;"></div>
+
+                <div style="display:flex;gap:15px;flex-wrap:wrap;margin-top:30px;">
+                    <button class="btn btn-primary" onclick="app.guardarCotizacion()" style="padding:16px 30px;">💾 Guardar Cotización</button>
+                    <button class="btn btn-secondary" onclick="app.generarPDF()" style="padding:16px 30px;">📄 Generar PDF</button>
+                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="padding:16px 30px;">↩️ Volver</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANTALLA: HISTORIAL -->
+        <section id="historial-screen" class="screen">
+            <div class="card">
+                <h2 style="margin:0 0 20px 0;">📋 Historial de Cotizaciones</h2>
+                
+                <div class="form-group">
+                    <input type="text" id="buscar-cotizacion" placeholder="🔍 Buscar por cliente o proyecto..." onkeyup="app.buscarCotizaciones()">
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Proyecto</th>
+                                <th>Total</th>
+                                <th>Margen</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historial-tabla"></tbody>
+                    </table>
+                </div>
+
+                <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="padding:16px 30px;margin-top:20px;">↩️ Volver</button>
+            </div>
+        </section>
+
+        <!-- PANTALLA: CLIENTES -->
+        <section id="clientes-screen" class="screen">
+            <div class="card">
+                <h2 style="margin:0 0 20px 0;">👥 Gestión de Clientes</h2>
+                
+                <div class="form-group">
+                    <input type="text" id="cliente-nombre" placeholder="Nombre del cliente">
+                </div>
+                <div class="form-group">
+                    <input type="email" id="cliente-email" placeholder="Email">
+                </div>
+                <div class="form-group">
+                    <input type="tel" id="cliente-telefono" placeholder="Teléfono">
+                </div>
+                <div class="form-group">
+                    <textarea id="cliente-notas" placeholder="Notas adicionales..." style="min-height:60px;"></textarea>
+                </div>
+
+                <button class="btn btn-primary" onclick="app.guardarCliente()" style="padding:16px 30px;">💾 Guardar Cliente</button>
+
+                <div class="table-responsive" style="margin-top:30px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Teléfono</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientes-tabla"></tbody>
+                    </table>
+                </div>
+
+                <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="padding:16px 30px;margin-top:20px;">↩️ Volver</button>
+            </div>
+        </section>
+
+        <!-- PANTALLA: CONFIGURACIÓN -->
+        <section id="configuracion-screen" class="screen">
+            <div class="card">
+                <h2 style="margin:0 0 20px 0;">⚙️ Configuración y Respaldo</h2>
+                
+                <div class="form-group">
+                    <label>Nombre de la Empresa:</label>
+                    <input type="text" id="config-empresa" placeholder="Tu empresa">
+                </div>
+                <div class="form-group">
+                    <label>IVA por defecto (%):</label>
+                    <input type="number" id="config-iva" value="16" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label>Utilidad por defecto (%):</label>
+                    <input type="number" id="config-utilidad" value="15" min="0" max="100">
+                </div>
+
+                <button class="btn btn-primary" onclick="app.guardarConfiguracion()" style="padding:16px 30px;margin:10px 0;">💾 Guardar Configuración</button>
+
+                <hr style="margin:30px 0;border:none;border-top:2px solid #ddd;">
+
+                <h3 style="margin:0 0 15px 0;">💾 Respaldo de Datos</h3>
+                <p style="color:#666;margin:0 0 20px 0;">Exporta tus datos para evitar perderlos al limpiar el navegador.</p>
+                
+                <div style="display:flex;gap:15px;flex-wrap:wrap;">
+                    <button class="btn btn-primary" onclick="app.exportarDatos()" style="padding:16px 30px;">📤 Exportar Datos (JSON)</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()" style="padding:16px 30px;">📥 Importar Datos</button>
+                    <input type="file" id="import-file" accept=".json" style="display:none;" onchange="app.importarDatos(event)">
+                </div>
+
+                <div class="alert alert-warning" style="margin-top:20px;">
+                    ⚠️ <strong>Importante:</strong> Exporta tus datos regularmente. SmartCot guarda todo en tu dispositivo localmente.
+                </div>
+
+                <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="padding:16px 30px;margin-top:30px;">↩️ Volver</button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer" style="text-align:center;padding:30px;color:#666;border-top:2px solid #ddd;margin-top:50px;">
+        <p>© 2026 SmartCot - Cotizador Industrial Inteligente</p>
+        <p style="margin-top:10px;font-size:12px;">Los datos se guardan localmente. Exporta regularmente.</p>
+    </footer>
+
+    <!-- Firebase + Auth -->
+    <script type="module" src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <!-- Base de datos + Motor -->
+    <script src="db.js"></script>
+    <script src="calculator.js"></script>
+    <script src="app.js"></script>
+
+    <script>
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('✅ SW registrado:', reg.scope))
+                .catch(err => console.log('⚠️ SW error:', err));
+        }
+    </script>
+</body>
+</html>
