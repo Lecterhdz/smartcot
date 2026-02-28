@@ -238,10 +238,14 @@
                 
                 <div class="form-group">
                     <label>Cliente:</label>
-                    <select id="cot-cliente">
-                        <option value="">Seleccionar cliente...</option>
-                    </select>
-                </div>
+                    <div style="display:grid;grid-template-columns:1fr auto;gap:10px;">
+                        <select id="cot-cliente">
+                            <option value="">Seleccionar cliente...</option>
+                        </select>
+                        <button type="button" onclick="app.mostrarModalCliente()" style="background:#1a1a1a;color:white;border:none;padding:14px 20px;border-radius:10px;cursor:pointer;font-weight:600;">➕ Nuevo</button>
+                    </div>
+                    <small id="sin-clientes-msg" style="color:#f44336;display:none;">⚠️ No hay clientes registrados. Agrega uno primero.</small>
+                </div>                    
 
                 <div class="form-group">
                     <label>Descripción del Proyecto:</label>
@@ -434,5 +438,54 @@
                 .catch(err => console.log('⚠️ SW error:', err));
         }
     </script>
+        <!-- MODAL AGREGAR CLIENTE RÁPIDO -->
+        <div id="modal-cliente" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+            <div style="background:white;padding:30px;border-radius:20px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto;">
+                <h3 style="margin:0 0 20px 0;color:#1a1a1a;">👕 Agregar Cliente Rápido</h3>
+        
+                <div class="form-group">
+                    <label>Nombre del Cliente *</label>
+                    <input type="text" id="modal-cliente-nombre" placeholder="Nombre de la empresa o persona">
+                </div>
+        
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="modal-cliente-email" placeholder="cliente@email.com">
+                </div>
+        
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel" id="modal-cliente-telefono" placeholder="55-1234-5678">
+                </div>
+        
+                <div class="form-group">
+                    <label>Notas (opcional)</label>
+                    <textarea id="modal-cliente-notas" placeholder="Dirección, RFC, comentarios..." style="min-height:60px;"></textarea>
+                </div>
+        
+                <div style="display:flex;gap:15px;flex-wrap:wrap;margin-top:25px;">
+                    <button onclick="app.guardarClienteRapido()" class="btn btn-primary" style="flex:1;padding:14px;">💾 Guardar y Seleccionar</button>
+                    <button onclick="app.cerrarModalCliente()" class="btn btn-secondary" style="flex:1;padding:14px;">❌ Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        // Cerrar modal al hacer click fuera
+        document.getElementById('modal-cliente').addEventListener('click', function(e) {
+            if (e.target === this) {
+                app.cerrarModalCliente();
+            }
+        });
+
+        // Cerrar con Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                app.cerrarModalCliente();
+            }
+        });
+        </script>
+    
 </body>
+
 </html>
