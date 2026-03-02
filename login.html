@@ -42,53 +42,78 @@
             <p>Cotizador Industrial Inteligente</p>
         </div>
     </header>
+
     <main class="container">
         <div class="login-container">
             <div class="login-header">
                 <h1>🔐 Iniciar Sesión</h1>
                 <p>Ingresa tu clave de licencia para continuar</p>
             </div>
+
             <div id="error-message" class="alert alert-warning" style="display:none;"></div>
             <div id="success-message" class="alert alert-success" style="display:none;"></div>
+
             <form id="login-form">
                 <div class="form-group">
                     <label>🔑 Clave de Licencia:</label>
                     <input type="text" id="license-key" placeholder="SMARTCOT-XXXX-XXXX" required style="font-family:monospace;font-size:16px;text-transform:uppercase;">
                 </div>
+
                 <button type="submit" class="btn btn-primary">🚀 Activar Licencia</button>
             </form>
+
             <div class="license-codes">
                 <h4>📋 Claves de Prueba:</h4>
-                <code>SMARTCOT-DEMO-2026</code><small style="color:#666;">7 días, 5 cotizaciones máx.</small>
-                <code>SMARTCOT-PRO-2026</code><small style="color:#666;">365 días, cotizaciones ilimitadas</small>
-                <code>SMARTCOT-EMP-2026</code><small style="color:#666;">365 días, plan Empresa</small>
+                <code>SMARTCOT-DEMO-2026</code>
+                <small style="color:#666;">7 días, 100 conceptos máx.</small>
+                
+                <code>SMARTCOT-PRO-2026</code>
+                <small style="color:#666;">365 días, conceptos ilimitados</small>
+                
+                <code>SMARTCOT-EMP-2026</code>
+                <small style="color:#666;">365 días, plan Empresa</small>
             </div>
+
             <div class="login-footer">
                 <p>© 2026 SmartCot - Todos los derechos reservados</p>
                 <p style="margin-top:10px;font-size:12px;">Los datos se guardan localmente en tu dispositivo.</p>
             </div>
         </div>
     </main>
+
     <script type="module" src="firebase-config.js"></script>
     <script src="auth.js"></script>
     <script>
         document.getElementById('login-form').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
             const clave = document.getElementById('license-key').value.trim().toUpperCase();
             const errorEl = document.getElementById('error-message');
             const successEl = document.getElementById('success-message');
+            
             errorEl.style.display = 'none';
             successEl.style.display = 'none';
-            if (!clave) { errorEl.textContent = '⚠️ Ingresa una clave de licencia'; errorEl.style.display = 'block'; return; }
+            
+            if (!clave) {
+                errorEl.textContent = '⚠️ Ingresa una clave de licencia';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
             const btn = e.target.querySelector('button');
             btn.disabled = true;
             btn.textContent = '⏳ Validando...';
+            
             try {
                 const resultado = await window.licencia.validar(clave);
+                
                 if (resultado.valido) {
                     successEl.textContent = '✅ Licencia ' + resultado.tipo + ' activada exitosamente. Redirigiendo...';
                     successEl.style.display = 'block';
-                    setTimeout(function() { window.location.href = 'index.html'; }, 1500);
+                    
+                    setTimeout(function() {
+                        window.location.href = 'index.html';
+                    }, 1500);
                 } else {
                     errorEl.textContent = '❌ ' + resultado.error;
                     errorEl.style.display = 'block';
@@ -102,9 +127,13 @@
                 btn.textContent = '🚀 Activar Licencia';
             }
         });
+
+        // Verificar si ya hay licencia activa
         window.addEventListener('DOMContentLoaded', function() {
             const licencia = window.licencia.cargar();
-            if (licencia && !licencia.expirada) { window.location.href = 'index.html'; }
+            if (licencia && !licencia.expirada) {
+                window.location.href = 'index.html';
+            }
         });
     </script>
 </body>
