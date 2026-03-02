@@ -5,7 +5,7 @@
 console.log('🏭 SmartCot iniciado');
 
 const app = {
-    datosCotizacion: { materiales: [], manoObra: [], equipos: [], herramienta: [] },
+    datosCotizacion: { materiales: [], manoObra: [], equipos: [], herramienta: [], indirectos: [] },
     
     // ─────────────────────────────────────────────────────────────────
     // INICIALIZACIÓN
@@ -176,8 +176,15 @@ const app = {
     // ─────────────────────────────────────────────────────────────────
     agregarIndirecto: function() {
         const container = document.getElementById('indirectos-lista');
-        if (!container) return;
-        
+        if (!container) {
+            console.warn('⚠️ No existe indirectos-lista en el HTML');
+            return;
+        }
+    
+        // Asegurar que indirectos está inicializado
+        if (!this.datosCotizacion.indirectos) {
+            this.datosCotizacion.indirectos = [];
+        }
         const id = Date.now();
         this.datosCotizacion.indirectos.push({ id, concepto: '', monto: 0 });
         
@@ -623,3 +630,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js listo');
+
