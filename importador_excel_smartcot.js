@@ -466,12 +466,134 @@ window.importadorSmartCot = {
     importarADB: async function(datos) {
         console.log('💾 Importando a IndexedDB...');
     
+        // ─────────────────────────────────────────────────────────────────
+        // VERIFICAR QUE DB EXISTE ANTES DE IMPORTAR
+        // ─────────────────────────────────────────────────────────────────
+        if (!window.db) {
+            console.error('❌ ERROR: window.db no existe');
+            alert('❌ Error: La base de datos no está inicializada. Recarga la página.');
+            throw new Error('db no inicializada');
+        }
+    
+        // Verificar cada tabla
+        const tablasNecesarias = ['conceptos', 'materiales', 'manoObra', 'equipos', 'herramienta'];
+        for (const tabla of tablasNecesarias) {
+            if (!window.db[tabla]) {
+                console.error('❌ ERROR: Tabla', tabla, 'no existe en db');
+                alert('❌ Error: La tabla ' + tabla + ' no existe. Recarga la página.');
+                throw new Error('Tabla ' + tabla + ' no existe');
+            }
+        }
+    
+        console.log('✅ Todas las tablas verificadas');
+    
         const reporte = {
             conceptos: { total: datos.conceptos.length, exitosos: 0, fallidos: 0 },
             materiales: { total: datos.materiales.length, exitosos: 0, fallidos: 0 },
             manoObra: { total: datos.manoObra.length, exitosos: 0, fallidos: 0 },
-            equipos: { total: datos.equipos.length, exitosos: 0, fallidos: 0 }
+            equipos: { total: datos.equipos.length, exitosos: 0, fallidos: 0 },
+            herramienta: { total: datos.herramienta.length, exitosos: 0, fallidos: 0 }
         };
+    
+        // ─────────────────────────────────────────────────────────────────
+        // IMPORTAR CONCEPTOS
+        // ─────────────────────────────────────────────────────────────────
+        console.log('📋 Importando', datos.conceptos.length, 'conceptos...');
+        for (const concepto of datos.conceptos) {
+            try {
+                const conceptoSimple = {
+                    id: concepto.id,
+                    codigo: concepto.codigo,
+                    categoria: concepto.categoria,
+                    subcategoria: concepto.subcategoria,
+                    descripcion_corta: concepto.descripcion_corta,
+                    descripcion_tecnica: concepto.descripcion_tecnica,
+                    unidad: concepto.unidad,
+                    rendimiento_base: concepto.rendimiento_base,
+                    factores_aplicables: concepto.factores_aplicables,
+                    riesgo_nivel: concepto.riesgo_nivel,
+                    activo: concepto.activo !== undefined ? concepto.activo : true
+                };
+            
+                await db.conceptos.put(conceptoSimple);
+                reporte.conceptos.exitosos++;
+            
+            } catch (error) {
+                console.error('❌ Error importando concepto:', concepto.codigo, error.message);
+                reporte.conceptos.fallidos++;
+            }
+        }
+    
+        // ─────────────────────────────────────────────────────────────────
+        // IMPORTAR MATERIALES
+        // ─────────────────────────────────────────────────────────────────
+        console.log('📦 Importando', datos.materiales.length, 'materiales...');
+        for (const material of datos.materiales) {
+            try {
+                await db.materiales.put(material);
+                reporte.materiales.exitosos++;
+            } catch (error) {
+                console.error('❌ Error importando material:', material.codigo, error.message);
+                reporte.materiales.fallidos++;
+            }
+        }
+    
+        // ─────────────────────────────────────────────────────────────────
+        // IMPORTAR MANO DE OBRA
+        // ─────────────────────────────────────────────────────────────────
+        console.log('👷 Importando', datos.manoObra.length, 'mano de obra...');
+        for (const mo of datos.manoObra) {
+            try {
+                await db.manoObra.put(mo);
+                reporte.manoObra.exitosos++;
+            } catch (error) {
+                console.error('❌ Error importando MO:', mo.codigo, error.message);
+                reporte.manoObra.fallidos++;
+            }
+        }
+    
+        // ─────────────────────────────────────────────────────────────────
+        // IMPORTAR EQUIPOS
+        // ─────────────────────────────────────────────────────────────────
+        console.log('🏗️ Importando', datos.equipos.length, 'equipos...');
+        for (const equipo of datos.equipos) {
+            try {
+                const equipoSimple = {
+                    id: equipo.id,
+                    codigo: equipo.codigo,
+                    nombre: equipo.nombre,
+                    tipo: equipo.tipo || 'Equipo',
+                    categoria: equipo.categoria || 'General',
+                    costo_renta_dia: equipo.costo_renta_dia || 0,
+                    activo: equipo.activo !== undefined ? equipo.activo : true
+                };
+            
+                await db.equipos.put(equipoSimple);
+                reporte.equipos.exitosos++;
+            
+            } catch (error) {
+                console.error('❌ Error importando equipo:', equipo.codigo, error.message);
+                reporte.equipos.fallidos++;
+            }
+        }
+    
+        // ─────────────────────────────────────────────────────────────────
+        // IMPORTAR HERRAMIENTA
+        // ─────────────────────────────────────────────────────────────────
+        console.log('🔧 Importando', datos.herramienta.length, 'herramienta...');
+        for (const herr of datos.herramienta) {
+            try {
+                await db.herramienta.put(herr);
+                reporte.herramienta.exitosos++;
+            } catch (error) {
+                console.error('❌ Error importando herramienta:', herr.codigo, error.message);
+                reporte.herramienta.fallidos++;
+            }
+        }
+    
+        console.log('✅ Importación completada:', reporte);
+        return reporte;
+    },
     
         // ─────────────────────────────────────────────────────────────────
         // IMPORTAR CONCEPTOS (SOLO CAMPOS BÁSICOS)
@@ -701,4 +823,5 @@ window.importadorSmartCot = {
 };
 
 console.log('✅ importador_excel_smartcot.js listo - VERSIÓN FINAL');
+
 
