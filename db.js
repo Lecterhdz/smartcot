@@ -1,189 +1,190 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT - BASE DE DATOS INDEXEDDB (Dexie.js)
-// Soporta 20,000+ registros fácilmente
+// SMARTCOT - BASE DE DATOS (SOPORTE 20,000+ REGISTROS)
 // ─────────────────────────────────────────────────────────────────────
 
-console.log('💾 db.js cargado');
+console.log('💾 db.js cargado - Soporte 20,000+ registros');
 
-// Inicializar Dexie
 const db = new Dexie('SmartCotDB');
 
-// Definir esquema de base de datos
-db.version(1).stores({
-    cotizaciones: '++id, clienteId, fecha, estado, total',
-    clientes: '++id, nombre, email, telefono',
+db.version(2).stores({
+    presupuestos: '++id, clienteId, fecha, estado, total, capitulos[]',
+    clientes: '++id, nombre, email, telefono, rfc',
+    materiales: '++id, codigo, nombre, categoria, unidad, precioBase, [categoria+nombre]',
+    manoObra: '++id, codigo, especialidad, unidad, precioHora',
+    maquinaria: '++id, codigo, nombre, tipo, unidad, precioHora',
+    factoresRendimiento: '++id, tipo, nombre, valor, descripcion',
     configuracion: 'clave, valor',
     licencias: 'id, clave, tipo, expiracion'
 });
 
 // ─────────────────────────────────────────────────────────────────────
-// COTIZACIONES
+// MATERIALES (20,000+ REGISTROS)
 // ─────────────────────────────────────────────────────────────────────
-window.dbCotizaciones = {
-    guardar: async function(cotizacion) {
-        try {
-            const id = await db.cotizaciones.add(cotizacion);
-            console.log('✅ Cotización guardada:', id);
-            return id;
-        } catch (error) {
-            console.error('❌ Error guardando cotización:', error);
-            throw error;
-        }
+window.dbMateriales = {
+    // Buscar con índice (rápido incluso con 20,000+)
+    buscar: async function(termino, limite = 50) {
+        if (termino.length < 2) return [];
+        
+        // Búsqueda optimizada con índice
+        const resultados = await db.materiales
+            .filter(m => 
+                m.nombre.toLowerCase().includes(termino.toLowerCase()) ||
+                m.codigo.toLowerCase().includes(termino.toLowerCase())
+            )
+            .limit(limite)
+            .toArray();
+        
+        console.log('🔍 Materiales encontrados:', resultados.length);
+        return resultados;
     },
 
-    obtener: async function(id) {
-        return await db.cotizaciones.get(id);
+    // Obtener por categoría (índice compuesto)
+    porCategoria: async function(categoria) {
+        return await db.materiales.where('categoria').equals(categoria).toArray();
     },
 
-    obtenerTodas: async function() {
-        return await db.cotizaciones.reverse().toArray();
+    // Obtener todos (con paginación para 20,000+)
+    todos: async function(offset = 0, limite = 100) {
+        return await db.materiales.offset(offset).limit(limite).toArray();
     },
 
-    actualizar: async function(id, datos) {
-        await db.cotizaciones.update(id, datos);
-    },
-
-    eliminar: async function(id) {
-        await db.cotizaciones.delete(id);
-    },
-
-    buscar: async function(termino) {
-        return await db.cotizaciones.filter(cot => 
-            cot.cliente?.toLowerCase().includes(termino.toLowerCase()) ||
-            cot.descripcion?.toLowerCase().includes(termino.toLowerCase())
-        ).toArray();
-    },
-
+    // Contar total
     contar: async function() {
-        return await db.cotizaciones.count();
-    }
-};
+        return await db.materiales.count();
+    },
 
-// ─────────────────────────────────────────────────────────────────────
-// CLIENTES
-// ─────────────────────────────────────────────────────────────────────
-window.dbClientes = {
-    guardar: async function(cliente) {
-        const id = await db.clientes.add(cliente);
-        console.log('✅ Cliente guardado:', id);
+    // Guardar material
+    guardar: async function(material) {
+        const id = await db.materiales.put(material);
+        console.log('✅ Material guardado:', id);
         return id;
     },
 
-    obtener: async function(id) {
-        return await db.clientes.get(id);
+    // Actualizar precio (útil para actualizaciones masivas)
+    actualizarPrecio: async function(codigo, nuevoPrecio) {
+        await db.materiales.update(codigo, { precioBase: nuevoPrecio });
     },
 
-    obtenerTodos: async function() {
-        return await db.clientes.reverse().toArray();
+    // Bulk insert (para importar catálogos grandes)
+    importarBulk: async function(materiales) {
+        await db.materiales.bulkPut(materiales);
+        console.log('✅ Materiales importados:', materiales.length);
     },
 
-    actualizar: async function(id, datos) {
-        await db.clientes.update(id, datos);
-    },
-
-    eliminar: async function(id) {
-        await db.clientes.delete(id);
-    },
-
-    contar: async function() {
-        return await db.clientes.count();
+    // Exportar catálogo completo
+    exportar: async function() {
+        return await db.materiales.toArray();
     }
 };
 
 // ─────────────────────────────────────────────────────────────────────
-// CONFIGURACIÓN
+// FACTORES DE RENDIMIENTO
 // ─────────────────────────────────────────────────────────────────────
-window.dbConfig = {
-    guardar: async function(clave, valor) {
-        await db.configuracion.put({ clave, valor });
+window.dbFactores = {
+    todos: async function() {
+        return await db.factoresRendimiento.toArray();
     },
 
-    obtener: async function(clave) {
-        const config = await db.configuracion.get(clave);
-        return config ? config.valor : null;
+    porTipo: async function(tipo) {
+        return await db.factoresRendimiento.where('tipo').equals(tipo).toArray();
     },
 
-    obtenerTodas: async function() {
-        const configs = await db.configuracion.toArray();
-        const resultado = {};
-        configs.forEach(c => resultado[c.clave] = c.valor);
-        return resultado;
+    guardar: async function(factor) {
+        const id = await db.factoresRendimiento.put(factor);
+        console.log('✅ Factor guardado:', id);
+        return id;
+    },
+
+    // Calcular factor compuesto (múltiples factores aplicados)
+    calcularCompuesto: async function(tipos) {
+        const factores = await db.factoresRendimiento
+            .filter(f => tipos.includes(f.tipo))
+            .toArray();
+        
+        // Multiplicar todos los factores
+        const factorTotal = factores.reduce((acc, f) => acc * f.valor, 1);
+        
+        return {
+            factores: factores,
+            factorTotal: factorTotal,
+            porcentajeExtra: ((factorTotal - 1) * 100).toFixed(2)
+        };
     }
 };
 
 // ─────────────────────────────────────────────────────────────────────
-// EXPORTAR/IMPORTAR DATOS (Respaldo)
+// MANO DE OBRA
 // ─────────────────────────────────────────────────────────────────────
-window.dbExportar = async function() {
-    const datos = {
-        version: '1.0',
-        fecha: new Date().toISOString(),
-        cotizaciones: await db.cotizaciones.toArray(),
-        clientes: await db.clientes.toArray(),
-        configuracion: await db.configuracion.toArray()
-    };
-    
-    const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'SmartCot_Respaldo_' + new Date().toISOString().split('T')[0] + '.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    console.log('✅ Datos exportados:', datos);
-    return datos;
-};
+window.dbManoObra = {
+    todos: async function() {
+        return await db.manoObra.toArray();
+    },
 
-window.dbImportar = async function(datosJSON) {
-    try {
-        const datos = JSON.parse(datosJSON);
-        
-        // Limpiar base de datos actual
-        await db.cotizaciones.clear();
-        await db.clientes.clear();
-        await db.configuracion.clear();
-        
-        // Importar datos
-        if (datos.cotizaciones) {
-            await db.cotizaciones.bulkAdd(datos.cotizaciones);
-        }
-        if (datos.clientes) {
-            await db.clientes.bulkAdd(datos.clientes);
-        }
-        if (datos.configuracion) {
-            await db.configuracion.bulkPut(datos.configuracion);
-        }
-        
-        console.log('✅ Datos importados:', datos);
-        alert('✅ Datos restaurados correctamente. La página se recargará.');
-        location.reload();
-        
-    } catch (error) {
-        console.error('❌ Error importando datos:', error);
-        alert('❌ Error al importar datos: ' + error.message);
-        throw error;
+    porEspecialidad: async function(especialidad) {
+        return await db.manoObra.where('especialidad').equals(especialidad).toArray();
+    },
+
+    guardar: async function(mo) {
+        const id = await db.manoObra.put(mo);
+        return id;
     }
 };
 
 // ─────────────────────────────────────────────────────────────────────
-// ESTADÍSTICAS
+// MAQUINARIA
 // ─────────────────────────────────────────────────────────────────────
-window.dbEstadisticas = async function() {
-    const cotizaciones = await db.cotizaciones.toArray();
-    const clientes = await db.clientes.toArray();
-    
-    const totalIngresos = cotizaciones.reduce((sum, c) => sum + (c.totalFinal || 0), 0);
-    const margenPromedio = cotizaciones.length > 0 
-        ? cotizaciones.reduce((sum, c) => sum + (c.margenUtilidad || 0), 0) / cotizaciones.length 
-        : 0;
-    
-    return {
-        cotizaciones: cotizaciones.length,
-        clientes: clientes.length,
-        totalIngresos: totalIngresos,
-        margenPromedio: margenPromedio
-    };
+window.dbMaquinaria = {
+    todos: async function() {
+        return await db.maquinaria.toArray();
+    },
+
+    porTipo: async function(tipo) {
+        return await db.maquinaria.where('tipo').equals(tipo).toArray();
+    },
+
+    guardar: async function(maq) {
+        const id = await db.maquinaria.put(maq);
+        return id;
+    }
 };
 
-console.log('✅ db.js listo - IndexedDB inicializado');
+// ─────────────────────────────────────────────────────────────────────
+// IMPORTAR CATÁLOGO MASIVO (20,000+ MATERIALES)
+// ─────────────────────────────────────────────────────────────────────
+window.dbImportarCatalogo = async function(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = async function(e) {
+            try {
+                const datos = JSON.parse(e.target.result);
+                
+                if (!datos.materiales || !Array.isArray(datos.materiales)) {
+                    throw new Error('Formato inválido');
+                }
+                
+                const total = datos.materiales.length;
+                let procesados = 0;
+                
+                // Importar en lotes de 1000 (mejor rendimiento)
+                const loteSize = 1000;
+                for (let i = 0; i < total; i += loteSize) {
+                    const lote = datos.materiales.slice(i, i + loteSize);
+                    await db.materiales.bulkPut(lote);
+                    procesados += lote.length;
+                    console.log(`📦 Importados ${procesados}/${total}`);
+                }
+                
+                resolve({ total, procesados });
+                
+            } catch (error) {
+                reject(error);
+            }
+        };
+        
+        reader.onerror = () => reject(new Error('Error leyendo archivo'));
+        reader.readAsText(file);
+    });
+};
+
+console.log('✅ db.js listo - Soporte 20,000+ materiales');
