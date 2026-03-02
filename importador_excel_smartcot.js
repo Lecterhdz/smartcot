@@ -111,25 +111,26 @@ window.importadorSmartCot = {
             // Columna J (9): Importe (total)
             // ─────────────────────────────────────────────────────────────
         
-            const unidadConcepto = (row[0] || '').toString().trim();
-            const claveConcepto = (row[1] || '').toString().trim();
-            const descripcionConcepto = (row[2] || '').toString().trim();
-            const unidadConcepto2 = (row[3] || '').toString().trim();
+            const claveConcepto = (row[0] || '').toString().trim();      // Columna A
+            const descripcionConcepto = (row[1] || '').toString().trim(); // Columna B
+            const unidadConcepto = (row[2] || '').toString().trim();      // Columna C
         
-            const claveInsumo = (row[4] || '').toString().trim();
-            const descripcionInsumo = (row[5] || '').toString().trim();
-            const unidadInsumo = (row[6] || '').toString().trim();
-            const cantidad = parseFloat(row[7]) || 0;
-            const precio = parseFloat((row[8] || '0').toString().replace(',', '')) || 0;
-            const importe = parseFloat((row[9] || '0').toString().replace(',', '')) || 0;
+            const claveInsumo = (row[3] || '').toString().trim();         // Columna D
+            const descripcionInsumo = (row[4] || '').toString().trim();   // Columna E
+            const unidadInsumo = (row[5] || '').toString().trim();        // Columna F
+            const cantidad = parseFloat(row[6]) || 0;                     // Columna G
+            const precio = parseFloat((row[7] || '0').toString().replace(',', '')) || 0; // Columna H
+            const importe = parseFloat((row[8] || '0').toString().replace(',', '')) || 0; // Columna I
+   
         
             // DEBUG: Mostrar primeras 10 filas para verificar
             if (i < 12) {
                 console.log(`Fila ${i}:`, {
-                    unidadConcepto,
                     claveConcepto,
                     descripcionConcepto: descripcionConcepto.substring(0, 30),
+                    unidadConcepto,
                     claveInsumo,
+                    descripcionInsumo: descripcionInsumo.substring(0, 30),
                     cantidad,
                     precio,
                     importe
@@ -752,4 +753,5 @@ window.importadorSmartCot = {
 };
 
 console.log('✅ importador_excel_smartcot.js listo - ESTRUCTURA REAL');
+
 
