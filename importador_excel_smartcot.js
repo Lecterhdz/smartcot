@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────
 // SMARTCOT v2.0 - IMPORTADOR EXCEL (VERSIÓN FINAL CORREGIDA)
-// Basado en estructura REAL de tu archivo
+// Basado en estructura REAL de tu Excel
 // ─────────────────────────────────────────────────────────────────────
 
 console.log('📥 importador_excel_smartcot.js cargado - VERSIÓN FINAL');
@@ -12,6 +12,7 @@ window.importadorSmartCot = {
         materiales: 0,
         manoObra: 0,
         equipos: 0,
+        herramienta: 0,
         filasProcesadas: 0,
         filasSaltadas: 0
     },
@@ -38,9 +39,9 @@ window.importadorSmartCot = {
                         const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                         
                         console.log('📊 Filas leídas:', json.length);
-                        console.log('📋 Fila 0 (headers):', json[0]);
+                        console.log('📋 Fila 0:', json[0]);
                         console.log('📋 Fila 1:', json[1]);
-                        console.log('📋 Fila 2 (primer dato):', json[2]);
+                        console.log('📋 Fila 2:', json[2]);
                         
                         const resultado = await this.procesarDatos(json);
                         
@@ -79,6 +80,7 @@ window.importadorSmartCot = {
         const materiales = new Map();
         const manoObra = new Map();
         const equipos = new Map();
+        const herramienta = new Map();
         
         let conceptoActual = null;
         let filasProcesadas = 0;
@@ -86,9 +88,8 @@ window.importadorSmartCot = {
         
         console.log('🔄 Procesando', rows.length, 'filas...');
         
-        // ⚠️ EMPEZAR DESDE FILA 2 (ÍNDICE 2) - NO DESDE 17
-        // Fila 0 = headers, Fila 1 = vacía, Fila 2 = primer dato
-        for (let i = 2; i < rows.length; i++) {
+        // Empezar desde fila 0 (los datos reales empiezan desde el inicio)
+        for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             
             // Saltar filas vacías
@@ -98,50 +99,51 @@ window.importadorSmartCot = {
             }
             
             // ─────────────────────────────────────────────────────────
-            // ESTRUCTURA REAL DE TU EXCEL:
-            // Columna A (0): Clave del concepto (VACÍO para subpartidas)
-            // Columna B (1): Descripción del concepto
-            // Columna C (2): Unidad del concepto
-            // Columna D (3): Clave del insumo
-            // Columna E (4): Descripción del insumo
-            // Columna F (5): Unidad del insumo
-            // Columna G (6): Rendimiento (cantidad)
-            // Columna H (7): Costo (precio unitario)
-            // Columna I (8): Importe (total)
+            // ESTRUCTURA REAL DE TU EXCEL (basado en tu archivo):
+            // Columna A (0): Unidad concepto (PZA, M, KG, SAL, etc.)
+            // Columna B (1): Clave del concepto (12507-098) o VACÍO
+            // Columna C (2): Descripción del concepto
+            // Columna D (3): Unidad del concepto
+            // Columna E (4): Clave del insumo (347-VER-0177, MO031, %MO1, etc.)
+            // Columna F (5): Descripción del insumo
+            // Columna G (6): Unidad del insumo
+            // Columna H (7): Rendimiento (cantidad)
+            // Columna I (8): Costo (precio unitario)
+            // Columna J (9): Importe (total)
             // ─────────────────────────────────────────────────────────
             
-            let claveConcepto = (row[0] || '').toString().trim();
-            const descripcionConcepto = (row[1] || '').toString().trim();
-            const unidadConcepto = (row[2] || '').toString().trim();
+            const unidadConcepto = (row[0] || '').toString().trim();
+            let claveConcepto = (row[1] || '').toString().trim();
+            const descripcionConcepto = (row[2] || '').toString().trim();
+            const unidadConcepto2 = (row[3] || '').toString().trim();
             
-            const claveInsumo = (row[3] || '').toString().trim();
-            const descripcionInsumo = (row[4] || '').toString().trim();
-            const unidadInsumo = (row[5] || '').toString().trim();
-            const cantidad = parseFloat(row[6]) || 0;
-            const precio = parseFloat(row[7]) || 0;
-            const importe = parseFloat(row[8]) || 0;
+            const claveInsumo = (row[4] || '').toString().trim();
+            const descripcionInsumo = (row[5] || '').toString().trim();
+            const unidadInsumo = (row[6] || '').toString().trim();
+            const cantidad = parseFloat(row[7]) || 0;
+            const precio = parseFloat((row[8] || '0').toString().replace(',', '')) || 0;
+            const importe = parseFloat((row[9] || '0').toString().replace(',', '')) || 0;
             
-            // Saltar si no hay insumo
-            if (!claveInsumo || cantidad === 0) {
+            // Saltar filas de encabezado/empresa
+            if (!claveConcepto && !claveInsumo) {
                 filasSaltadas++;
                 continue;
             }
             
-            filasProcesadas++;
+            if (claveConcepto && claveConcepto.includes('SU EMPRESA')) {
+                filasSaltadas++;
+                continue;
+            }
             
-            // ─────────────────────────────────────────────────────────
-            // DETECTAR SI ES NUEVO CONCEPTO
-            // SI Columna A TIENE VALOR = NUEVO CONCEPTO
-            // SI Columna A ESTÁ VACÍA = SUBPARTIDA del concepto anterior
-            // ─────────────────────────────────────────────────────────
-            const esNuevoConcepto = claveConcepto && claveConcepto.length > 0;
+            // Detectar si es NUEVO CONCEPTO (Columna B tiene valor con formato XXXXX-XXX)
+            const esNuevoConcepto = claveConcepto && /^\d{5}-\d{3}$/.test(claveConcepto);
             
             if (esNuevoConcepto) {
                 // Guardar concepto anterior si existe
                 if (conceptoActual) {
                     conceptos.set(conceptoActual.codigo, conceptoActual);
                     this.estadisticas.conceptos++;
-                    console.log('✅ Concepto guardado:', conceptoActual.codigo, conceptoActual.descripcion_corta);
+                    console.log('✅ Concepto guardado:', conceptoActual.codigo, conceptoActual.descripcion_corta.substring(0, 50));
                 }
                 
                 // Crear NUEVO concepto
@@ -152,8 +154,8 @@ window.importadorSmartCot = {
                     subcategoria: this.detectarSubcategoria(claveConcepto, descripcionConcepto),
                     descripcion_corta: this.extraerDescripcionCorta(descripcionConcepto),
                     descripcion_tecnica: descripcionConcepto,
-                    unidad: unidadConcepto,
-                    rendimiento_base: this.calcularRendimientoBase(cantidad),
+                    unidad: unidadConcepto || unidadConcepto2 || 'PZA',
+                    rendimiento_base: 100,
                     factores_aplicables: this.detectarFactores(claveConcepto, descripcionConcepto),
                     riesgo_nivel: this.detectarRiesgo(claveConcepto, descripcionConcepto),
                     activo: true,
@@ -168,7 +170,7 @@ window.importadorSmartCot = {
                         costo_mano_obra: 0,
                         costo_equipo: 0
                     },
-                    metadata: {
+                    meta: {
                         creado_por: 'Importación Excel',
                         version: '1.0',
                         fecha_creacion: new Date().toISOString(),
@@ -179,15 +181,15 @@ window.importadorSmartCot = {
                 console.log('📋 Nuevo concepto detectado:', claveConcepto, descripcionConcepto.substring(0, 50));
             }
             
-            // Si no hay concepto actual, saltar
-            if (!conceptoActual) {
+            // Si no hay concepto actual o no hay insumo, saltar
+            if (!conceptoActual || !claveInsumo || cantidad === 0) {
                 filasSaltadas++;
                 continue;
             }
             
-            // ─────────────────────────────────────────────────────────
-            // PROCESAR SUBPARTIDA (insumo del concepto actual)
-            // ─────────────────────────────────────────────────────────
+            filasProcesadas++;
+            
+            // Procesar SUBPARTIDA (insumo del concepto actual)
             const tipoInsumo = this.detectarTipoInsumo(claveInsumo);
             
             if (tipoInsumo === 'material') {
@@ -273,9 +275,20 @@ window.importadorSmartCot = {
                 
             } else if (tipoInsumo === 'herramienta') {
                 // Herramienta menor (porcentaje)
+                if (!herramienta.has(claveInsumo)) {
+                    herramienta.set(claveInsumo, {
+                        id: 'HERR-' + claveInsumo,
+                        codigo: claveInsumo,
+                        nombre: descripcionInsumo,
+                        tipo: 'herramienta',
+                        porcentaje: cantidad,
+                        activo: true
+                    });
+                }
+                
                 conceptoActual.recursos.herramienta.push({
+                    herramienta_codigo: claveInsumo,
                     nombre: descripcionInsumo,
-                    tipo: 'herramienta',
                     porcentaje: cantidad,
                     importe: importe
                 });
@@ -296,6 +309,7 @@ window.importadorSmartCot = {
         console.log('   - Materiales:', materiales.size);
         console.log('   - Mano de Obra:', manoObra.size);
         console.log('   - Equipos:', equipos.size);
+        console.log('   - Herramienta:', herramienta.size);
         console.log('   - Filas procesadas:', filasProcesadas);
         console.log('   - Filas saltadas:', filasSaltadas);
         
@@ -304,6 +318,7 @@ window.importadorSmartCot = {
             materiales: materiales.size,
             manoObra: manoObra.size,
             equipos: equipos.size,
+            herramienta: herramienta.size,
             filasProcesadas: filasProcesadas,
             filasSaltadas: filasSaltadas,
             errores: 0
@@ -314,6 +329,7 @@ window.importadorSmartCot = {
             materiales: Array.from(materiales.values()),
             manoObra: Array.from(manoObra.values()),
             equipos: Array.from(equipos.values()),
+            herramienta: Array.from(herramienta.values()),
             estadisticas: this.estadisticas
         };
     },
@@ -325,17 +341,17 @@ window.importadorSmartCot = {
     detectarTipoInsumo: function(clave) {
         if (!clave) return 'desconocido';
         
-        // Mano de obra: MO011, MO031, MO041, MO067, MO082, MO084, MO091, MO094, MO111, etc.
+        // Mano de obra: MO031, MO084, MO091, MO094, MO021, MO082, MO085, etc.
         if (/^MO\d+$/.test(clave)) return 'mano_obra';
         
-        // Herramienta: %MO1, %MO5
+        // Herramienta: %MO1, %MO2, %MO3, %MO5
         if (/^%MO\d+$/.test(clave)) return 'herramienta';
         
-        // Equipos: CFREV, CFGRUA, CFECORTE, CFPLAN, CFDOBLA, LLCAMION, LLGRUA, LLREV
+        // Equipos: CFGRUA, CFECORTE, CFPLAN, CFDOBLA, CFREV, LLGRUA, LLCAMION, etc.
         if (/^CF[A-Z]+$/.test(clave)) return 'equipo';
         if (/^LL[A-Z]+$/.test(clave)) return 'equipo';
         
-        // Materiales: todo lo demás (301-ARE-0101, 342-CDM-0711, etc.)
+        // Materiales: todo lo demás (347-VER-0177, 342-RAC-0001, 354-SCL-1203, etc.)
         return 'material';
     },
     
@@ -344,11 +360,12 @@ window.importadorSmartCot = {
         
         if (desc.includes('eléctric') || desc.includes('cable') || desc.includes('conduit') || 
             desc.includes('tablero') || desc.includes('contacto') || desc.includes('ilumin') ||
-            desc.includes('centro de carga')) {
+            desc.includes('centro de carga') || desc.includes('caja') || desc.includes('chalupa')) {
             return 'Eléctrico';
         }
         if (desc.includes('ducto') || desc.includes('charola') || desc.includes('compuerta') ||
-            desc.includes('codo circular') || desc.includes('lamina') || desc.includes('spiroducto')) {
+            desc.includes('codo circular') || desc.includes('lamina') || desc.includes('spiroducto') ||
+            desc.includes('tee') || desc.includes('injerto')) {
             return 'HVAC';
         }
         if (desc.includes('soldad') || desc.includes('estructura') || desc.includes('montaje')) {
@@ -362,6 +379,9 @@ window.importadorSmartCot = {
         }
         if (desc.includes('concreto') || desc.includes('colado') || desc.includes('acero') || desc.includes('albañil')) {
             return 'Concretos';
+        }
+        if (desc.includes('taquete') || desc.includes('pija') || desc.includes('tornillo')) {
+            return 'Anclajes';
         }
         
         return 'General';
@@ -384,6 +404,8 @@ window.importadorSmartCot = {
         if (desc.includes('limpiez')) return 'Limpieza';
         if (desc.includes('trazo')) return 'Trazo';
         if (desc.includes('cople')) return 'Accesorios';
+        if (desc.includes('tee') || desc.includes('injerto')) return 'Tees';
+        if (desc.includes('taquete')) return 'Anclajes';
         
         return 'General';
     },
@@ -405,6 +427,7 @@ window.importadorSmartCot = {
         if (desc.includes('pintor')) return 'Pintura';
         if (desc.includes('herrero')) return 'Herrería';
         if (desc.includes('cabo')) return 'Cabo de Oficios';
+        if (desc.includes('colocador')) return 'Colocación';
         
         return 'General';
     },
@@ -417,6 +440,8 @@ window.importadorSmartCot = {
         if (clave.includes('CAMION')) return 'Transporte';
         if (clave.includes('REV') || clave.includes('REVOLVEDOR')) return 'Concreto';
         if (clave.includes('DOBLA')) return 'Doblado';
+        if (clave.includes('ASPIRAR')) return 'Limpieza';
+        if (clave.includes('VIB')) return 'Compactación';
         
         return 'General';
     },
@@ -452,41 +477,19 @@ window.importadorSmartCot = {
         return corta;
     },
     
-    calcularRendimientoBase: function(cantidad) {
-        // El rendimiento base se calcula como 1 / cantidad total de jornada
-        if (cantidad > 0) {
-            return Math.round(1 / cantidad);
-        }
-        return 100;
-    },
-    
-    // ─────────────────────────────────────────────────────────────────────
-    // IMPORTAR A INDEXEDDB (CORREGIDO)
-    // ─────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────
+    // IMPORTAR A INDEXEDDB
+    // ─────────────────────────────────────────────────────────────────
     importarADB: async function(datos) {
         console.log('💾 Importando a IndexedDB...');
-    
-        // ─────────────────────────────────────────────────────────────────
-        // VERIFICAR QUE DB EXISTE ANTES DE IMPORTAR
-        // ─────────────────────────────────────────────────────────────────
+        
+        // Verificar que db existe
         if (!window.db) {
             console.error('❌ ERROR: window.db no existe');
             alert('❌ Error: La base de datos no está inicializada. Recarga la página.');
             throw new Error('db no inicializada');
         }
-    
-        // Verificar cada tabla
-        const tablasNecesarias = ['conceptos', 'materiales', 'manoObra', 'equipos', 'herramienta'];
-        for (const tabla of tablasNecesarias) {
-            if (!window.db[tabla]) {
-                console.error('❌ ERROR: Tabla', tabla, 'no existe en db');
-                alert('❌ Error: La tabla ' + tabla + ' no existe. Recarga la página.');
-                throw new Error('Tabla ' + tabla + ' no existe');
-            }
-        }
-    
-        console.log('✅ Todas las tablas verificadas');
-    
+        
         const reporte = {
             conceptos: { total: datos.conceptos.length, exitosos: 0, fallidos: 0 },
             materiales: { total: datos.materiales.length, exitosos: 0, fallidos: 0 },
@@ -494,10 +497,8 @@ window.importadorSmartCot = {
             equipos: { total: datos.equipos.length, exitosos: 0, fallidos: 0 },
             herramienta: { total: datos.herramienta.length, exitosos: 0, fallidos: 0 }
         };
-    
-        // ─────────────────────────────────────────────────────────────────
-        // IMPORTAR CONCEPTOS
-        // ─────────────────────────────────────────────────────────────────
+        
+        // Importar conceptos
         console.log('📋 Importando', datos.conceptos.length, 'conceptos...');
         for (const concepto of datos.conceptos) {
             try {
@@ -514,19 +515,17 @@ window.importadorSmartCot = {
                     riesgo_nivel: concepto.riesgo_nivel,
                     activo: concepto.activo !== undefined ? concepto.activo : true
                 };
-            
+                
                 await db.conceptos.put(conceptoSimple);
                 reporte.conceptos.exitosos++;
-            
+                
             } catch (error) {
                 console.error('❌ Error importando concepto:', concepto.codigo, error.message);
                 reporte.conceptos.fallidos++;
             }
         }
-    
-        // ─────────────────────────────────────────────────────────────────
-        // IMPORTAR MATERIALES
-        // ─────────────────────────────────────────────────────────────────
+        
+        // Importar materiales
         console.log('📦 Importando', datos.materiales.length, 'materiales...');
         for (const material of datos.materiales) {
             try {
@@ -537,10 +536,8 @@ window.importadorSmartCot = {
                 reporte.materiales.fallidos++;
             }
         }
-    
-        // ─────────────────────────────────────────────────────────────────
-        // IMPORTAR MANO DE OBRA
-        // ─────────────────────────────────────────────────────────────────
+        
+        // Importar mano de obra
         console.log('👷 Importando', datos.manoObra.length, 'mano de obra...');
         for (const mo of datos.manoObra) {
             try {
@@ -551,10 +548,8 @@ window.importadorSmartCot = {
                 reporte.manoObra.fallidos++;
             }
         }
-    
-        // ─────────────────────────────────────────────────────────────────
-        // IMPORTAR EQUIPOS
-        // ─────────────────────────────────────────────────────────────────
+        
+        // Importar equipos
         console.log('🏗️ Importando', datos.equipos.length, 'equipos...');
         for (const equipo of datos.equipos) {
             try {
@@ -565,21 +560,20 @@ window.importadorSmartCot = {
                     tipo: equipo.tipo || 'Equipo',
                     categoria: equipo.categoria || 'General',
                     costo_renta_dia: equipo.costo_renta_dia || 0,
+                    operador_requerido: equipo.operador_requerido || false,
                     activo: equipo.activo !== undefined ? equipo.activo : true
                 };
-            
+                
                 await db.equipos.put(equipoSimple);
                 reporte.equipos.exitosos++;
-            
+                
             } catch (error) {
                 console.error('❌ Error importando equipo:', equipo.codigo, error.message);
                 reporte.equipos.fallidos++;
             }
         }
-    
-        // ─────────────────────────────────────────────────────────────────
-        // IMPORTAR HERRAMIENTA
-        // ─────────────────────────────────────────────────────────────────
+        
+        // Importar herramienta
         console.log('🔧 Importando', datos.herramienta.length, 'herramienta...');
         for (const herr of datos.herramienta) {
             try {
@@ -590,101 +584,7 @@ window.importadorSmartCot = {
                 reporte.herramienta.fallidos++;
             }
         }
-    
-        console.log('✅ Importación completada:', reporte);
-        return reporte;
-    },
-    
-        // ─────────────────────────────────────────────────────────────────
-        // IMPORTAR CONCEPTOS (SOLO CAMPOS BÁSICOS)
-        // ─────────────────────────────────────────────────────────────────
-        console.log('📋 Importando conceptos...');
-        for (const concepto of datos.conceptos) {
-            try {
-                // Simplificar concepto para que coincida con el esquema
-                const conceptoSimple = {
-                    id: concepto.id,
-                    codigo: concepto.codigo,
-                    categoria: concepto.categoria,
-                    subcategoria: concepto.subcategoria,
-                    descripcion_corta: concepto.descripcion_corta,
-                    descripcion_tecnica: concepto.descripcion_tecnica,
-                    unidad: concepto.unidad,
-                    rendimiento_base: concepto.rendimiento_base,
-                    factores_aplicables: concepto.factores_aplicables,
-                    riesgo_nivel: concepto.riesgo_nivel,
-                    activo: concepto.activo,
-                    // Guardar recursos como JSON string para no complicar el esquema
-                    recursos_json: JSON.stringify(concepto.recursos),
-                    costos_base_json: JSON.stringify(concepto.costos_base),
-                    meta_json: JSON.stringify(concepto.meta)
-                };
-            
-                await db.conceptos.put(conceptoSimple);
-                reporte.conceptos.exitosos++;
-            
-            } catch (error) {
-                console.error('❌ Error importando concepto:', concepto.codigo, error.message);
-                reporte.conceptos.fallidos++;
-            }
-        }
-    
-        // ─────────────────────────────────────────────────────────────────
-        // IMPORTAR MATERIALES
-        // ─────────────────────────────────────────────────────────────────
-        console.log('📦 Importando materiales...');
-        for (const material of datos.materiales) {
-            try {
-                await db.materiales.put(material);
-                reporte.materiales.exitosos++;
-            } catch (error) {
-                console.error('❌ Error importando material:', material.codigo, error.message);
-                reporte.materiales.fallidos++;
-            }
-        }
-    
-        // ─────────────────────────────────────────────────────────────────
-        // IMPORTAR MANO DE OBRA
-        // ─────────────────────────────────────────────────────────────────
-        console.log('👷 Importando mano de obra...');
-        for (const mo of datos.manoObra) {
-            try {
-                await db.manoObra.put(mo);
-                reporte.manoObra.exitosos++;
-            } catch (error) {
-                console.error('❌ Error importando MO:', mo.codigo, error.message);
-                reporte.manoObra.fallidos++;
-            }
-        }
-    
-        // ─────────────────────────────────────────────────────────────────
-        // IMPORTAR EQUIPOS (SIMPLIFICADO)
-        // ─────────────────────────────────────────────────────────────────
-        console.log('🏗️ Importando equipos...');
-        for (const equipo of datos.equipos) {
-            try {
-                // Simplificar equipo para que coincida con el esquema
-                const equipoSimple = {
-                    id: equipo.id,
-                    codigo: equipo.codigo,
-                    nombre: equipo.nombre,
-                    tipo: equipo.tipo || 'Equipo',
-                    costo_renta_dia: equipo.costo_renta_dia || 0,
-                    costo_propiedad_dia: equipo.costo_propiedad_dia || 0,
-                    operador_requerido: equipo.operador_requerido || false,
-                    categoria: equipo.categoria || 'General',
-                    activo: equipo.activo !== undefined ? equipo.activo : true
-                };
-            
-                await db.equipos.put(equipoSimple);
-                reporte.equipos.exitosos++;
-            
-            } catch (error) {
-                console.error('❌ Error importando equipo:', equipo.codigo, error.message);
-                reporte.equipos.fallidos++;
-            }
-        }
-    
+        
         console.log('✅ Importación completada:', reporte);
         return reporte;
     },
@@ -702,7 +602,7 @@ window.importadorSmartCot = {
                     <ol style="color:#555;margin:0;padding-left:20px;">
                         <li>Selecciona tu archivo Excel de APU</li>
                         <li>El sistema detectará automáticamente conceptos y subpartidas</li>
-                        <li>Se importarán: conceptos, materiales, mano de obra, equipos</li>
+                        <li>Se importarán: conceptos, materiales, mano de obra, equipos, herramienta</li>
                         <li>Abre la consola (F12) para ver el progreso detallado</li>
                     </ol>
                 </div>
@@ -815,6 +715,10 @@ window.importadorSmartCot = {
                     <div style="font-size:24px;font-weight:700;color:#1a1a1a;">${r.equipos}</div>
                     <div style="font-size:13px;color:#666;">Equipos</div>
                 </div>
+                <div style="background:white;padding:15px;border-radius:8px;">
+                    <div style="font-size:24px;font-weight:700;color:#1a1a1a;">${r.herramienta}</div>
+                    <div style="font-size:13px;color:#666;">Herramienta</div>
+                </div>
             </div>
             <p style="margin-top:15px;color:#666;font-size:13px;">Filas procesadas: ${r.filasProcesadas} | Filas saltadas: ${r.filasSaltadas}</p>
             <button onclick="window.location.reload()" class="btn btn-primary" style="margin-top:20px;width:100%;padding:14px;">🔄 Recargar Página</button>
@@ -823,5 +727,3 @@ window.importadorSmartCot = {
 };
 
 console.log('✅ importador_excel_smartcot.js listo - VERSIÓN FINAL');
-
-
