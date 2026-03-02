@@ -1,32 +1,29 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - IMPORTADOR DE EXCEL (APU - Análisis de Precios Unitarios)
-// Compatible con tu archivo: Relacion de Rendimientos de Insumos_ExplosiónXConceptoconimporte.xlsx
+// SMARTCOT v2.0 - IMPORTADOR EXCEL (VERSIÓN CORREGIDA)
+// Basado en estructura REAL de tu archivo
 // ─────────────────────────────────────────────────────────────────────
 
-console.log('📥 importador_excel_smartcot.js cargado');
+console.log('📥 importador_excel_smartcot.js cargado - Versión Corregida');
 
 window.importadorSmartCot = {
     
-    // Configuración
-    config: {
-        hojaNombre: 'Hoja1',
-        columnaCodigo: 1,      // Columna B (0-indexed)
-        columnaDescripcion: 2,  // Columna C
-        columnaUnidad: 3,       // Columna D
-        columnaCantidad: 4,     // Columna E
-        columnaPrecio: 5,       // Columna F
-        columnaImporte: 6,      // Columna G
+    estadisticas: {
+        conceptos: 0,
+        materiales: 0,
+        manoObra: 0,
+        equipos: 0,
+        errores: 0
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // IMPORTAR ARCHIVO EXCEL
+    // IMPORTAR ARCHIVO
     // ─────────────────────────────────────────────────────────────────
     importarArchivo: async function(file) {
         return new Promise(async (resolve, reject) => {
             try {
                 console.log('📥 Iniciando importación...', file.name);
+                console.log('📊 Tamaño del archivo:', file.size, 'bytes');
                 
-                // Leer archivo con SheetJS
                 const reader = new FileReader();
                 
                 reader.onload = async (e) => {
@@ -34,14 +31,21 @@ window.importadorSmartCot = {
                         const data = new Uint8Array(e.target.result);
                         const workbook = XLSX.read(data, { type: 'array' });
                         
+                        console.log('📚 Hojas encontradas:', workbook.SheetNames);
+                        
                         // Leer primera hoja
                         const sheet = workbook.Sheets[workbook.SheetNames[0]];
                         const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                         
                         console.log('📊 Filas leídas:', json.length);
+                        console.log('📋 Primera fila:', json[0]);
+                        console.log('📋 Segunda fila:', json[1]);
+                        console.log('📋 Tercera fila:', json[2]);
                         
                         // Procesar datos
                         const resultado = await this.procesarDatos(json);
+                        
+                        console.log('✅ Procesamiento completado:', resultado);
                         
                         // Importar a IndexedDB
                         await this.importarADB(resultado);
@@ -50,74 +54,82 @@ window.importadorSmartCot = {
                         
                     } catch (error) {
                         console.error('❌ Error procesando Excel:', error);
+                        console.error('Stack:', error.stack);
                         reject(error);
                     }
                 };
                 
-                reader.onerror = () => reject(new Error('Error leyendo archivo'));
+                reader.onerror = () => {
+                    console.error('❌ Error leyendo archivo');
+                    reject(new Error('Error leyendo archivo'));
+                };
+                
                 reader.readAsArrayBuffer(file);
                 
             } catch (error) {
+                console.error('❌ Error en importador:', error);
                 reject(error);
             }
         });
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // PROCESAR DATOS DEL EXCEL
+    // PROCESAR DATOS (ESTRUCTURA REAL)
     // ─────────────────────────────────────────────────────────────────
     procesarDatos: function(rows) {
-        const conceptos = [];
+        const conceptos = new Map();
         const materiales = new Map();
         const manoObra = new Map();
         const equipos = new Map();
-        const factores = new Map();
         
         let conceptoActual = null;
-        let filaActual = 0;
-        let conceptosProcesados = 0;
-        let subpartidasProcesadas = 0;
+        let filaProcesada = 0;
         
         console.log('🔄 Procesando', rows.length, 'filas...');
         
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             
-            // Saltar filas vacías o de encabezado
-            if (!row || row.length < 3 || !row[1]) continue;
-            if (row[1].toString().includes('SU EMPRESA') || 
-                row[1].toString().includes('Cliente:') ||
-                row[1].toString().includes('Concurso') ||
-                row[1].toString().includes('Obra:') ||
-                row[1].toString().includes('Lugar:') ||
-                row[1].toString().includes('Ciudad:') ||
-                row[1].toString().includes('PROGRAMA')) continue;
+            // Saltar filas vacías
+            if (!row || row.length < 3) continue;
             
-            filaActual++;
+            // Saltar encabezados y filas de empresa
+            const celdaB = (row[1] || '').toString().trim();
+            if (!celdaB || 
+                celdaB.includes('SU EMPRESA') || 
+                celdaB.includes('Cliente:') ||
+                celdaB.includes('Obra:') ||
+                celdaB.includes('Lugar:') ||
+                celdaB.includes('PROGRAMA') ||
+                celdaB.includes('Concurso')) {
+                continue;
+            }
             
-            // Detectar si es fila de CONCEPTO (código numérico tipo 12209-787)
-            const codigo = row[1]?.toString().trim();
-            const esConcepto = this.esFilaConcepto(codigo);
+            filaProcesada++;
+            
+            // Detectar si es fila de CONCEPTO
+            // Los conceptos tienen códigos como: 12209-787, 10303-511, etc.
+            const esConcepto = this.esFilaConcepto(celdaB);
             
             if (esConcepto) {
                 // Guardar concepto anterior si existe
                 if (conceptoActual) {
-                    conceptos.push(conceptoActual);
-                    conceptosProcesados++;
+                    conceptos.set(conceptoActual.codigo, conceptoActual);
                 }
                 
                 // Crear nuevo concepto
+                // Estructura: Columna B = Código, Columna C = Descripción, Columna D = Unidad
                 conceptoActual = {
-                    id: 'CONCEPTO-' + Date.now() + '-' + conceptosProcesados,
-                    codigo: codigo,
-                    categoria: this.detectarCategoria(codigo, row[2]),
-                    subcategoria: this.detectarSubcategoria(codigo, row[2]),
+                    id: 'CONCEPTO-' + Date.now() + '-' + conceptos.size,
+                    codigo: celdaB,
+                    categoria: this.detectarCategoria(celdaB, row[2]),
+                    subcategoria: this.detectarSubcategoria(celdaB, row[2]),
                     descripcion_corta: this.extraerDescripcionCorta(row[2]),
                     descripcion_tecnica: row[2] || '',
                     unidad: row[3] || 'PZA',
-                    rendimiento_base: this.calcularRendimientoBase(conceptoActual),
-                    factores_aplicables: this.detectarFactores(codigo, row[2]),
-                    riesgo_nivel: this.detectarRiesgo(codigo, row[2]),
+                    rendimiento_base: 100, // Default, se calculará después
+                    factores_aplicables: this.detectarFactores(celdaB, row[2]),
+                    riesgo_nivel: this.detectarRiesgo(celdaB, row[2]),
                     activo: true,
                     recursos: {
                         materiales: [],
@@ -138,14 +150,22 @@ window.importadorSmartCot = {
                     }
                 };
                 
+                console.log('✅ Concepto detectado:', conceptoActual.codigo, conceptoActual.descripcion_corta);
+                
             } else if (conceptoActual) {
                 // Es subpartida del concepto actual
-                subpartidasProcesadas++;
+                // Estructura: Columna B = Código, Columna C = Descripción, Columna D = Unidad, Columna E = Cantidad, Columna F = Precio, Columna G = Importe
+                
+                const codigo = (row[1] || '').toString().trim();
+                const descripcion = (row[2] || '').toString().trim();
+                const unidad = (row[3] || '').toString().trim();
+                const cantidad = parseFloat(row[4]) || 0;
+                const precio = parseFloat((row[5] || '0').toString().replace(',', '')) || 0;
+                const importe = parseFloat((row[6] || '0').toString().replace(',', '')) || 0;
+                
+                if (!codigo || cantidad === 0) continue;
                 
                 const tipo = this.detectarTipoSubpartida(codigo);
-                const cantidad = parseFloat(row[4]) || 0;
-                const precio = parseFloat(row[5]?.toString().replace(',', '')) || 0;
-                const importe = parseFloat(row[6]?.toString().replace(',', '')) || 0;
                 
                 if (tipo === 'material') {
                     // Agregar a materiales
@@ -153,10 +173,10 @@ window.importadorSmartCot = {
                         materiales.set(codigo, {
                             id: 'MAT-' + codigo,
                             codigo: codigo,
-                            nombre: row[2] || '',
-                            descripcion_tecnica: row[2] || '',
+                            nombre: descripcion,
+                            descripcion_tecnica: descripcion,
                             categoria: conceptoActual.categoria,
-                            unidad: row[3] || 'PZA',
+                            unidad: unidad,
                             precio_base: precio,
                             moneda: 'MXN',
                             activo: true
@@ -165,12 +185,12 @@ window.importadorSmartCot = {
                     
                     conceptoActual.recursos.materiales.push({
                         material_codigo: codigo,
-                        nombre: row[2] || '',
+                        nombre: descripcion,
                         cantidad: cantidad,
-                        unidad: row[3] || 'PZA',
+                        unidad: unidad,
                         precio_unitario: precio,
                         importe: importe,
-                        desperdicio_porcentaje: this.calcularDesperdicio(codigo, cantidad)
+                        desperdicio_porcentaje: 5
                     });
                     
                     conceptoActual.costos_base.costo_material += importe;
@@ -178,14 +198,13 @@ window.importadorSmartCot = {
                 } else if (tipo === 'mano_obra') {
                     // Agregar a mano de obra
                     if (!manoObra.has(codigo)) {
-                        const salarioDiario = precio;
                         manoObra.set(codigo, {
                             id: 'MO-' + codigo,
                             codigo: codigo,
-                            puesto: row[2] || '',
-                            especialidad: this.detectarEspecialidad(codigo, row[2]),
-                            salario_diario: salarioDiario,
-                            salario_hora: salarioDiario / 8,
+                            puesto: descripcion,
+                            especialidad: this.detectarEspecialidad(codigo, descripcion),
+                            salario_diario: precio,
+                            salario_hora: precio / 8,
                             prestaciones_porcentaje: 35,
                             categoria: 'Eléctrico',
                             activo: true
@@ -194,8 +213,8 @@ window.importadorSmartCot = {
                     
                     conceptoActual.recursos.mano_obra.push({
                         mano_obra_codigo: codigo,
-                        puesto: row[2] || '',
-                        horas_jornada: cantidad * 8, // Convertir jornadas a horas
+                        puesto: descripcion,
+                        horas_jornada: cantidad * 8,
                         salario_hora: precio / 8,
                         prestaciones_porcentaje: 35,
                         importe: importe
@@ -203,38 +222,13 @@ window.importadorSmartCot = {
                     
                     conceptoActual.costos_base.costo_mano_obra += importe;
                     
-                } else if (tipo === 'factor') {
-                    // Agregar a factores (herramienta, andamios, seguridad)
-                    const factorTipo = this.detectarTipoFactor(codigo);
-                    
-                    if (!factores.has(codigo)) {
-                        factores.set(codigo, {
-                            id: 'FACT-' + codigo,
-                            codigo: codigo,
-                            tipo: factorTipo,
-                            nombre: row[2] || '',
-                            valor: cantidad / 100, // Convertir porcentaje a factor
-                            descripcion: row[2] || '',
-                            activo: true
-                        });
-                    }
-                    
-                    conceptoActual.recursos.herramienta.push({
-                        nombre: row[2] || '',
-                        tipo: factorTipo,
-                        porcentaje: cantidad,
-                        importe: importe
-                    });
-                    
-                    conceptoActual.costos_base.costo_equipo += importe;
-                    
                 } else if (tipo === 'equipo') {
-                    // Agregar a equipos (grúas, plantas, etc.)
+                    // Agregar a equipos
                     if (!equipos.has(codigo)) {
                         equipos.set(codigo, {
                             id: 'EQUIP-' + codigo,
                             codigo: codigo,
-                            nombre: row[2] || '',
+                            nombre: descripcion,
                             tipo: 'Equipo',
                             costo_renta_dia: precio,
                             costo_propiedad_dia: precio * 0.35,
@@ -246,9 +240,20 @@ window.importadorSmartCot = {
                     
                     conceptoActual.recursos.equipos.push({
                         equipo_codigo: codigo,
-                        nombre: row[2] || '',
+                        nombre: descripcion,
                         horas: cantidad,
                         costo_unitario: precio,
+                        importe: importe
+                    });
+                    
+                    conceptoActual.costos_base.costo_equipo += importe;
+                    
+                } else if (tipo === 'herramienta') {
+                    // Herramienta menor (porcentaje)
+                    conceptoActual.recursos.herramienta.push({
+                        nombre: descripcion,
+                        tipo: 'herramienta',
+                        porcentaje: cantidad,
                         importe: importe
                     });
                     
@@ -259,32 +264,30 @@ window.importadorSmartCot = {
         
         // Guardar último concepto
         if (conceptoActual) {
-            conceptos.push(conceptoActual);
-            conceptosProcesados++;
+            conceptos.set(conceptoActual.codigo, conceptoActual);
         }
         
         console.log('✅ Procesamiento completado:');
-        console.log('   - Conceptos:', conceptosProcesados);
-        console.log('   - Subpartidas:', subpartidasProcesadas);
-        console.log('   - Materiales únicos:', materiales.size);
-        console.log('   - Mano de obra única:', manoObra.size);
-        console.log('   - Equipos únicos:', equipos.size);
-        console.log('   - Factores únicos:', factores.size);
+        console.log('   - Conceptos:', conceptos.size);
+        console.log('   - Materiales:', materiales.size);
+        console.log('   - Mano de Obra:', manoObra.size);
+        console.log('   - Equipos:', equipos.size);
+        console.log('   - Filas procesadas:', filaProcesada);
+        
+        this.estadisticas = {
+            conceptos: conceptos.size,
+            materiales: materiales.size,
+            manoObra: manoObra.size,
+            equipos: equipos.size,
+            errores: 0
+        };
         
         return {
-            conceptos,
+            conceptos: Array.from(conceptos.values()),
             materiales: Array.from(materiales.values()),
             manoObra: Array.from(manoObra.values()),
             equipos: Array.from(equipos.values()),
-            factores: Array.from(factores.values()),
-            estadisticas: {
-                conceptos: conceptosProcesados,
-                subpartidas: subpartidasProcesadas,
-                materiales: materiales.size,
-                manoObra: manoObra.size,
-                equipos: equipos.size,
-                factores: factores.size
-            }
+            estadisticas: this.estadisticas
         };
     },
     
@@ -301,20 +304,11 @@ window.importadorSmartCot = {
         if (!codigo) return 'desconocido';
         
         if (codigo.startsWith('MO')) return 'mano_obra';
-        if (codigo.startsWith('%MO')) return 'factor';
+        if (codigo.startsWith('%MO')) return 'herramienta';
         if (codigo.startsWith('CF')) return 'equipo';
         if (codigo.startsWith('LL')) return 'equipo';
         
-        // Materiales tienen códigos alfanuméricos tipo 342-BTC-2007
         return 'material';
-    },
-    
-    detectarTipoFactor: function(codigo) {
-        if (codigo.includes('MO1') || codigo.includes('HERRAMIENTA')) return 'herramienta';
-        if (codigo.includes('MO2') || codigo.includes('ANDAMIOS')) return 'andamios';
-        if (codigo.includes('MO5') || codigo.includes('SEGURIDAD')) return 'seguridad';
-        if (codigo.includes('MO3') || codigo.includes('MATERIALES MENORES')) return 'materiales_menores';
-        return 'otros';
     },
     
     detectarCategoria: function(codigo, descripcion) {
@@ -337,9 +331,6 @@ window.importadorSmartCot = {
         if (desc.includes('desmont') || desc.includes('demolic')) {
             return 'Desmontaje';
         }
-        if (desc.includes('señalamient') || desc.includes('protección civil')) {
-            return 'Señalamiento';
-        }
         
         return 'General';
     },
@@ -349,7 +340,7 @@ window.importadorSmartCot = {
         
         if (desc.includes('conduit') || desc.includes('tubería')) return 'Canalización';
         if (desc.includes('cable')) return 'Cableado';
-        if (desc.includes('tablero') || desc.includes('interruptor') || desc.includes('centro de carga')) return 'Tableros';
+        if (desc.includes('tablero')) return 'Tableros';
         if (desc.includes('charola')) return 'Soportería';
         if (desc.includes('ducto')) return 'Ductos';
         if (desc.includes('válvula')) return 'Válvulas';
@@ -358,11 +349,8 @@ window.importadorSmartCot = {
         if (desc.includes('estructura')) return 'Estructuras';
         if (desc.includes('pint')) return 'Pintura';
         if (desc.includes('desmont')) return 'Desmontaje';
-        if (desc.includes('señalamient')) return 'Señalamiento';
-        if (desc.includes('condulet')) return 'Condulets';
-        if (desc.includes('tierra')) return 'Tierra Física';
         if (desc.includes('contacto')) return 'Contactos';
-        if (desc.includes('ilumin') || desc.includes('luminaria')) return 'Iluminación';
+        if (desc.includes('ilumin')) return 'Iluminación';
         
         return 'General';
     },
@@ -375,26 +363,22 @@ window.importadorSmartCot = {
         if (desc.includes('herr')) return 'Herrería';
         if (desc.includes('soldad')) return 'Soldadura';
         if (desc.includes('pint')) return 'Pintura';
-        if (desc.includes('coloc')) return 'Colocación';
-        if (desc.includes('instalacion')) return 'Instalaciones';
-        if (desc.includes('técnico')) return 'Técnico';
         if (desc.includes('operador')) return 'Operador';
         
         return 'General';
     },
     
     detectarCategoriaEquipo: function(codigo) {
-        if (codigo.includes('GRUA') || codigo.includes('LLGRUA')) return 'Izaje';
-        if (codigo.includes('CORTE') || codigo.includes('OXI')) return 'Corte';
+        if (codigo.includes('GRUA')) return 'Izaje';
+        if (codigo.includes('CORTE')) return 'Corte';
         if (codigo.includes('PLAN') || codigo.includes('SOLDAR')) return 'Soldadura';
         if (codigo.includes('TORRE') || codigo.includes('ANDAMIO')) return 'Acceso';
-        if (codigo.includes('GEN') || codigo.includes('ENERGIA')) return 'Energía';
         
         return 'General';
     },
     
     requiereOperador: function(codigo) {
-        return codigo.includes('GRUA') || codigo.includes('OPERADOR') || codigo.includes('PLAN');
+        return codigo.includes('GRUA') || codigo.includes('OPERADOR');
     },
     
     detectarFactores: function(codigo, descripcion) {
@@ -404,8 +388,6 @@ window.importadorSmartCot = {
         if (desc.includes('altura') || desc.includes('elevacion')) factores.push('altura');
         if (desc.includes('andamio')) factores.push('andamios');
         if (desc.includes('grúa') || desc.includes('grua')) factores.push('izaje');
-        if (desc.includes('soldad') || desc.includes('corte')) factores.push('soldadura');
-        if (desc.includes('peligro') || desc.includes('riesgo')) factores.push('riesgo');
         
         return factores.join(',');
     },
@@ -413,44 +395,16 @@ window.importadorSmartCot = {
     detectarRiesgo: function(codigo, descripcion) {
         const desc = (descripcion || '').toLowerCase();
         
-        if (desc.includes('peligro') || desc.includes('alto voltaje') || desc.includes('tóxico')) return 'alto';
+        if (desc.includes('peligro') || desc.includes('alto voltaje')) return 'alto';
         if (desc.includes('riesgo') || desc.includes('precaución')) return 'medio';
         
         return 'bajo';
     },
     
-    calcularDesperdicio: function(codigo, cantidad) {
-        // Desperdicio estándar por tipo de material
-        if (codigo.includes('TUB') || codigo.includes('CONDUIT')) return 5;
-        if (codigo.includes('CABLE')) return 3;
-        if (codigo.includes('CHAROLA')) return 2;
-        if (codigo.includes('TORNIL') || codigo.includes('TAQUETE')) return 10;
-        
-        return 5; // Default
-    },
-    
-    calcularRendimientoBase: function(concepto) {
-        // Calcular rendimiento basado en el tiempo total de mano de obra
-        if (!concepto || !concepto.recursos) return 100;
-        
-        const totalHorasMO = concepto.recursos.mano_obra.reduce((sum, mo) => sum + (mo.horas_jornada || 0), 0);
-        
-        if (totalHorasMO > 0) {
-            // Rendimiento = 8 horas / horas totales por unidad
-            return Math.round(8 / totalHorasMO);
-        }
-        
-        return 100; // Default
-    },
-    
     extraerDescripcionCorta: function(descripcion) {
         if (!descripcion) return '';
-        
-        // Extraer primeros 60 caracteres o hasta el primer punto
-        const corta = descripcion.substring(0, 60);
-        const punto = corta.indexOf('.');
-        
-        return punto > 0 ? corta.substring(0, punto) : corta;
+        const corta = descripcion.substring(0, 80);
+        return corta;
     },
     
     // ─────────────────────────────────────────────────────────────────
@@ -460,15 +414,13 @@ window.importadorSmartCot = {
         console.log('💾 Importando a IndexedDB...');
         
         const reporte = {
-            conceptos: { total: 0, exitosos: 0, fallidos: 0 },
-            materiales: { total: 0, exitosos: 0, fallidos: 0 },
-            manoObra: { total: 0, exitosos: 0, fallidos: 0 },
-            equipos: { total: 0, exitosos: 0, fallidos: 0 },
-            factores: { total: 0, exitosos: 0, fallidos: 0 }
+            conceptos: { total: datos.conceptos.length, exitosos: 0, fallidos: 0 },
+            materiales: { total: datos.materiales.length, exitosos: 0, fallidos: 0 },
+            manoObra: { total: datos.manoObra.length, exitosos: 0, fallidos: 0 },
+            equipos: { total: datos.equipos.length, exitosos: 0, fallidos: 0 }
         };
         
         // Importar conceptos
-        reporte.conceptos.total = datos.conceptos.length;
         for (const concepto of datos.conceptos) {
             try {
                 await db.conceptos.put(concepto);
@@ -480,7 +432,6 @@ window.importadorSmartCot = {
         }
         
         // Importar materiales
-        reporte.materiales.total = datos.materiales.length;
         for (const material of datos.materiales) {
             try {
                 await db.materiales.put(material);
@@ -492,7 +443,6 @@ window.importadorSmartCot = {
         }
         
         // Importar mano de obra
-        reporte.manoObra.total = datos.manoObra.length;
         for (const mo of datos.manoObra) {
             try {
                 await db.manoObra.put(mo);
@@ -504,7 +454,6 @@ window.importadorSmartCot = {
         }
         
         // Importar equipos
-        reporte.equipos.total = datos.equipos.length;
         for (const equipo of datos.equipos) {
             try {
                 await db.equipos.put(equipo);
@@ -512,18 +461,6 @@ window.importadorSmartCot = {
             } catch (error) {
                 console.error('❌ Error importando equipo:', equipo.codigo, error);
                 reporte.equipos.fallidos++;
-            }
-        }
-        
-        // Importar factores
-        reporte.factores.total = datos.factores.length;
-        for (const factor of datos.factores) {
-            try {
-                await db.factores.put(factor);
-                reporte.factores.exitosos++;
-            } catch (error) {
-                console.error('❌ Error importando factor:', factor.codigo, error);
-                reporte.factores.fallidos++;
             }
         }
         
@@ -536,7 +473,7 @@ window.importadorSmartCot = {
     // ─────────────────────────────────────────────────────────────────
     mostrarUI: function() {
         const html = `
-            <div style="background:white;padding:30px;border-radius:15px;box-shadow:0 4px 20px rgba(0,0,0,0.1);max-width:600px;margin:50px auto;">
+            <div style="background:white;padding:30px;border-radius:15px;box-shadow:0 4px 20px rgba(0,0,0,0.1);max-width:700px;margin:50px auto;">
                 <h2 style="color:#1a1a1a;margin:0 0 20px 0;">📥 Importar Catálogo desde Excel</h2>
                 
                 <div style="background:#E3F2FD;padding:20px;border-radius:10px;margin:20px 0;">
@@ -544,8 +481,8 @@ window.importadorSmartCot = {
                     <ol style="color:#555;margin:0;padding-left:20px;">
                         <li>Selecciona tu archivo Excel de APU</li>
                         <li>El sistema detectará automáticamente conceptos y subpartidas</li>
-                        <li>Se importarán: conceptos, materiales, mano de obra, equipos y factores</li>
-                        <li>El proceso puede tomar varios minutos dependiendo del tamaño</li>
+                        <li>Se importarán: conceptos, materiales, mano de obra, equipos</li>
+                        <li>Abre la consola (F12) para ver el progreso</li>
                     </ol>
                 </div>
                 
@@ -563,6 +500,7 @@ window.importadorSmartCot = {
                         <div id="progress-bar" style="background:#4CAF50;height:100%;width:0%;transition:width 0.3s;"></div>
                     </div>
                     <div id="progress-status" style="margin-top:10px;color:#666;font-size:14px;"></div>
+                    <div id="progress-log" style="margin-top:10px;color:#999;font-size:12px;max-height:150px;overflow-y:auto;"></div>
                 </div>
                 
                 <div id="import-result" style="display:none;background:#E8F5E9;padding:20px;border-radius:10px;margin:20px 0;"></div>
@@ -574,13 +512,11 @@ window.importadorSmartCot = {
             </div>
         `;
         
-        // Crear contenedor
         const container = document.createElement('div');
         container.id = 'import-ui';
         container.innerHTML = html;
         document.body.appendChild(container);
         
-        // Event listener para archivo
         document.getElementById('excel-file').addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
                 console.log('📁 Archivo seleccionado:', e.target.files[0].name);
@@ -597,21 +533,16 @@ window.importadorSmartCot = {
             return;
         }
         
-        // Mostrar progreso
         document.getElementById('import-progress').style.display = 'block';
-        document.getElementById('progress-status').textContent = '📥 Leyendo archivo...';
+        this.log('📥 Leyendo archivo...');
         
         try {
-            // Actualizar progreso
             this.actualizarProgreso(10, 'Procesando datos...');
             
-            // Importar
             const resultado = await this.importarArchivo(file);
             
-            // Actualizar progreso
             this.actualizarProgreso(90, 'Finalizando...');
             
-            // Mostrar resultado
             this.mostrarResultado(resultado);
             
             this.actualizarProgreso(100, '✅ Completado');
@@ -619,14 +550,24 @@ window.importadorSmartCot = {
         } catch (error) {
             console.error('❌ Error en importación:', error);
             alert('❌ Error en importación: ' + error.message);
-            this.actualizarProgreso(0, '❌ Error');
+            this.log('❌ Error: ' + error.message);
         }
+    },
+    
+    log: function(mensaje) {
+        const logDiv = document.getElementById('progress-log');
+        if (logDiv) {
+            logDiv.innerHTML += '<div>' + mensaje + '</div>';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        console.log(mensaje);
     },
     
     actualizarProgreso: function(percent, status) {
         document.getElementById('progress-percent').textContent = percent + '%';
         document.getElementById('progress-bar').style.width = percent + '%';
         document.getElementById('progress-status').textContent = status;
+        this.log(status);
     },
     
     mostrarResultado: function(reporte) {
@@ -653,14 +594,10 @@ window.importadorSmartCot = {
                     <div style="font-size:24px;font-weight:700;color:#1a1a1a;">${r.equipos}</div>
                     <div style="font-size:13px;color:#666;">Equipos</div>
                 </div>
-                <div style="background:white;padding:15px;border-radius:8px;">
-                    <div style="font-size:24px;font-weight:700;color:#1a1a1a;">${r.factores}</div>
-                    <div style="font-size:13px;color:#666;">Factores</div>
-                </div>
             </div>
             <button onclick="window.location.reload()" class="btn btn-primary" style="margin-top:20px;width:100%;padding:14px;">🔄 Recargar Página</button>
         `;
     }
 };
 
-console.log('✅ importador_excel_smartcot.js listo');
+console.log('✅ importador_excel_smartcot.js listo - Versión Corregida');
