@@ -1,86 +1,238 @@
-// SMARTCOT - BASE DE DATOS COMPLETA (IndexedDB + Dexie.js)
-console.log('💾 db.js cargado - SmartCot Database');
+// ─────────────────────────────────────────────────────────────────────
+// SMARTCOT v2.0 - GESTOR DE BASE DE DATOS PRINCIPAL
+// Este archivo inicializa IndexedDB y exporta funciones globales
+// ─────────────────────────────────────────────────────────────────────
 
-const db = new Dexie('SmartCotDB');
+console.log('💾 db.js cargado - Inicializando SmartCotDB...');
 
-db.version(2).stores({
-    cotizaciones: '++id, clienteId, fecha, estado, totalFinal',
-    clientes: '++id, nombre, email, telefono',
-    configuracion: 'clave, valor',
-    materiales: '++id, codigo, nombre, categoria',
-    manoObra: '++id, codigo, especialidad',
-    maquinaria: '++id, codigo, nombre',
-    factoresRendimiento: '++id, tipo, nombre'
-});
-
-async function dbErrorHandler(operation, error) {
-    console.error('❌ DB Error en', operation, ':', error.name, error.message);
-    if (error.name === 'DexieError' || error.name === 'InvalidStateError') {
-        console.log('🔄 Intentando reconstruir base de datos...');
-        try {
-            await db.close();
-            await Dexie.delete('SmartCotDB');
-            window.location.reload();
-        } catch (rebuildError) {
-            console.error('❌ No se pudo reconstruir DB:', rebuildError);
-        }
-    }
-    throw error;
+// ─────────────────────────────────────────────────────────────────────
+// VERIFICAR QUE DEXIE.JS ESTÁ CARGADO
+// ─────────────────────────────────────────────────────────────────────
+if (typeof Dexie === 'undefined') {
+    console.error('❌ ERROR: Dexie.js no está cargado. Verifica que el CDN esté incluido en index.html');
+    throw new Error('Dexie.js no encontrado');
 }
 
-window.dbCotizaciones = {
-    guardar: async function(cotizacion) { try { const id = await db.cotizaciones.add(cotizacion); console.log('✅ Cotización guardada:', id); return id; } catch (error) { return dbErrorHandler('guardar cotización', error); } },
-    obtener: async function(id) { try { return await db.cotizaciones.get(id); } catch (error) { return dbErrorHandler('obtener cotización', error); } },
-    obtenerTodas: async function() { try { return await db.cotizaciones.reverse().toArray(); } catch (error) { console.error('❌ Error obteniendo cotizaciones:', error); return []; } },
-    actualizar: async function(id, datos) { await db.cotizaciones.update(id, datos); },
-    eliminar: async function(id) { await db.cotizaciones.delete(id); },
-    contar: async function() { try { return await db.cotizaciones.count(); } catch (error) { return 0; } }
+// ─────────────────────────────────────────────────────────────────────
+// CREAR INSTANCIA DE BASE DE DATOS
+// ─────────────────────────────────────────────────────────────────────
+const db = new Dexie('SmartCotDB');
+
+// ─────────────────────────────────────────────────────────────────────
+// DEFINIR ESQUEMA DE BASE DE DATOS (VERSIÓN 3)
+// ─────────────────────────────────────────────────────────────────────
+db.version(3).stores({
+    // Conceptos (APU completos)
+    conceptos: '++id, codigo, categoria, subcategoria, unidad, activo, [categoria+subcategoria]',
+    
+    // Materiales (20,000+ registros)
+    materiales: '++id, codigo, nombre, categoria, unidad, precio_base, activo, [categoria+nombre]',
+    
+    // Mano de Obra
+    manoObra: '++id, codigo, puesto, especialidad, activo',
+    
+    // Equipos
+    equipos: '++id, codigo, nombre, tipo, categoria, activo',
+    
+    // Herramienta (%MO1, %MO2, %MO3, %MO5)
+    herramienta: '++id, codigo, nombre, tipo, activo',
+    
+    // Factores de rendimiento
+    factoresRendimiento: '++id, tipo, nombre, valor, activo',
+    
+    // Clientes
+    clientes: '++id, nombre, email, telefono, activo',
+    
+    // Proyectos
+    proyectos: '++id, nombre, cliente, fecha, estado',
+    
+    // Cotizaciones
+    cotizaciones: '++id, proyectoId, fecha, estado, total',
+    
+    // Configuración
+    configuracion: 'clave, valor'
+});
+
+// ─────────────────────────────────────────────────────────────────────
+// CONECTAR A LA BASE DE DATOS
+// ─────────────────────────────────────────────────────────────────────
+db.open().then(function() {
+    console.log('✅ SmartCotDB conectada exitosamente');
+    console.log('📊 Tablas disponibles:', db.tables.map(t => t.name).join(', '));
+    
+    // Inicializar datos por defecto
+    inicializarDatosPorDefecto();
+    
+    // Exportar db globalmente para que otros archivos puedan usarla
+    window.db = db;
+    
+    // Disparar evento de DB lista
+    document.dispatchEvent(new CustomEvent('db-ready', { detail: db }));
+    
+}).catch(function(error) {
+    console.error('❌ Error conectando a SmartCotDB:', error);
+    console.error('Stack:', error.stack);
+    
+    // Intentar reconstruir si hay error de versión
+    if (error.name === 'DexieError' || error.name === 'InvalidStateError') {
+        console.log('🔄 Intentando reconstruir base de datos...');
+        Dexie.delete('SmartCotDB').then(() => {
+            console.log('✅ Base de datos reconstruida, recargando...');
+            location.reload();
+        }).catch(rebuildError => {
+            console.error('❌ No se pudo reconstruir:', rebuildError);
+            alert('❌ Error de base de datos. Limpia el cache del navegador y recarga.');
+        });
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────
+// INICIALIZAR DATOS POR DEFECTO
+// ─────────────────────────────────────────────────────────────────────
+async function inicializarDatosPorDefecto() {
+    try {
+        // Verificar si ya hay configuración
+        const configExiste = await db.configuracion.get('version');
+        
+        if (!configExiste) {
+            console.log('📦 Inicializando datos por defecto...');
+            
+            // Configuración por defecto
+            await db.configuracion.bulkPut([
+                { clave: 'version', valor: '3.0' },
+                { clave: 'iva_default', valor: 16 },
+                { clave: 'utilidad_default', valor: 10 },
+                { clave: 'moneda', valor: 'MXN' },
+                { clave: 'empresa', valor: '' },
+                { clave: 'fecha_instalacion', valor: new Date().toISOString() }
+            ]);
+            
+            // Herramienta por defecto (%MO1, %MO2, %MO3, %MO5)
+            await db.herramienta.bulkPut([
+                { id: 1, codigo: '%MO1', nombre: 'HERRAMIENTA MENOR', tipo: 'herramienta', activo: true },
+                { id: 2, codigo: '%MO2', nombre: 'ANDAMIOS', tipo: 'andamios', activo: true },
+                { id: 3, codigo: '%MO3', nombre: 'MATERIALES MENORES', tipo: 'materiales_menores', activo: true },
+                { id: 4, codigo: '%MO5', nombre: 'EQUIPO DE SEGURIDAD', tipo: 'seguridad', activo: true }
+            ]);
+            
+            // Factores de rendimiento por defecto
+            await db.factoresRendimiento.bulkPut([
+                { id: 1, tipo: 'altura', nombre: 'Trabajo en altura >3m', valor: 1.15, descripcion: '+15% por altura >3m', activo: true },
+                { id: 2, tipo: 'altura', nombre: 'Trabajo en altura >5m', valor: 1.25, descripcion: '+25% por altura >5m', activo: true },
+                { id: 3, tipo: 'altura', nombre: 'Trabajo en altura >10m', valor: 1.40, descripcion: '+40% por altura >10m', activo: true },
+                { id: 4, tipo: 'clima', nombre: 'Clima extremo calor', valor: 1.10, descripcion: '+10% por calor extremo (>35°C)', activo: true },
+                { id: 5, tipo: 'clima', nombre: 'Clima extremo frío', valor: 1.10, descripcion: '+10% por frío extremo (<5°C)', activo: true },
+                { id: 6, tipo: 'dificultad', nombre: 'Espacio confinado', valor: 1.20, descripcion: '+20% por espacio confinado', activo: true },
+                { id: 7, tipo: 'dificultad', nombre: 'Acceso difícil', valor: 1.10, descripcion: '+10% por acceso difícil', activo: true },
+                { id: 8, tipo: 'desperdicio', nombre: 'Desperdicio estándar', valor: 1.05, descripcion: '+5% desperdicio estándar', activo: true },
+                { id: 9, tipo: 'desperdicio', nombre: 'Desperdicio alto', valor: 1.10, descripcion: '+10% desperdicio alto', activo: true },
+                { id: 10, tipo: 'seguridad', nombre: 'EPP especial requerido', valor: 1.08, descripcion: '+8% por EPP especial', activo: true }
+            ]);
+            
+            console.log('✅ Datos por defecto inicializados');
+        }
+        
+    } catch (error) {
+        console.error('⚠️ Error inicializando datos por defecto:', error);
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// FUNCIONES DE UTILIDAD PARA LA BASE DE DATOS
+// ─────────────────────────────────────────────────────────────────────
+window.dbUtils = {
+    // Limpiar toda la base de datos
+    limpiarTodo: async function() {
+        if (confirm('⚠️ ¿Estás seguro de eliminar TODOS los datos? Esta acción no se puede deshacer.')) {
+            await db.conceptos.clear();
+            await db.materiales.clear();
+            await db.manoObra.clear();
+            await db.equipos.clear();
+            await db.herramienta.clear();
+            await db.clientes.clear();
+            await db.proyectos.clear();
+            await db.cotizaciones.clear();
+            // No limpiar configuración ni factores
+            console.log('✅ Base de datos limpiada (excepto configuración)');
+            alert('✅ Datos eliminados. La página se recargará.');
+            location.reload();
+        }
+    },
+    
+    // Exportar toda la base de datos
+    exportarTodo: async function() {
+        const datos = {
+            version: '3.0',
+            fecha: new Date().toISOString(),
+            conceptos: await db.conceptos.toArray(),
+            materiales: await db.materiales.toArray(),
+            manoObra: await db.manoObra.toArray(),
+            equipos: await db.equipos.toArray(),
+            herramienta: await db.herramienta.toArray(),
+            clientes: await db.clientes.toArray(),
+            configuracion: await db.configuracion.toArray(),
+            factoresRendimiento: await db.factoresRendimiento.toArray()
+        };
+        
+        const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'SmartCot_Respaldo_' + new Date().toISOString().split('T')[0] + '.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        console.log('✅ Datos exportados:', datos);
+        alert('✅ Respaldo descargado. Guárdalo en un lugar seguro.');
+    },
+    
+    // Obtener estadísticas de la base de datos
+    estadisticas: async function() {
+        return {
+            conceptos: await db.conceptos.count(),
+            materiales: await db.materiales.count(),
+            manoObra: await db.manoObra.count(),
+            equipos: await db.equipos.count(),
+            herramienta: await db.herramienta.count(),
+            clientes: await db.clientes.count(),
+            proyectos: await db.proyectos.count(),
+            cotizaciones: await db.cotizaciones.count()
+        };
+    },
+    
+    // Verificar si la base de datos está vacía
+    estaVacia: async function() {
+        const count = await db.conceptos.count();
+        return count === 0;
+    },
+    
+    // Buscar concepto por código
+    buscarConcepto: async function(codigo) {
+        return await db.conceptos.where('codigo').equals(codigo).first();
+    },
+    
+    // Buscar material por código
+    buscarMaterial: async function(codigo) {
+        return await db.materiales.where('codigo').equals(codigo).first();
+    },
+    
+    // Obtener todos los conceptos de una categoría
+    conceptosPorCategoria: async function(categoria) {
+        return await db.conceptos.where('categoria').equals(categoria).toArray();
+    },
+    
+    // Obtener configuración
+    obtenerConfig: async function(clave) {
+        const config = await db.configuracion.get(clave);
+        return config ? config.valor : null;
+    }
 };
 
-window.dbClientes = {
-    guardar: async function(cliente) { try { const id = await db.clientes.add(cliente); console.log('✅ Cliente guardado:', id); return id; } catch (error) { return dbErrorHandler('guardar cliente', error); } },
-    obtener: async function(id) { try { return await db.clientes.get(id); } catch (error) { return dbErrorHandler('obtener cliente', error); } },
-    obtenerTodos: async function() { try { return await db.clientes.reverse().toArray(); } catch (error) { console.error('❌ Error obteniendo clientes:', error); return []; } },
-    actualizar: async function(id, datos) { await db.clientes.update(id, datos); },
-    eliminar: async function(id) { await db.clientes.delete(id); },
-    contar: async function() { try { return await db.clientes.count(); } catch (error) { return 0; } }
-};
+// ─────────────────────────────────────────────────────────────────────
+// EVENTO DE DB LISTA PARA OTROS ARCHIVOS
+// ─────────────────────────────────────────────────────────────────────
+document.addEventListener('db-ready', function(e) {
+    console.log('🎯 Evento db-ready disparado - Otros archivos pueden usar window.db');
+});
 
-window.dbConfig = {
-    guardar: async function(clave, valor) { try { await db.configuracion.put({ clave, valor }); console.log('✅ Configuración guardada:', clave); } catch (error) { return dbErrorHandler('guardar configuración', error); } },
-    obtener: async function(clave) { try { const config = await db.configuracion.get(clave); return config ? config.valor : null; } catch (error) { console.error('❌ Error obteniendo configuración:', error); return null; } },
-    obtenerTodas: async function() { try { const configs = await db.configuracion.toArray(); const resultado = {}; configs.forEach(c => resultado[c.clave] = c.valor); return resultado; } catch (error) { console.error('❌ Error obteniendo configuraciones:', error); return { iva: 16, utilidad: 10, empresa: '' }; } }
-};
-
-window.dbMateriales = {
-    buscar: async function(termino, limite = 50) { try { if (termino.length < 2) return []; return await db.materiales.filter(m => m.nombre.toLowerCase().includes(termino.toLowerCase())).limit(limite).toArray(); } catch (error) { return []; } },
-    todos: async function(offset = 0, limite = 100) { try { return await db.materiales.offset(offset).limit(limite).toArray(); } catch (error) { return []; } },
-    guardar: async function(material) { try { return await db.materiales.put(material); } catch (error) { return dbErrorHandler('guardar material', error); } },
-    contar: async function() { try { return await db.materiales.count(); } catch (error) { return 0; } },
-    importarBulk: async function(materiales) { try { await db.materiales.bulkPut(materiales); console.log('✅ Materiales importados:', materiales.length); } catch (error) { return dbErrorHandler('importar materiales', error); } }
-};
-
-window.dbManoObra = {
-    todos: async function() { try { return await db.manoObra.toArray(); } catch (error) { return []; } },
-    guardar: async function(mo) { try { return await db.manoObra.put(mo); } catch (error) { return dbErrorHandler('guardar mano de obra', error); } }
-};
-
-window.dbMaquinaria = {
-    todos: async function() { try { return await db.maquinaria.toArray(); } catch (error) { return []; } },
-    guardar: async function(maq) { try { return await db.maquinaria.put(maq); } catch (error) { return dbErrorHandler('guardar maquinaria', error); } }
-};
-
-window.dbFactores = {
-    todos: async function() { try { return await db.factoresRendimiento.toArray(); } catch (error) { return []; } },
-    guardar: async function(factor) { try { return await db.factoresRendimiento.put(factor); } catch (error) { return dbErrorHandler('guardar factor', error); } }
-};
-
-window.dbExportar = async function() { try { const datos = { version: '2.0', fecha: new Date().toISOString(), cotizaciones: await db.cotizaciones.toArray(), clientes: await db.clientes.toArray(), configuracion: await db.configuracion.toArray() }; const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'SmartCot_Respaldo_' + new Date().toISOString().split('T')[0] + '.json'; a.click(); URL.revokeObjectURL(url); return datos; } catch (error) { console.error('❌ Error exportando:', error); throw error; } };
-
-window.dbImportar = async function(datosJSON) { try { const datos = JSON.parse(datosJSON); await db.cotizaciones.clear(); await db.clientes.clear(); await db.configuracion.clear(); if (datos.cotizaciones) await db.cotizaciones.bulkAdd(datos.cotizaciones); if (datos.clientes) await db.clientes.bulkAdd(datos.clientes); if (datos.configuracion) await db.configuracion.bulkPut(datos.configuracion); alert('✅ Datos restaurados. La página se recargará.'); location.reload(); } catch (error) { console.error('❌ Error importando:', error); alert('❌ Error: ' + error.message); throw error; } };
-
-window.dbEstadisticas = async function() { try { const cotizaciones = await db.cotizaciones.toArray(); const clientes = await db.clientes.toArray(); const totalIngresos = cotizaciones.reduce((sum, c) => sum + (c.totalFinal || 0), 0); const margenPromedio = cotizaciones.length > 0 ? cotizaciones.reduce((sum, c) => sum + (c.margenUtilidad || 0), 0) / cotizaciones.length : 0; return { cotizaciones: cotizaciones.length, clientes: clientes.length, totalIngresos: totalIngresos, margenPromedio: margenPromedio }; } catch (error) { console.error('❌ Error en estadísticas:', error); return { cotizaciones: 0, clientes: 0, totalIngresos: 0, margenPromedio: 0 }; } };
-
-window.dbInicializarEjemplo = async function() { try { const factoresExistentes = await db.factoresRendimiento.count(); if (factoresExistentes === 0) { await db.factoresRendimiento.bulkAdd([ { tipo: 'altura', nombre: 'Altura >3m', valor: 1.15, descripcion: '+15%' }, { tipo: 'dificultad', nombre: 'Espacio confinado', valor: 1.20, descripcion: '+20%' }, { tipo: 'desperdicio', nombre: 'Desperdicio estándar', valor: 1.05, descripcion: '+5%' } ]); } const clientesExistentes = await db.clientes.count(); if (clientesExistentes === 0) { await db.clientes.bulkAdd([ { nombre: 'Cliente Ejemplo 1', email: 'cliente1@email.com', telefono: '55-1234-5678' }, { nombre: 'Cliente Ejemplo 2', email: 'cliente2@email.com', telefono: '55-8765-4321' } ]); } console.log('✅ Datos de ejemplo inicializados'); } catch (error) { console.error('⚠️ Error inicializando ejemplos:', error); } };
-
-console.log('✅ db.js listo - Con manejo de errores');
+console.log('✅ db.js listo - SmartCotDB inicializada');
