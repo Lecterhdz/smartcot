@@ -1,9 +1,9 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - IMPORTADOR EXCEL (ESTRUCTURA REAL CORRREGIDA)
-// Basado en: ExplosiónXConceptoconimporte.xlsx
+// SMARTCOT v2.0 - IMPORTADOR EXCEL (VERSIÓN FINAL CORREGIDA)
+// Basado en estructura REAL de tu archivo
 // ─────────────────────────────────────────────────────────────────────
 
-console.log('📥 importador_excel_smartcot.js cargado - ESTRUCTURA REAL');
+console.log('📥 importador_excel_smartcot.js cargado - VERSIÓN FINAL');
 
 window.importadorSmartCot = {
     
@@ -38,8 +38,9 @@ window.importadorSmartCot = {
                         const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                         
                         console.log('📊 Filas leídas:', json.length);
-                        console.log('📋 Fila 15 (headers):', json[15]);
-                        console.log('📋 Fila 17 (primer dato):', json[17]);
+                        console.log('📋 Fila 0 (headers):', json[0]);
+                        console.log('📋 Fila 1:', json[1]);
+                        console.log('📋 Fila 2 (primer dato):', json[2]);
                         
                         const resultado = await this.procesarDatos(json);
                         
@@ -71,7 +72,7 @@ window.importadorSmartCot = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // PROCESAR DATOS (ESTRUCTURA REAL)
+    // PROCESAR DATOS (ESTRUCTURA REAL DE TU EXCEL)
     // ─────────────────────────────────────────────────────────────────
     procesarDatos: function(rows) {
         const conceptos = new Map();
@@ -85,9 +86,9 @@ window.importadorSmartCot = {
         
         console.log('🔄 Procesando', rows.length, 'filas...');
         
-        // Empezar desde la fila 17 (índice 17) - después de los headers
-        // Fila 15 = headers, Fila 16 = vacía, Fila 17 = primer dato
-        for (let i = 17; i < rows.length; i++) {
+        // ⚠️ EMPEZAR DESDE FILA 2 (ÍNDICE 2) - NO DESDE 17
+        // Fila 0 = headers, Fila 1 = vacía, Fila 2 = primer dato
+        for (let i = 2; i < rows.length; i++) {
             const row = rows[i];
             
             // Saltar filas vacías
@@ -96,8 +97,9 @@ window.importadorSmartCot = {
                 continue;
             }
             
-            // ESTRUCTURA REAL:
-            // Columna A (0): Clave del concepto o VACÍO
+            // ─────────────────────────────────────────────────────────
+            // ESTRUCTURA REAL DE TU EXCEL:
+            // Columna A (0): Clave del concepto (VACÍO para subpartidas)
             // Columna B (1): Descripción del concepto
             // Columna C (2): Unidad del concepto
             // Columna D (3): Clave del insumo
@@ -106,6 +108,7 @@ window.importadorSmartCot = {
             // Columna G (6): Rendimiento (cantidad)
             // Columna H (7): Costo (precio unitario)
             // Columna I (8): Importe (total)
+            // ─────────────────────────────────────────────────────────
             
             let claveConcepto = (row[0] || '').toString().trim();
             const descripcionConcepto = (row[1] || '').toString().trim();
@@ -126,7 +129,11 @@ window.importadorSmartCot = {
             
             filasProcesadas++;
             
-            // Detectar si es NUEVO CONCEPTO (Columna A tiene valor)
+            // ─────────────────────────────────────────────────────────
+            // DETECTAR SI ES NUEVO CONCEPTO
+            // SI Columna A TIENE VALOR = NUEVO CONCEPTO
+            // SI Columna A ESTÁ VACÍA = SUBPARTIDA del concepto anterior
+            // ─────────────────────────────────────────────────────────
             const esNuevoConcepto = claveConcepto && claveConcepto.length > 0;
             
             if (esNuevoConcepto) {
@@ -161,7 +168,7 @@ window.importadorSmartCot = {
                         costo_mano_obra: 0,
                         costo_equipo: 0
                     },
-                    meta {
+                    metadata: {
                         creado_por: 'Importación Excel',
                         version: '1.0',
                         fecha_creacion: new Date().toISOString(),
@@ -178,7 +185,9 @@ window.importadorSmartCot = {
                 continue;
             }
             
-            // Procesar SUBPARTIDA (insumo del concepto actual)
+            // ─────────────────────────────────────────────────────────
+            // PROCESAR SUBPARTIDA (insumo del concepto actual)
+            // ─────────────────────────────────────────────────────────
             const tipoInsumo = this.detectarTipoInsumo(claveInsumo);
             
             if (tipoInsumo === 'material') {
@@ -310,25 +319,23 @@ window.importadorSmartCot = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // FUNCIONES DE DETECCIÓN (CORREGIDAS)
+    // FUNCIONES DE DETECCIÓN
     // ─────────────────────────────────────────────────────────────────
     
     detectarTipoInsumo: function(clave) {
         if (!clave) return 'desconocido';
         
-        // Mano de obra: MO031, MO084, MO091, MO094, etc.
+        // Mano de obra: MO011, MO031, MO041, MO067, MO082, MO084, MO091, MO094, MO111, etc.
         if (/^MO\d+$/.test(clave)) return 'mano_obra';
         
-        // Herramienta: %MO1, %MO2, %MO5
+        // Herramienta: %MO1, %MO5
         if (/^%MO\d+$/.test(clave)) return 'herramienta';
         
-        // Equipos: CFGRUA, CFECORTE, CFPLAN, CFDOBLA, etc.
+        // Equipos: CFREV, CFGRUA, CFECORTE, CFPLAN, CFDOBLA, LLCAMION, LLGRUA, LLREV
         if (/^CF[A-Z]+$/.test(clave)) return 'equipo';
-        
-        // Llantas/Equipos: LLGRUA, LLCAMION, LLREV
         if (/^LL[A-Z]+$/.test(clave)) return 'equipo';
         
-        // Materiales: 301-ARE-0101, 342-BTC-2007, 359-CMB-0401, etc.
+        // Materiales: todo lo demás (301-ARE-0101, 342-CDM-0711, etc.)
         return 'material';
     },
     
@@ -353,7 +360,7 @@ window.importadorSmartCot = {
         if (desc.includes('pint')) {
             return 'Pintura';
         }
-        if (desc.includes('concreto') || desc.includes('colado') || desc.includes('acero')) {
+        if (desc.includes('concreto') || desc.includes('colado') || desc.includes('acero') || desc.includes('albañil')) {
             return 'Concretos';
         }
         
@@ -370,7 +377,7 @@ window.importadorSmartCot = {
         if (desc.includes('conduit')) return 'Canalización';
         if (desc.includes('charola')) return 'Soportería';
         if (desc.includes('ilumin') || desc.includes('luminaria')) return 'Iluminación';
-        if (desc.includes('contacto') || desc.includes('caja')) return 'Contactos';
+        if (desc.includes('contacto') || desc.includes('caja') || desc.includes('chalupa')) return 'Contactos';
         if (desc.includes('gabinete')) return 'Gabinetes';
         if (desc.includes('tierra') || desc.includes('pararrayo')) return 'Tierra Física';
         if (desc.includes('soldad') || desc.includes('estructura')) return 'Soldadura';
@@ -397,6 +404,7 @@ window.importadorSmartCot = {
         if (desc.includes('carpintero')) return 'Carpintería';
         if (desc.includes('pintor')) return 'Pintura';
         if (desc.includes('herrero')) return 'Herrería';
+        if (desc.includes('cabo')) return 'Cabo de Oficios';
         
         return 'General';
     },
@@ -446,7 +454,6 @@ window.importadorSmartCot = {
     
     calcularRendimientoBase: function(cantidad) {
         // El rendimiento base se calcula como 1 / cantidad total de jornada
-        // Si cantidad es 0.5 JOR, rendimiento = 2 unidades por jornada
         if (cantidad > 0) {
             return Math.round(1 / cantidad);
         }
@@ -647,4 +654,4 @@ window.importadorSmartCot = {
     }
 };
 
-console.log('✅ importador_excel_smartcot.js listo - ESTRUCTURA REAL');
+console.log('✅ importador_excel_smartcot.js listo - VERSIÓN FINAL');
