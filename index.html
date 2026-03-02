@@ -198,5 +198,9 @@
         document.getElementById('modal-cliente').addEventListener('click', function(e) { if (e.target === this) app.cerrarModalCliente(); });
         document.addEventListener('keydown', function(e) { if (e.key === 'Escape') app.cerrarModalCliente(); });
     </script>
+    <!-- En index.html, antes de </body> -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="importador_excel_smartcot.js"></script>
 </body>
 </html>
+
