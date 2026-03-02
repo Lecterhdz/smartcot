@@ -11,7 +11,7 @@ const app = {
         indirectos: []
     },
 
-    init: async function() {
+    app.init: async function() {
         console.log('🏭 SmartCot iniciado');
         
         // Cargar licencia
@@ -35,15 +35,61 @@ const app = {
         console.log('✅ SmartCot listo');
     },
 
-    mostrarPantalla: function(id) {
+    app.mostrarPantalla = function(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         window.scrollTo(0, 0);
-        
+    
         if (id === 'historial-screen') this.cargarHistorial();
         if (id === 'clientes-screen') this.cargarClientesTabla();
         if (id === 'configuracion-screen') this.cargarConfiguracionForm();
-    },
+    
+        // ✅ VERIFICAR CLIENTES AL ABRIR NUEVA COTIZACIÓN
+        if (id === 'nueva-cotizacion') {
+            this.verificarClientesDisponibles();
+        }
+    };
+
+    // ─────────────────────────────────────────────────────────────────────
+    // VERIFICAR SI HAY CLIENTES DISPONIBLES
+    // ─────────────────────────────────────────────────────────────────────
+    app.verificarClientesDisponibles = async function() {
+        const clientes = await dbClientes.obtenerTodos();
+        const select = document.getElementById('cot-cliente');
+        const mensaje = document.getElementById('sin-clientes-msg');
+    
+        if (clientes.length === 0) {
+            // No hay clientes, mostrar mensaje y abrir modal automáticamente
+            if (mensaje) mensaje.style.display = 'block';
+            select.disabled = true;
+        
+            // Mostrar mensaje más claro
+            const alerta = document.createElement('div');
+            alerta.className = 'alert alert-warning';
+            alerta.innerHTML = '<strong>⚠️ No hay clientes registrados</strong><br>Primero debes agregar al menos un cliente para crear una cotización.';
+            alerta.style.display = 'block';
+        
+            // Insertar antes del select si no existe
+            if (!document.getElementById('alerta-sin-clientes')) {
+                alerta.id = 'alerta-sin-clientes';
+                select.parentElement.insertBefore(alerta, select);
+            }
+        
+            // Abrir modal automáticamente después de 1 segundo
+            setTimeout(() => {
+                this.mostrarModalCliente();
+            }, 1000);
+        
+        } else {
+            // Hay clientes, todo bien
+            if (mensaje) mensaje.style.display = 'none';
+            select.disabled = false;
+        
+            // Remover alerta si existe
+            const alertaExistente = document.getElementById('alerta-sin-clientes');
+            if (alertaExistente) alertaExistente.remove();
+        }
+    };
 
     actualizarInfoLicencia: function(licencia) {
         const info = document.getElementById('license-info');
@@ -54,6 +100,54 @@ const app = {
         }
     },
 
+    // ─────────────────────────────────────────────────────────────────────
+    // MODAL DE CLIENTE RÁPIDO
+    // ─────────────────────────────────────────────────────────────────────
+
+    app.mostrarModalCliente = function() {
+        document.getElementById('modal-cliente').style.display = 'flex';
+        document.getElementById('modal-cliente-nombre').focus();
+    };
+
+    app.cerrarModalCliente = function() {
+        document.getElementById('modal-cliente').style.display = 'none';
+        document.getElementById('modal-cliente-nombre').value = '';
+        document.getElementById('modal-cliente-email').value = '';
+        document.getElementById('modal-cliente-telefono').value = '';
+        document.getElementById('modal-cliente-notas').value = '';
+    };
+
+    app.guardarClienteRapido = async function() {
+        const nombre = document.getElementById('modal-cliente-nombre').value.trim();
+        const email = document.getElementById('modal-cliente-email').value.trim();
+        const telefono = document.getElementById('modal-cliente-telefono').value.trim();
+        const notas = document.getElementById('modal-cliente-notas').value.trim();
+    
+        if (!nombre) {
+            alert('⚠️ El nombre del cliente es obligatorio');
+            return;
+        }
+    
+        try {
+            const clienteId = await dbClientes.guardar({ nombre, email, telefono, notas });
+        
+            // Actualizar select de clientes
+            await this.cargarClientesSelect();
+        
+            // Seleccionar el cliente recién creado
+            document.getElementById('cot-cliente').value = clienteId;
+        
+            // Cerrar modal
+            this.cerrarModalCliente();
+        
+            alert('✅ Cliente guardado y seleccionado');
+        
+        } catch (error) {
+            alert('❌ Error al guardar cliente: ' + error.message);
+        }
+    };
+
+    
     cargarEstadisticas: async function() {
         const stats = await dbEstadisticas();
         document.getElementById('stat-cotizaciones').textContent = stats.cotizaciones;
@@ -297,12 +391,24 @@ const app = {
         // Render similar a cargarHistorial
     },
 
-    cargarClientesSelect: async function() {
+    app.cargarClientesSelect = async function() {
         const clientes = await dbClientes.obtenerTodos();
+    
+        // Llenar datalist
+        const datalist = document.getElementById('clientes-lista');
+        if (datalist) {
+            datalist.innerHTML = clientes.map(c => 
+                `<option value="${c.nombre}">`
+            ).join('');
+        }
+    
+        // También llenar select tradicional si existe
         const select = document.getElementById('cot-cliente');
-        select.innerHTML = '<option value="">Seleccionar cliente...</option>' +
-            clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
-    },
+        if (select) {
+            select.innerHTML = '<option value="">Seleccionar cliente...</option>' +
+                clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+        }
+    };
 
     cargarClientesTabla: async function() {
         const clientes = await dbClientes.obtenerTodos();
@@ -402,5 +508,6 @@ const app = {
 document.addEventListener('DOMContentLoaded', function() {
     app.init();
 });
+
 
 console.log('✅ app.js listo');
