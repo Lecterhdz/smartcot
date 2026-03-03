@@ -183,28 +183,28 @@
                 <h4 style="margin-bottom: 15px; color: #1a1a1a;">🔧 Recursos Manuales</h4>
                 
                 <div class="form-group">
-                    <label>📦 Materiales</label>
+                    <label>📦 Materiales <span style="color:#666;font-size:13px;">(Nombre | Cantidad | Precio Unitario)</span></label>
                     <div id="materiales-lista"></div>
-                    <button class="btn btn-secondary" onclick="app.agregarMaterial()" style="margin-top: 10px;">➕ Agregar Material</button>
+                    <button class="btn btn-secondary" onclick="app.agregarMaterial()" style="margin-top:10px;">➕ Agregar Material</button>
                 </div>
 
                 <div class="form-group">
-                    <label>👷 Mano de Obra</label>
+                    <label>👷 Mano de Obra <span style="color:#666;font-size:13px;">(Concepto | Horas | Precio por Hora)</span></label>
                     <div id="mano-obra-lista"></div>
-                    <button class="btn btn-secondary" onclick="app.agregarManoObra()" style="margin-top: 10px;">➕ Agregar Mano de Obra</button>
+                    <button class="btn btn-secondary" onclick="app.agregarManoObra()" style="margin-top:10px;">➕ Agregar Mano de Obra</button>
                 </div>
 
                 <div class="form-group">
-                    <label>🏗️ Equipos</label>
+                    <label>🏗️ Equipos <span style="color:#666;font-size:13px;">(Nombre | Horas | Costo Unitario)</span></label>
                     <div id="equipos-lista"></div>
-                    <button class="btn btn-secondary" onclick="app.agregarEquipo()" style="margin-top: 10px;">➕ Agregar Equipo</button>
+                    <button class="btn btn-secondary" onclick="app.agregarEquipo()" style="margin-top:10px;">➕ Agregar Equipo</button>
                 </div>
 
-                <div class="form-group">
-                    <label>📊 Indirectos</label>
-                    <div id="indirectos-lista"></div>
-                    <button class="btn btn-secondary" onclick="app.agregarIndirecto()" style="margin-top: 10px;">➕ Agregar Indirecto</button>
-                </div>
+<div class="form-group">
+    <label>📊 Indirectos <span style="color:#666;font-size:13px;">(Concepto | Monto)</span></label>
+    <div id="indirectos-lista"></div>
+    <button class="btn btn-secondary" onclick="app.agregarIndirecto()" style="margin-top:10px;">➕ Agregar Indirecto</button>
+</div>
 
                 <div style="margin-top: 25px; padding: 25px; background: linear-gradient(135deg, #1a1a1a, #333333); border-radius: 15px; color: white;">
                     <h4 style="margin-bottom: 20px;">💰 Resumen Financiero</h4>
@@ -238,9 +238,30 @@
         <!-- CATÁLOGOS SCREEN -->
         <section id="catalogos-screen" class="screen">
             <div class="card">
-                <h2>📚 Catálogo de Conceptos</h2>
-                <input type="text" id="buscar-catalogo" placeholder="🔍 Buscar conceptos por código o descripción..." style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px; margin-bottom: 20px;">
-                <div id="lista-catalogo" style="max-height: 600px; overflow-y: auto;"></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                    <h2>📚 Catálogo de Conceptos</h2>
+                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="padding:10px 20px;">↩️ Volver</button>
+                </div>
+        
+                <!-- Filtros por Categoría -->
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+                    <button class="btn btn-primary" onclick="app.filtrarCatalogo('todos')" style="padding:8px 16px;">📋 Todos</button>
+                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Eléctrico')" style="padding:8px 16px;">⚡ Eléctrico</button>
+                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Mecánico')" style="padding:8px 16px;">🔧 Mecánico</button>
+                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('HVAC')" style="padding:8px 16px;">❄️ HVAC</button>
+                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Señalamiento')" style="padding:8px 16px;">🚦 Señalamiento</button>
+                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Limpieza')" style="padding:8px 16px;">🧹 Limpieza</button>
+                </div>
+        
+               <!-- Buscador -->
+                <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:20px;">
+                    <input type="text" id="buscar-catalogo" placeholder="🔍 Buscar por código o descripción..." 
+                           style="width:100%;padding:14px;border:2px solid #ddd;border-radius:10px;font-size:14px;"
+                           onkeyup="app.buscarEnCatalogo()">
+                    <button class="btn btn-primary" onclick="app.buscarEnCatalogo()" style="padding:14px 25px;">🔍 Buscar</button>
+                </div>
+        
+                <div id="lista-catalogo" style="max-height:600px;overflow-y:auto;"></div>
             </div>
         </section>
 
@@ -360,3 +381,4 @@
     </script>
 </body>
 </html>
+
