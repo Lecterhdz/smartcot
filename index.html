@@ -435,6 +435,83 @@
             </div>
         </section>
 
+
+            <!-- BOTÓN PARA ABRIR FACTORES -->
+            <div style="margin-top:15px;padding:15px;background:#FFF3E0;border-radius:10px;border-left:4px solid #FF9800;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <div style="font-weight:600;color:#E65100;margin-bottom:5px;">⚠️ Factores de Ajuste</div>
+                        <div style="font-size:13px;color:#666;">Altura, clima, dificultad afectan los rendimientos</div>
+                    </div>
+                    <button class="btn" onclick="app.abrirFactoresAjuste()" 
+                            style="background:#FF9800;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;">
+                        📊 Aplicar Factores
+                    </button>
+                </div>
+            </div>
+            
+            <!-- MODAL DE FACTORES -->
+            <div id="modal-factores" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+                <div style="background:white;padding:30px;border-radius:20px;max-width:600px;width:90%;max-height:90vh;overflow-y:auto;">
+                    <h3 style="margin:0 0 20px 0;color:#1a1a1a;">📊 Factores de Ajuste de Rendimientos</h3>
+                    
+                    <div style="margin-bottom:20px;">
+                        <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">Altura / Elevación</label>
+                        <select id="factor-altura" onchange="app.aplicarFactores()" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                            <option value="1">Sin altura (0-3m) - 100%</option>
+                            <option value="1.15">Altura media (3-5m) - 115%</option>
+                            <option value="1.25">Altura alta (5-10m) - 125%</option>
+                            <option value="1.40">Altura muy alta (+10m) - 140%</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-bottom:20px;">
+                        <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">Condiciones Climáticas</label>
+                        <select id="factor-clima" onchange="app.aplicarFactores()" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                            <option value="1">Normal - 100%</option>
+                            <option value="1.10">Calor extremo (>35°C) - 110%</option>
+                            <option value="1.10">Frío extremo (<5°C) - 110%</option>
+                            <option value="1.15">Lluvia / Humedad - 115%</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-bottom:20px;">
+                        <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">Dificultad de Acceso</label>
+                        <select id="factor-acceso" onchange="app.aplicarFactores()" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                            <option value="1">Acceso libre - 100%</option>
+                            <option value="1.10">Acceso restringido - 110%</option>
+                            <option value="1.20">Espacio confinado - 120%</option>
+                            <option value="1.25">Área operativa - 125%</option>
+                        </select>
+                    </div>
+                    
+                    <div style="background:#E3F2FD;padding:15px;border-radius:10px;margin-bottom:20px;">
+                        <div style="font-size:13px;color:#1565C0;margin-bottom:10px;">📈 Impacto en Tiempo de Ejecución</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                            <div>
+                                <div style="font-size:11px;color:#666;">Tiempo Original</div>
+                                <div style="font-size:18px;font-weight:700;" id="tiempo-original">0 días</div>
+                            </div>
+                            <div>
+                                <div style="font-size:11px;color:#666;">Tiempo Ajustado</div>
+                                <div style="font-size:18px;font-weight:700;color:#f44336;" id="tiempo-ajustado">0 días</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex;gap:15px;">
+                        <button class="btn" onclick="app.guardarFactores()" 
+                                style="flex:1;background:#4CAF50;color:white;border:none;padding:14px;border-radius:10px;cursor:pointer;font-weight:600;">
+                            ✅ Aplicar Factores
+                        </button>
+                        <button class="btn" onclick="document.getElementById('modal-factores').style.display='none'" 
+                                style="flex:1;background:#f44336;color:white;border:none;padding:14px;border-radius:10px;cursor:pointer;font-weight:600;">
+                            ❌ Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+                    
         <!-- PROGRAMACIÓN SCREEN -->
         <section id="programacion-screen" class="screen">
             <div class="card">
@@ -598,6 +675,7 @@
     </script>
 </body>
 </html>
+
 
 
 
