@@ -117,6 +117,7 @@ const app = {
         document.querySelectorAll('.screen').forEach(s => {
             s.classList.remove('active');
             s.style.display = 'none';
+            console.log('Ocultando:', s.id);
         });
         
         // Mostrar pantalla seleccionada
@@ -131,25 +132,16 @@ const app = {
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
         
-        // Cargar datos específicos de cada pantalla
+        // Cargar datos específicos
         switch(id) {
             case 'dashboard-screen':
                 this.cargarEstadisticas();
                 break;
-            case 'historial-screen':
-                this.cargarHistorial();
-                break;
-            case 'clientes-screen':
-                this.cargarClientesTabla();
-                break;
-            case 'configuracion-screen':
-                this.cargarConfiguracionForm();
-                break;
-            case 'nueva-cotizacion-screen':
-                this.verificarClientesDisponibles();
-                break;
             case 'catalogos-screen':
                 this.cargarCatalogoCompleto();
+                break;
+            case 'importar-screen':
+                console.log('Pantalla de importar lista');
                 break;
         }
         
@@ -1172,5 +1164,6 @@ if (typeof document !== 'undefined') {
 }
 
 console.log('✅ app.js v2.0 listo');
+
 
 
