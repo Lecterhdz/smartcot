@@ -256,11 +256,24 @@ const app = {
             return;
         }
         
-        container.innerHTML = resultados.slice(0, 10).map(c => `
+    // ─────────────────────────────────────────────────────────────────────
+    // MOSTRAR RESULTADOS DE BÚSQUEDA (CORREGIDO)
+    // ─────────────────────────────────────────────────────────────────────
+    mostrarResultadosBusqueda: function(resultados) {
+        const container = document.getElementById('resultados-busqueda');
+        if (!container) return;
+    
+        if (resultados.length === 0) {
+            container.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">No se encontraron conceptos</div>';
+            return;
+        }
+    
+        // Usar índice en lugar de ID para evitar problemas de scope
+        container.innerHTML = resultados.slice(0, 10).map((c, index) => `
             <div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin:10px 0;background:white;cursor:pointer;transition:all 0.3s;" 
                  onmouseover="this.style.background='#f5f7fa'" 
                  onmouseout="this.style.background='white'"
-                 onclick="app.agregarConceptoACotizacion('${c.id}')">
+                 onclick="app.agregarConceptoPorIndex(${index})">
                 <div style="display:flex;justify-content:space-between;align-items:start;">
                     <div style="flex:1;">
                         <div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">${c.codigo}</div>
@@ -271,42 +284,157 @@ const app = {
                 </div>
             </div>
         `).join('');
+    
+        // Guardar resultados actuales en app para acceder después
+        this.resultadosBusquedaActual = resultados;
     },
     
+    // ─────────────────────────────────────────────────────────────────────
+    // AGREGAR CONCEPTO POR ÍNDICE (NUEVA FUNCIÓN)
+    // ─────────────────────────────────────────────────────────────────────
+    agregarConceptoPorIndex: async function(index) {
+        const concepto = this.resultadosBusquedaActual[index];
+        if (!concepto) {
+            this.notificacion('Concepto no encontrado', 'error');
+            return;
+        }
+    
+        await this.agregarConceptoACotizacion(concepto.id);
+    },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // AGREGAR CONCEPTO A COTIZACIÓN (CORREGIDO)
+    // ─────────────────────────────────────────────────────────────────────
     agregarConceptoACotizacion: async function(conceptoId) {
         try {
-            const concepto = await window.conceptosService.obtenerCompleto(conceptoId);
-            
+            // Obtener concepto completo de la BD
+            const concepto = await window.db.conceptos.get(conceptoId);
+        
             if (!concepto) {
                 this.notificacion('Concepto no encontrado', 'error');
                 return;
             }
-            
+        
             // Verificar si ya está agregado
             const existe = this.datosCotizacion.conceptosSeleccionados.find(c => c.id === conceptoId);
             if (existe) {
                 this.notificacion('Este concepto ya está en la cotización', 'advertencia');
                 return;
             }
-            
+        
             // Agregar con cantidad por defecto
             concepto.cantidad = 1;
             this.datosCotizacion.conceptosSeleccionados.push(concepto);
-            
+        
             // Recalcular totales
             this.calcularTotalConConceptos();
-            
+        
             // Actualizar UI
             this.actualizarConceptosSeleccionadosUI();
-            
+        
             this.notificacion(`✅ Concepto ${concepto.codigo} agregado`, 'exito');
-            
+        
         } catch (error) {
             console.error('❌ Error agregando concepto:', error);
             this.notificacion('Error al agregar concepto', 'error');
         }
     },
-    
+    // ─────────────────────────────────────────────────────────────────────
+    // FILTRAR CATÁLOGO POR CATEGORÍA (NUEVA FUNCIÓN)
+    // ─────────────────────────────────────────────────────────────────────
+    filtrarCatalogo: async function(categoria) {
+        try {
+            const container = document.getElementById('lista-catalogo');
+            if (!container) return;
+        
+            // Actualizar estilo de botones
+            document.querySelectorAll('#catalogos-screen .btn').forEach(btn => {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            });
+            event.target.classList.remove('btn-secondary');
+            event.target.classList.add('btn-primary');
+        
+            let conceptos;
+            if (categoria === 'todos') {
+                conceptos = await window.db.conceptos.limit(50).toArray();
+            } else {
+                conceptos = await window.db.conceptos.where('categoria').equals(categoria).limit(50).toArray();
+            }
+        
+            if (conceptos.length === 0) {
+                container.innerHTML = '<div style="padding:40px;text-align:center;color:#999;">No hay conceptos en esta categoría</div>';
+                return;
+            }
+        
+            container.innerHTML = conceptos.map(c => `
+                <div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin-bottom:10px;background:white;">
+                    <div style="display:flex;justify-content:space-between;align-items:start;">
+                        <div>
+                            <div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">${c.codigo}</div>
+                            <div style="color:#666;font-size:14px;">${c.descripcion_corta}</div>
+                            <div style="color:#999;font-size:12px;margin-top:5px;">
+                                <span style="background:#E3F2FD;padding:2px 8px;border-radius:4px;font-size:11px;">${c.categoria}</span>
+                                <span style="margin-left:10px;">Unidad: ${c.unidad}</span>
+                                <span style="margin-left:10px;">Rendimiento: ${c.rendimiento_base}</span>
+                            </div>
+                        </div>
+                        <button onclick="app.agregarConceptoACotizacion('${c.id}')" 
+                                style="background:#4CAF50;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;">➕ Agregar</button>
+                    </div>
+                </div>
+            `).join('');
+        
+        } catch (error) {
+            console.error('❌ Error filtrando catálogo:', error);
+        }
+    },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // BUSCAR EN CATÁLOGO (NUEVA FUNCIÓN)
+    // ─────────────────────────────────────────────────────────────────────
+    buscarEnCatalogo: async function() {
+        try {
+            const termino = document.getElementById('buscar-catalogo')?.value.trim();
+            const container = document.getElementById('lista-catalogo');
+            if (!container) return;
+        
+            if (termino.length < 2) {
+                await this.filtrarCatalogo('todos');
+                return;
+            }
+        
+            const conceptos = await window.db.conceptos
+                .filter(c => 
+                    c.codigo.toLowerCase().includes(termino.toLowerCase()) ||
+                    (c.descripcion_corta && c.descripcion_corta.toLowerCase().includes(termino.toLowerCase()))
+                )
+                .limit(50)
+                .toArray();
+        
+            if (conceptos.length === 0) {
+                container.innerHTML = '<div style="padding:40px;text-align:center;color:#999;">No se encontraron conceptos</div>';
+                return;
+            }
+        
+            container.innerHTML = conceptos.map(c => `
+                <div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin-bottom:10px;background:white;">
+                    <div style="display:flex;justify-content:space-between;align-items:start;">
+                        <div>
+                            <div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">${c.codigo}</div>
+                            <div style="color:#666;font-size:14px;">${c.descripcion_corta}</div>
+                            <div style="color:#999;font-size:12px;margin-top:5px;">Unidad: ${c.unidad} | Rendimiento: ${c.rendimiento_base}</div>
+                        </div>
+                        <button onclick="app.agregarConceptoACotizacion('${c.id}')" 
+                                style="background:#4CAF50;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;">➕ Agregar</button>
+                    </div>
+                </div>
+            `).join('');
+        
+        } catch (error) {
+            console.error('❌ Error buscando en catálogo:', error);
+        }
+    },    
     actualizarConceptosSeleccionadosUI: function() {
         const container = document.getElementById('conceptos-seleccionados');
         if (!container) return;
@@ -1168,6 +1296,7 @@ if (typeof document !== 'undefined') {
 }
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
