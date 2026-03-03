@@ -225,6 +225,105 @@ window.app = {
             }
         }
     },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // FILTRAR CATÁLOGO POR CATEGORÍA
+    // ─────────────────────────────────────────────────────────────────────
+    filtrarCatalogo: async function(categoria) {
+        try {
+            const container = document.getElementById('lista-catalogo');
+            if (!container) return;
+        
+            // Actualizar estilo de botones
+            document.querySelectorAll('#catalogos-screen .btn').forEach(function(btn) {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            });
+            if (event && event.target) {
+                event.target.classList.remove('btn-secondary');
+                event.target.classList.add('btn-primary');
+            }
+        
+            let conceptos;
+            if (categoria === 'todos') {
+                conceptos = await window.db.conceptos.limit(50).toArray();
+            } else {
+                conceptos = await window.db.conceptos.where('categoria').equals(categoria).limit(50).toArray();
+            }
+        
+            if (conceptos.length === 0) {
+                container.innerHTML = '<div style="padding:40px;text-align:center;color:#999;">No hay conceptos en esta categoría</div>';
+                return;
+            }
+        
+            const app = this;
+            container.innerHTML = conceptos.map(function(c) {
+                return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin-bottom:10px;background:white;">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:start;">' +
+                    '<div>' +
+                    '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + c.codigo + '</div>' +
+                    '<div style="color:#666;font-size:14px;">' + (c.descripcion_corta || '') + '</div>' +
+                    '<div style="color:#999;font-size:12px;margin-top:5px;">' +
+                    '<span style="background:#E3F2FD;padding:2px 8px;border-radius:4px;font-size:11px;">' + (c.categoria || 'General') + '</span>' +
+                    '<span style="margin-left:10px;">Unidad: ' + (c.unidad || 'N/A') + '</span>' +
+                    '<span style="margin-left:10px;">Rendimiento: ' + (c.rendimiento_base || 0) + '</span>' +
+                    '</div>' +
+                    '</div>' +
+                    '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" ' +
+                    'style="background:#4CAF50;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;">➕ Agregar</button>' +
+                    '</div></div>';
+            }).join('');
+        
+        } catch (error) {
+            console.error('❌ Error filtrando catálogo:', error);
+        }
+    },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // BUSCAR EN CATÁLOGO
+    // ─────────────────────────────────────────────────────────────────────
+    buscarEnCatalogo: async function() {
+        try {
+            const termino = document.getElementById('buscar-catalogo')?.value.trim();
+            const container = document.getElementById('lista-catalogo');
+            if (!container) return;
+        
+            if (!termino || termino.length < 2) {
+                await this.filtrarCatalogo('todos');
+                return;
+            }
+        
+            const conceptos = await window.db.conceptos
+                .filter(function(c) {
+                    return (c.codigo || '').toLowerCase().includes(termino.toLowerCase()) ||
+                        (c.descripcion_corta || '').toLowerCase().includes(termino.toLowerCase());
+                })
+                .limit(50)
+                .toArray();
+        
+            if (conceptos.length === 0) {
+                container.innerHTML = '<div style="padding:40px;text-align:center;color:#999;">No se encontraron conceptos</div>';
+                return;
+            }
+        
+            const app = this;
+            container.innerHTML = conceptos.map(function(c) {
+                return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin-bottom:10px;background:white;">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:start;">' +
+                    '<div>' +
+                    '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + c.codigo + '</div>' +
+                    '<div style="color:#666;font-size:14px;">' + (c.descripcion_corta || '') + '</div>' +
+                    '<div style="color:#999;font-size:12px;margin-top:5px;">Unidad: ' + (c.unidad || 'N/A') + ' | Rendimiento: ' + (c.rendimiento_base || 0) + '</div>' +
+                    '</div>' +
+                    '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" ' +
+                    'style="background:#4CAF50;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;">➕ Agregar</button>' +
+                    '</div></div>';
+            }).join('');
+        
+        } catch (error) {
+            console.error('❌ Error buscando en catálogo:', error);
+        }
+    },
     
     // ─────────────────────────────────────────────────────────────────
     // AGREGAR CONCEPTO
@@ -840,4 +939,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
