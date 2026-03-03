@@ -168,85 +168,101 @@
         <!-- NUEVA COTIZACIÓN SCREEN -->
         <section id="nueva-cotizacion-screen" class="screen">
             <div class="card">
-                <h2>📝 Nueva Cotización</h2>
-                
-                <div style="background: #E3F2FD; padding: 20px; border-radius: 15px; margin-bottom: 25px;">
-                    <h4 style="color: #1565C0; margin: 0 0 15px 0;">📋 Datos del Proyecto</h4>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <h2 style="margin-bottom:25px;">📝 Nueva Cotización</h2>
+        
+                <!-- Datos del Proyecto -->
+                <div style="background:#E3F2FD;padding:20px;border-radius:15px;margin-bottom:25px;">
+                    <h4 style="color:#1565C0;margin:0 0 15px 0;">📋 Datos del Proyecto</h4>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
                         <div>
-                            <label style="font-size: 13px; color: #666; display: block; margin-bottom: 5px;">Cliente</label>
-                            <select id="cot-cliente" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px;">
+                            <label style="font-size:13px;color:#666;display:block;margin-bottom:5px;">Cliente</label>
+                            <select id="cot-cliente" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                                 <option value="">Seleccionar cliente...</option>
                             </select>
-                            <small id="sin-clientes-msg" style="color: #f44336; display: none;">⚠️ No hay clientes</small>
+                            <small id="sin-clientes-msg" style="color:#f44336;display:none;">⚠️ No hay clientes</small>
                         </div>
                         <div>
-                            <label style="font-size: 13px; color: #666; display: block; margin-bottom: 5px;">Nombre del Proyecto</label>
-                            <input type="text" id="cot-descripcion" placeholder="Ej: Instalación eléctrica nave industrial" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px;">
+                            <label style="font-size:13px;color:#666;display:block;margin-bottom:5px;">Nombre del Proyecto</label>
+                            <input type="text" id="cot-descripcion" placeholder="Ej: Instalación eléctrica nave industrial" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                         </div>
                         <div>
-                            <label style="font-size: 13px; color: #666; display: block; margin-bottom: 5px;">Ubicación</label>
-                            <input type="text" id="cot-ubicacion" placeholder="Ciudad, Estado" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px;">
+                            <label style="font-size:13px;color:#666;display:block;margin-bottom:5px;">Ubicación</label>
+                            <input type="text" id="cot-ubicacion" placeholder="Ciudad, Estado" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                         </div>
                     </div>
                 </div>
 
-                <h4 style="margin-bottom: 15px; color: #1a1a1a;">🔧 Recursos Manuales</h4>
-                
-                <div class="form-group">
-                    <label>📦 Materiales <span style="color:#666;font-size:13px;">(Nombre | Cantidad | Precio Unitario)</span></label>
-                    <div id="materiales-lista"></div>
-                    <button class="btn btn-secondary" onclick="app.agregarMaterial()" style="margin-top:10px;">➕ Agregar Material</button>
-                </div>
-
-                <div class="form-group">
-                    <label>👷 Mano de Obra <span style="color:#666;font-size:13px;">(Concepto | Horas | Precio por Hora)</span></label>
-                    <div id="mano-obra-lista"></div>
-                    <button class="btn btn-secondary" onclick="app.agregarManoObra()" style="margin-top:10px;">➕ Agregar Mano de Obra</button>
-                </div>
-
-                <div class="form-group">
-                    <label>🏗️ Equipos <span style="color:#666;font-size:13px;">(Nombre | Horas | Costo Unitario)</span></label>
-                    <div id="equipos-lista"></div>
-                    <button class="btn btn-secondary" onclick="app.agregarEquipo()" style="margin-top:10px;">➕ Agregar Equipo</button>
-                </div>
-
-<div class="form-group">
-    <label>📊 Indirectos <span style="color:#666;font-size:13px;">(Concepto | Monto)</span></label>
-    <div id="indirectos-lista"></div>
-    <button class="btn btn-secondary" onclick="app.agregarIndirecto()" style="margin-top:10px;">➕ Agregar Indirecto</button>
-</div>
-
-                <div style="margin-top: 25px; padding: 25px; background: linear-gradient(135deg, #1a1a1a, #333333); border-radius: 15px; color: white;">
-                    <h4 style="margin-bottom: 20px;">💰 Resumen Financiero</h4>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
-                        <div>
-                            <div style="font-size: 13px; opacity: 0.8;">Subtotal</div>
-                            <div style="font-size: 24px; font-weight: 700;" id="resumen-subtotal">$0.00</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 13px; opacity: 0.8;">Indirectos</div>
-                            <div style="font-size: 24px; font-weight: 700; color: #FF9800;" id="resumen-indirectos">$0.00</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 13px; opacity: 0.8;">Utilidad</div>
-                            <div style="font-size: 24px; font-weight: 700; color: #4CAF50;" id="resumen-utilidad">$0.00</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 13px; opacity: 0.8;">Total</div>
-                            <div style="font-size: 28px; font-weight: 700;" id="resumen-total">$0.00</div>
+                <!-- Conceptos Seleccionados del Catálogo -->
+                <div style="margin-bottom:25px;">
+                    <h4 style="margin-bottom:15px;color:#1a1a1a;">📋 Conceptos del Catálogo <span id="conceptos-count" style="background:#4CAF50;color:white;padding:3px 10px;border-radius:12px;font-size:12px;margin-left:10px;">0</span></h4>
+                    <div id="conceptos-seleccionados" style="max-height:400px;overflow-y:auto;background:#f9f9f9;padding:15px;border-radius:10px;border:2px dashed #ddd;">
+                        <div style="padding:40px;text-align:center;color:#999;">
+                            <div style="font-size:48px;margin-bottom:10px;">📭</div>
+                            <div>No hay conceptos seleccionados</div>
+                            <div style="font-size:13px;margin-top:5px;">Ve a Catálogos y agrega conceptos para comenzar</div>
                         </div>
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 15px; margin-top: 25px; flex-wrap: wrap;">
-                    <div id="conceptos-seleccionados" style="max-height:400px;overflow-y:auto;background:#f5f7fa;padding:15px;border-radius:10px;"></div>
-                    <button class="btn btn-primary" onclick="app.guardarCotizacion()" style="flex: 1; padding: 16px;">💾 Guardar Cotización</button>
-                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="flex: 1; padding: 16px;">↩️ Volver</button>
+                <!-- Recursos Manuales Adicionales -->
+                <div style="margin-bottom:25px;">
+                    <h4 style="margin-bottom:15px;color:#1a1a1a;">🔧 Recursos Manuales Adicionales (Opcional)</h4>
+            
+                    <div class="form-group">
+                        <label>📦 Materiales Adicionales</label>
+                        <div id="materiales-lista"></div>
+                        <button class="btn btn-secondary" onclick="app.agregarMaterial()" style="margin-top:10px;padding:10px 20px;">➕ Agregar Material</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>👷 Mano de Obra Adicional</label>
+                        <div id="mano-obra-lista"></div>
+                        <button class="btn btn-secondary" onclick="app.agregarManoObra()" style="margin-top:10px;padding:10px 20px;">➕ Agregar Mano de Obra</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🏗️ Equipos Adicionales</label>
+                        <div id="equipos-lista"></div>
+                        <button class="btn btn-secondary" onclick="app.agregarEquipo()" style="margin-top:10px;padding:10px 20px;">➕ Agregar Equipo</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>📊 Indirectos Adicionales</label>
+                        <div id="indirectos-lista"></div>
+                        <button class="btn btn-secondary" onclick="app.agregarIndirecto()" style="margin-top:10px;padding:10px 20px;">➕ Agregar Indirecto</button>
+                    </div>
+                </div>
+
+                <!-- Resumen Financiero -->
+                <div style="margin-top:25px;padding:25px;background:linear-gradient(135deg,#1a1a1a,#333333);border-radius:15px;color:white;">
+                    <h4 style="margin-bottom:20px;">💰 Resumen Financiero</h4>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:20px;">
+                        <div>
+                            <div style="font-size:13px;opacity:0.8;">Subtotal</div>
+                            <div style="font-size:24px;font-weight:700;" id="resumen-subtotal">$0.00</div>
+                        </div>
+                        <div>
+                            <div style="font-size:13px;opacity:0.8;">Indirectos</div>
+                            <div style="font-size:24px;font-weight:700;color:#FF9800;" id="resumen-indirectos">$0.00</div>
+                        </div>
+                        <div>
+                            <div style="font-size:13px;opacity:0.8;">Utilidad</div>
+                            <div style="font-size:24px;font-weight:700;color:#4CAF50;" id="resumen-utilidad">$0.00</div>
+                        </div>
+                        <div>
+                            <div style="font-size:13px;opacity:0.8;">Total</div>
+                            <div style="font-size:28px;font-weight:700;" id="resumen-total">$0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción (CORREGIDO - MISMA FILA) -->
+                <div style="display:flex;gap:15px;margin-top:25px;flex-wrap:wrap;">
+                    <button class="btn btn-primary" onclick="app.guardarCotizacion()" style="flex:1;min-width:200px;padding:16px;">💾 Guardar Cotización</button>
+                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="flex:1;min-width:200px;padding:16px;">↩️ Volver</button>
                 </div>
             </div>
         </section>
-
         <!-- CATÁLOGOS SCREEN -->
         <section id="catalogos-screen" class="screen">
             <div class="card">
@@ -408,6 +424,7 @@
     </script>
 </body>
 </html>
+
 
 
 
