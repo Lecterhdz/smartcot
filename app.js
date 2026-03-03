@@ -762,23 +762,44 @@ window.app = {
     calcularTotalConConceptos: function() {
         let subtotal = 0;
     
+        // Sumar conceptos del catálogo
         this.datosCotizacion.conceptosSeleccionados.forEach(function(c) {
             subtotal += (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
         });
     
-        subtotal += this.datosCotizacion.materiales.reduce(function(sum, m) { return sum + (m.cantidad * m.precioUnitario); }, 0);
-        subtotal += this.datosCotizacion.manoObra.reduce(function(sum, m) { return sum + (m.horas * m.precioHora); }, 0);
-        subtotal += this.datosCotizacion.equipos.reduce(function(sum, e) { return sum + (e.horas * e.costoUnitario); }, 0);
+        // Sumar materiales, MO, equipos manuales
+        subtotal += this.datosCotizacion.materiales.reduce(function(sum, m) { 
+            return sum + (m.cantidad * m.precioUnitario); 
+        }, 0);
+        subtotal += this.datosCotizacion.manoObra.reduce(function(sum, m) { 
+            return sum + (m.horas * m.precioHora); 
+        }, 0);
+        subtotal += this.datosCotizacion.equipos.reduce(function(sum, e) { 
+            return sum + (e.horas * e.costoUnitario); 
+        }, 0);
     
-        const indirectos = this.datosCotizacion.indirectos.reduce(function(sum, i) { return sum + i.monto; }, 0);
-        const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad') ? document.getElementById('cot-utilidad').value : '15') || 15;
-        const utilidad = (subtotal + indirectos) * (utilidadPorcentaje / 100);
-        const iva = (subtotal + indirectos + utilidad) * 0.16;
-        const total = subtotal + indirectos + utilidad + iva;
+        const indirectosManuales = this.datosCotizacion.indirectos.reduce(function(sum, i) { 
+            return sum + i.monto; 
+        }, 0);
     
+        // Indirectos porcentuales (desde configuración o default)
+        const indirectosOficina = subtotal * 0.05;  // 5%
+        const indirectosCampo = subtotal * 0.15;    // 15%
+        const financiamiento = subtotal * 0.0085;   // 0.85%
+    
+        const baseConIndirectos = subtotal + indirectosOficina + indirectosCampo + financiamiento + indirectosManuales;
+    
+        const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
+        const utilidad = baseConIndirectos * (utilidadPorcentaje / 100);
+        const iva = (baseConIndirectos + utilidad) * 0.16;
+        const total = baseConIndirectos + utilidad + iva;
+    
+        // Actualizar UI
         const elementos = {
             'resumen-subtotal': subtotal,
-            'resumen-indirectos': indirectos,
+            'resumen-indirectos-oficina': indirectosOficina,
+            'resumen-indirectos-campo': indirectosCampo,
+            'resumen-financiamiento': financiamiento,
             'resumen-utilidad': utilidad,
             'resumen-iva': iva,
             'resumen-total': total
@@ -789,6 +810,7 @@ window.app = {
             const el = document.getElementById(par[0]);
             if (el) el.textContent = calculator.formatoMoneda(par[1]);
         });
+    },
     },
     
     // ─────────────────────────────────────────────────────────────────
@@ -1207,6 +1229,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
