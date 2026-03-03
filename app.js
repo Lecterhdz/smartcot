@@ -249,80 +249,147 @@ window.app = {
     },
     
     // ─────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // LIMPIAR CONCEPTOS SELECCIONADOS
+    // ─────────────────────────────────────────────────────────────────────
+    limpiarConceptosSeleccionados: function() {
+        if (confirm('¿Eliminar todos los conceptos seleccionados?')) {
+            this.datosCotizacion.conceptosSeleccionados = [];
+            this.actualizarConceptosSeleccionadosUI();
+            this.notificacion('🗑️ Conceptos eliminados', 'advertencia');
+        }
+    },
+
+    // ─────────────────────────────────────────────────────────────────────
     // FILTRAR CATÁLOGO POR CATEGORÍA
-    // ─────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
     filtrarCatalogo: async function(categoria) {
         try {
             const container = document.getElementById('lista-catalogo');
             if (!container) return;
-            
+        
+            // Actualizar estilo de botones
+            document.querySelectorAll('#catalogos-screen .btn').forEach(function(btn) {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            });
+            event.target.classList.remove('btn-secondary');
+            event.target.classList.add('btn-primary');
+        
             let conceptos;
             if (categoria === 'todos') {
                 conceptos = await window.db.conceptos.limit(50).toArray();
             } else {
                 conceptos = await window.db.conceptos.where('categoria').equals(categoria).limit(50).toArray();
             }
-            
+        
             if (conceptos.length === 0) {
                 container.innerHTML = '<div style="padding:40px;text-align:center;color:#999;">No hay conceptos en esta categoría</div>';
                 return;
             }
-            
+        
+            const app = this;
             container.innerHTML = conceptos.map(function(c) {
                 return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin-bottom:10px;background:white;">' +
                     '<div style="display:flex;justify-content:space-between;align-items:start;">' +
                     '<div>' +
                     '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + c.codigo + '</div>' +
-                    '<div style="color:#666;font-size:14px;">' + c.descripcion_corta + '</div>' +
-                    '<div style="color:#999;font-size:12px;margin-top:5px;"><span style="background:#E3F2FD;padding:2px 8px;border-radius:4px;font-size:11px;">' + c.categoria + '</span> <span style="margin-left:10px;">Unidad: ' + c.unidad + '</span> <span style="margin-left:10px;">Rendimiento: ' + c.rendimiento_base + '</span></div>' +
+                    '<div style="color:#666;font-size:14px;">' + (c.descripcion_corta || '') + '</div>' +
+                    '<div style="color:#999;font-size:12px;margin-top:5px;">' +
+                    '<span style="background:#E3F2FD;padding:2px 8px;border-radius:4px;font-size:11px;">' + (c.categoria || 'General') + '</span>' +
+                    '<span style="margin-left:10px;">Unidad: ' + (c.unidad || 'N/A') + '</span>' +
+                    '<span style="margin-left:10px;">Rendimiento: ' + (c.rendimiento_base || 0) + '</span>' +
                     '</div>' +
-                    '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" style="background:#4CAF50;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;">➕ Agregar</button>' +
+                    '</div>' +
+                    '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" ' +
+                    'style="background:#4CAF50;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;">➕ Agregar</button>' +
                     '</div></div>';
             }).join('');
-            
+        
+            // Actualizar contador en catálogo
+            app.actualizarContadorCatalogo();
+        
         } catch (error) {
             console.error('❌ Error filtrando catálogo:', error);
         }
     },
-    
-    // ─────────────────────────────────────────────────────────────────
+
+    // ─────────────────────────────────────────────────────────────────────
     // BUSCAR EN CATÁLOGO
-    // ─────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
     buscarEnCatalogo: async function() {
         try {
             const termino = document.getElementById('buscar-catalogo')?.value.trim();
             const container = document.getElementById('lista-catalogo');
             if (!container) return;
-            
+        
             if (termino.length < 2) {
                 await this.filtrarCatalogo('todos');
                 return;
             }
-            
-            const conceptos = await window.db.conceptos.filter(function(c) {
-                return c.codigo.toLowerCase().includes(termino.toLowerCase()) ||
-                    (c.descripcion_corta && c.descripcion_corta.toLowerCase().includes(termino.toLowerCase()));
-            }).limit(50).toArray();
-            
+        
+            const conceptos = await window.db.conceptos
+                .filter(function(c) {
+                    return (c.codigo || '').toLowerCase().includes(termino.toLowerCase()) ||
+                        (c.descripcion_corta || '').toLowerCase().includes(termino.toLowerCase());
+                })
+                .limit(50)
+                .toArray();
+        
             if (conceptos.length === 0) {
                 container.innerHTML = '<div style="padding:40px;text-align:center;color:#999;">No se encontraron conceptos</div>';
                 return;
             }
-            
+        
+            const app = this;
             container.innerHTML = conceptos.map(function(c) {
                 return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin-bottom:10px;background:white;">' +
                     '<div style="display:flex;justify-content:space-between;align-items:start;">' +
                     '<div>' +
                     '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + c.codigo + '</div>' +
-                    '<div style="color:#666;font-size:14px;">' + c.descripcion_corta + '</div>' +
-                    '<div style="color:#999;font-size:12px;margin-top:5px;">Unidad: ' + c.unidad + ' | Rendimiento: ' + c.rendimiento_base + '</div>' +
+                    '<div style="color:#666;font-size:14px;">' + (c.descripcion_corta || '') + '</div>' +
+                    '<div style="color:#999;font-size:12px;margin-top:5px;">Unidad: ' + (c.unidad || 'N/A') + ' | Rendimiento: ' + (c.rendimiento_base || 0) + '</div>' +
                     '</div>' +
-                    '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" style="background:#4CAF50;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;">➕ Agregar</button>' +
+                    '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" ' +
+                    'style="background:#4CAF50;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;">➕ Agregar</button>' +
                     '</div></div>';
             }).join('');
-            
+        
+            // Actualizar contador en catálogo
+            app.actualizarContadorCatalogo();
+        
         } catch (error) {
             console.error('❌ Error buscando en catálogo:', error);
+        }
+    },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // ACTUALIZAR CONTADOR DE CATÁLOGO
+    // ─────────────────────────────────────────────────────────────────────
+    actualizarContadorCatalogo: function() {
+        const countLabel = document.getElementById('conceptos-count-catalogo');
+        const container = document.getElementById('conceptos-seleccionados-catalogo');
+    
+        if (countLabel) {
+            countLabel.textContent = this.datosCotizacion.conceptosSeleccionados.length;
+        }
+    
+        if (container) {
+            if (this.datosCotizacion.conceptosSeleccionados.length === 0) {
+                container.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">No hay conceptos seleccionados aún</div>';
+            } else {
+                const app = this;
+                container.innerHTML = this.datosCotizacion.conceptosSeleccionados.map(function(c, index) {
+                    return '<div style="padding:10px;border:1px solid #ddd;border-radius:8px;margin:5px 0;background:#f5f7fa;">' +
+                        '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                        '<div style="font-weight:600;color:#1a1a1a;font-size:13px;">' + c.codigo + '</div>' +
+                        '<button onclick="app.eliminarConceptoDeCotizacion(' + index + ')" ' +
+                        'style="background:#f44336;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;font-size:12px;">🗑️</button>' +
+                        '</div>' +
+                        '<div style="color:#666;font-size:11px;margin-top:5px;">' + (c.descripcion_corta || '').substring(0, 40) + '...</div>' +
+                        '</div>';
+                }).join('');
+            }
         }
     },
 
@@ -1099,6 +1166,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
