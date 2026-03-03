@@ -267,15 +267,15 @@
         <section id="catalogos-screen" class="screen">
             <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                    <h2>📚 Catálogo de Conceptos</h2>
+                    <h2 style="margin:0;">📚 Catálogo de Conceptos</h2>
                     <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="padding:10px 20px;">↩️ Volver</button>
                 </div>
-
-                <!-- SECCIÓN DE CONCEPTOS SELECCIONADOS (NUEVA) -->
+        
+                <!-- SECCIÓN DE CONCEPTOS SELECCIONADOS (VISIBLE EN CATÁLOGO) -->
                 <div style="background:#E8F5E9;padding:20px;border-radius:15px;margin-bottom:25px;border:2px solid #4CAF50;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
                         <h4 style="color:#2E7D32;margin:0;">📋 Conceptos Seleccionados</h4>
-                        <span id="conceptos-count" style="background:#4CAF50;color:white;padding:5px 15px;border-radius:20px;font-weight:600;">0</span>
+                        <span id="conceptos-count-catalogo" style="background:#4CAF50;color:white;padding:5px 15px;border-radius:20px;font-weight:600;">0</span>
                     </div>
                     <div id="conceptos-seleccionados-catalogo" style="max-height:200px;overflow-y:auto;background:white;padding:15px;border-radius:10px;">
                         <div style="text-align:center;color:#999;padding:20px;">No hay conceptos seleccionados aún</div>
@@ -285,7 +285,7 @@
                         <button class="btn btn-secondary" onclick="app.limpiarConceptosSeleccionados()" style="padding:12px;">🗑️ Limpiar</button>
                     </div>
                 </div>
-                
+        
                 <!-- Filtros por Categoría -->
                 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
                     <button class="btn btn-primary" onclick="app.filtrarCatalogo('todos')" style="padding:8px 16px;">📋 Todos</button>
@@ -293,10 +293,9 @@
                     <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Mecánico')" style="padding:8px 16px;">🔧 Mecánico</button>
                     <button class="btn btn-secondary" onclick="app.filtrarCatalogo('HVAC')" style="padding:8px 16px;">❄️ HVAC</button>
                     <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Señalamiento')" style="padding:8px 16px;">🚦 Señalamiento</button>
-                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Limpieza')" style="padding:8px 16px;">🧹 Limpieza</button>
                 </div>
         
-               <!-- Buscador -->
+                <!-- Buscador -->
                 <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:20px;">
                     <input type="text" id="buscar-catalogo" placeholder="🔍 Buscar por código o descripción..." 
                            style="width:100%;padding:14px;border:2px solid #ddd;border-radius:10px;font-size:14px;"
@@ -424,6 +423,7 @@
     </script>
 </body>
 </html>
+
 
 
 
