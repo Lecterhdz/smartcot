@@ -205,32 +205,47 @@
                     </div>
                 </div>
 
-                <!-- Recursos Manuales Adicionales -->
+
+                <!-- Recursos Manuales Adicionales AGRUPADOS -->
                 <div style="margin-bottom:25px;">
                     <h4 style="margin-bottom:15px;color:#1a1a1a;">🔧 Recursos Manuales Adicionales (Opcional)</h4>
-            
-                    <div class="form-group">
-                        <label>📦 Materiales Adicionales</label>
-                        <div id="materiales-lista"></div>
-                        <button class="btn btn-secondary" onclick="app.agregarMaterial()" style="margin-top:10px;padding:10px 20px;">➕ Agregar Material</button>
-                    </div>
-
-                    <div class="form-group">
-                        <label>👷 Mano de Obra Adicional</label>
-                        <div id="mano-obra-lista"></div>
-                        <button class="btn btn-secondary" onclick="app.agregarManoObra()" style="margin-top:10px;padding:10px 20px;">➕ Agregar Mano de Obra</button>
-                    </div>
-
-                    <div class="form-group">
-                        <label>🏗️ Equipos Adicionales</label>
-                        <div id="equipos-lista"></div>
-                        <button class="btn btn-secondary" onclick="app.agregarEquipo()" style="margin-top:10px;padding:10px 20px;">➕ Agregar Equipo</button>
-                    </div>
-
-                    <div class="form-group">
-                        <label>📊 Indirectos Adicionales</label>
-                        <div id="indirectos-lista"></div>
-                        <button class="btn btn-secondary" onclick="app.agregarIndirecto()" style="margin-top:10px;padding:10px 20px;">➕ Agregar Indirecto</button>
+                    
+                    <div style="background:#f9f9f9;padding:20px;border-radius:15px;">
+                        <!-- Materiales -->
+                        <div class="form-group" style="margin-bottom:20px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <label style="font-size:14px;color:#1a1a1a;font-weight:600;">📦 Materiales Adicionales</label>
+                                <button class="btn btn-secondary" onclick="app.agregarMaterial()" style="padding:8px 15px;font-size:13px;">➕ Agregar</button>
+                            </div>
+                            <div id="materiales-lista"></div>
+                        </div>
+                        
+                        <!-- Mano de Obra -->
+                        <div class="form-group" style="margin-bottom:20px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <label style="font-size:14px;color:#1a1a1a;font-weight:600;">👷 Mano de Obra Adicional</label>
+                                <button class="btn btn-secondary" onclick="app.agregarManoObra()" style="padding:8px 15px;font-size:13px;">➕ Agregar</button>
+                            </div>
+                            <div id="mano-obra-lista"></div>
+                        </div>
+                        
+                        <!-- Equipos -->
+                        <div class="form-group" style="margin-bottom:20px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <label style="font-size:14px;color:#1a1a1a;font-weight:600;">🏗️ Equipos Adicionales</label>
+                                <button class="btn btn-secondary" onclick="app.agregarEquipo()" style="padding:8px 15px;font-size:13px;">➕ Agregar</button>
+                            </div>
+                            <div id="equipos-lista"></div>
+                        </div>
+                        
+                        <!-- Indirectos -->
+                        <div class="form-group">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <label style="font-size:14px;color:#1a1a1a;font-weight:600;">📊 Indirectos Adicionales</label>
+                                <button class="btn btn-secondary" onclick="app.agregarIndirecto()" style="padding:8px 15px;font-size:13px;">➕ Agregar</button>
+                            </div>
+                            <div id="indirectos-lista"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -565,4 +580,5 @@
     </script>
 </body>
 </html>
+
 
