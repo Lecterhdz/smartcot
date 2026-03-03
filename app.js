@@ -274,6 +274,8 @@ window.app = {
                     '</div></div>';
             }).join('');
         
+            this.actualizarContadorCatalogo();
+        
         } catch (error) {
             console.error('❌ Error filtrando catálogo:', error);
         }
@@ -320,8 +322,38 @@ window.app = {
                     '</div></div>';
             }).join('');
         
+            this.actualizarContadorCatalogo();
+        
         } catch (error) {
             console.error('❌ Error buscando en catálogo:', error);
+        }
+    },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // ACTUALIZAR CONTADOR DE CATÁLOGO (CORREGIDO)
+    // ─────────────────────────────────────────────────────────────────────
+    actualizarContadorCatalogo: function() {
+        const countLabel = document.getElementById('conceptos-count-catalogo');
+        const container = document.getElementById('conceptos-seleccionados-catalogo');
+    
+        if (countLabel) {
+            countLabel.textContent = this.datosCotizacion.conceptosSeleccionados.length;
+        }
+    
+        if (container) {
+            this.actualizarConceptosSeleccionadosUI();
+        }
+    },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // LIMPIAR CONCEPTOS SELECCIONADOS (CORREGIDO)
+    // ─────────────────────────────────────────────────────────────────────
+    limpiarConceptosSeleccionados: function() {
+        if (confirm('¿Eliminar todos los conceptos seleccionados?')) {
+            this.datosCotizacion.conceptosSeleccionados = [];
+            this.actualizarConceptosSeleccionadosUI();
+            this.actualizarContadorCatalogo();
+            this.notificacion('🗑️ Conceptos eliminados', 'advertencia');
         }
     },
     
@@ -365,47 +397,115 @@ window.app = {
         }
     },
     
+    // ─────────────────────────────────────────────────────────────────────
+    // ACTUALIZAR UI DE CONCEPTOS SELECCIONADOS (CON DESGLOSE COMPLETO)
+    // ─────────────────────────────────────────────────────────────────────
     actualizarConceptosSeleccionadosUI: function() {
         const container = document.getElementById('conceptos-seleccionados');
-        const countLabel = document.getElementById('conceptos-count');
-        
-        if (!container) {
-            console.warn('⚠️ Container conceptos-seleccionados no encontrado');
-            return;
-        }
-        
-        if (countLabel) {
-            countLabel.textContent = this.datosCotizacion.conceptosSeleccionados.length;
-        }
-        
+        const containerCatalogo = document.getElementById('conceptos-seleccionados-catalogo');
+    
+        if (!container && !containerCatalogo) return;
+    
         if (this.datosCotizacion.conceptosSeleccionados.length === 0) {
-            container.innerHTML = '<div style="padding:40px;text-align:center;color:#999;"><div style="font-size:48px;margin-bottom:10px;">📭</div><div>No hay conceptos seleccionados</div><div style="font-size:13px;margin-top:5px;">Ve a Catálogos y agrega conceptos para comenzar</div></div>';
+            const emptyHTML = '<div style="padding:40px;text-align:center;color:#999;">' +
+                '<div style="font-size:48px;margin-bottom:10px;">📭</div>' +
+                '<div>No hay conceptos seleccionados</div>' +
+                '<div style="font-size:13px;margin-top:5px;">Ve a Catálogos y agrega conceptos para comenzar</div>' +
+                '</div>';
+            if (container) container.innerHTML = emptyHTML;
+            if (containerCatalogo) containerCatalogo.innerHTML = emptyHTML;
             return;
         }
-        
+    
         const app = this;
-        container.innerHTML = this.datosCotizacion.conceptosSeleccionados.map(function(c, index) {
+        const conceptosHTML = this.datosCotizacion.conceptosSeleccionados.map(function(c, index) {
             const subtotal = (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
+            const materiales = c.recursos?.materiales || [];
+            const manoObra = c.recursos?.mano_obra || [];
+            const equipos = c.recursos?.equipos || [];
+            const herramienta = c.recursos?.herramienta || [];
+        
+            // Calcular totales por categoría
+            const totalMateriales = materiales.reduce(function(sum, m) { return sum + (m.importe || 0); }, 0);
+            const totalManoObra = manoObra.reduce(function(sum, mo) { return sum + (mo.importe || 0); }, 0);
+            const totalEquipos = equipos.reduce(function(sum, e) { return sum + (e.importe || 0); }, 0);
+            const totalHerramienta = herramienta.reduce(function(sum, h) { return sum + (h.importe || 0); }, 0);
+        
+            return '<div style="padding:20px;border:2px solid #ddd;border-radius:15px;margin:15px 0;background:white;">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">' +
+                '<div style="flex:1;">' +
+                '<div style="font-weight:700;color:#1a1a1a;font-size:16px;">' + c.codigo + '</div>' +
+                '<div style="color:#666;font-size:13px;">' + (c.descripcion_corta || '').substring(0, 60) + '...</div>' +
+                '</div>' +
+                '<button onclick="app.eliminarConceptoDeCotizacion(' + index + ')" ' +
+                'style="background:#f44336;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;">🗑️</button>' +
+                '</div>' +
             
-            return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin:10px 0;background:white;">' +
-                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
-                '<div>' +
-                '<div style="font-weight:700;color:#1a1a1a;">' + c.codigo + '</div>' +
-                '<div style="color:#666;font-size:13px;">' + c.descripcion_corta.substring(0, 50) + '...</div>' +
-                '</div>' +
-                '<button onclick="app.eliminarConceptoDeCotizacion(' + index + ')" style="background:#f44336;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;">🗑️</button>' +
-                '</div>' +
-                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+                '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:15px;">' +
                 '<div>' +
                 '<label style="font-size:12px;color:#666;">Cantidad</label>' +
-                '<input type="number" value="' + (c.cantidad || 1) + '" min="1" step="1" onchange="app.actualizarCantidadConcepto(' + index + ', this.value)" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">' +
+                '<input type="number" value="' + (c.cantidad || 1) + '" min="1" step="1" ' +
+                'onchange="app.actualizarCantidadConcepto(' + index + ', this.value)" ' +
+                'style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">' +
+                '</div>' +
+                '<div>' +
+                '<label style="font-size:12px;color:#666;">Unidad</label>' +
+                '<div style="padding:8px;background:#f5f7fa;border-radius:6px;font-weight:600;">' + c.unidad + '</div>' +
+                '</div>' +
+                '<div>' +
+                '<label style="font-size:12px;color:#666;">Costo Unitario</label>' +
+                '<div style="padding:8px;background:#E8F5E9;border-radius:6px;font-weight:700;color:#2E7D32;">' + calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0) + '</div>' +
                 '</div>' +
                 '<div>' +
                 '<label style="font-size:12px;color:#666;">Subtotal</label>' +
-                '<div style="font-weight:700;color:#1a1a1a;">' + calculator.formatoMoneda(subtotal) + '</div>' +
+                '<div style="padding:8px;background:#1a1a1a;color:white;border-radius:6px;font-weight:700;">' + calculator.formatoMoneda(subtotal) + '</div>' +
                 '</div>' +
-                '</div></div>';
+                '</div>' +
+            
+                '<div style="background:#f5f7fa;padding:15px;border-radius:10px;margin-top:15px;">' +
+                '<div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;border-bottom:2px solid #ddd;padding-bottom:5px;">📦 MATERIALES (' + materiales.length + ') - ' + calculator.formatoMoneda(totalMateriales) + '</div>' +
+                (materiales.length > 0 ? materiales.map(function(m) {
+                    return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ddd;font-size:12px;">' +
+                        '<span style="color:#666;">' + (m.nombre || m.material_codigo || 'Sin nombre') + '</span>' +
+                        '<span style="font-weight:600;">' + m.cantidad + ' ' + m.unidad + ' × ' + calculator.formatoMoneda(m.precio_unitario || 0) + ' = <span style="color:#1a1a1a;">' + calculator.formatoMoneda(m.importe || 0) + '</span></span>' +
+                        '</div>';
+                }).join('') : '<div style="color:#999;padding:10px;text-align:center;">Sin materiales</div>') +
+                '</div>' +
+            
+                '<div style="background:#f5f7fa;padding:15px;border-radius:10px;margin-top:10px;">' +
+                '<div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;border-bottom:2px solid #ddd;padding-bottom:5px;">👷 MANO DE OBRA (' + manoObra.length + ') - ' + calculator.formatoMoneda(totalManoObra) + '</div>' +
+                (manoObra.length > 0 ? manoObra.map(function(mo) {
+                    return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ddd;font-size:12px;">' +
+                        '<span style="color:#666;">' + (mo.puesto || mo.mano_obra_codigo || 'Sin nombre') + '</span>' +
+                        '<span style="font-weight:600;">' + mo.horas_jornada + ' JOR × ' + calculator.formatoMoneda(mo.salario_hora || 0) + ' = <span style="color:#1a1a1a;">' + calculator.formatoMoneda(mo.importe || 0) + '</span></span>' +
+                        '</div>';
+                }).join('') : '<div style="color:#999;padding:10px;text-align:center;">Sin mano de obra</div>') +
+                '</div>' +
+            
+                '<div style="background:#f5f7fa;padding:15px;border-radius:10px;margin-top:10px;">' +
+                '<div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;border-bottom:2px solid #ddd;padding-bottom:5px;">🏗️ EQUIPOS (' + equipos.length + ') - ' + calculator.formatoMoneda(totalEquipos) + '</div>' +
+                (equipos.length > 0 ? equipos.map(function(e) {
+                    return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ddd;font-size:12px;">' +
+                        '<span style="color:#666;">' + (e.nombre || e.equipo_codigo || 'Sin nombre') + '</span>' +
+                        '<span style="font-weight:600;">' + e.horas + ' ' + e.unidad + ' × ' + calculator.formatoMoneda(e.costo_unitario || 0) + ' = <span style="color:#1a1a1a;">' + calculator.formatoMoneda(e.importe || 0) + '</span></span>' +
+                        '</div>';
+                }).join('') : '<div style="color:#999;padding:10px;text-align:center;">Sin equipos</div>') +
+                '</div>' +
+            
+                '<div style="background:#f5f7fa;padding:15px;border-radius:10px;margin-top:10px;">' +
+                '<div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;border-bottom:2px solid #ddd;padding-bottom:5px;">🔧 HERRAMIENTA (' + herramienta.length + ') - ' + calculator.formatoMoneda(totalHerramienta) + '</div>' +
+                (herramienta.length > 0 ? herramienta.map(function(h) {
+                    return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ddd;font-size:12px;">' +
+                        '<span style="color:#666;">' + (h.nombre || h.herramienta_codigo || 'Sin nombre') + '</span>' +
+                        '<span style="font-weight:600;">' + h.porcentaje + '% = <span style="color:#1a1a1a;">' + calculator.formatoMoneda(h.importe || 0) + '</span></span>' +
+                        '</div>';
+                }).join('') : '<div style="color:#999;padding:10px;text-align:center;">Sin herramienta</div>') +
+                '</div>' +
+                '</div>';
         }).join('');
+    
+        if (container) container.innerHTML = conceptosHTML;
+        if (containerCatalogo) containerCatalogo.innerHTML = conceptosHTML;
     },
     
     actualizarCantidadConcepto: function(index, cantidad) {
@@ -623,35 +723,31 @@ window.app = {
     // ─────────────────────────────────────────────────────────────────────
     calcularTotalConConceptos: function() {
         let subtotal = 0;
+        let totalJOR = 0; // Para cálculo de tiempo
     
         // Sumar conceptos del catálogo
         this.datosCotizacion.conceptosSeleccionados.forEach(function(c) {
             subtotal += (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
+        
+            // Sumar jornadas de mano de obra
+            if (c.recursos?.mano_obra) {
+                c.recursos.mano_obra.forEach(function(mo) {
+                    totalJOR += (mo.horas_jornada || 0) * (c.cantidad || 1);
+                });
+            }
         });
     
         // Sumar materiales, MO, equipos manuales
-        subtotal += this.datosCotizacion.materiales.reduce(function(sum, m) { 
-            return sum + (m.cantidad * m.precioUnitario); 
-        }, 0);
-        subtotal += this.datosCotizacion.manoObra.reduce(function(sum, m) { 
-            return sum + (m.horas * m.precioHora); 
-        }, 0);
-        subtotal += this.datosCotizacion.equipos.reduce(function(sum, e) { 
-            return sum + (e.horas * e.costoUnitario); 
-        }, 0);
+        subtotal += this.datosCotizacion.materiales.reduce(function(sum, m) { return sum + (m.cantidad * m.precioUnitario); }, 0);
+        subtotal += this.datosCotizacion.manoObra.reduce(function(sum, m) { return sum + (m.horas * m.precioHora); }, 0);
+        subtotal += this.datosCotizacion.equipos.reduce(function(sum, e) { return sum + (e.horas * e.costoUnitario); }, 0);
     
-        // Indirectos manuales (si los hay)
-        const indirectosManuales = this.datosCotizacion.indirectos.reduce(function(sum, i) { 
-            return sum + i.monto; 
-        }, 0);
+        const indirectosManuales = this.datosCotizacion.indirectos.reduce(function(sum, i) { return sum + i.monto; }, 0);
     
-        // ─────────────────────────────────────────────────────────────────
-        // INDIRECTOS PORCENTUALES (EDITABLES)
-        // ─────────────────────────────────────────────────────────────────
+        // Indirectos porcentuales (EDITABLES)
         const indirectosOficinaPorcentaje = parseFloat(document.getElementById('cot-indirectos-oficina')?.value) || 5;
         const indirectosCampoPorcentaje = parseFloat(document.getElementById('cot-indirectos-campo')?.value) || 15;
         const financiamientoPorcentaje = parseFloat(document.getElementById('cot-financiamiento')?.value) || 0.85;
-        const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
     
         const indirectosOficina = subtotal * (indirectosOficinaPorcentaje / 100);
         const indirectosCampo = subtotal * (indirectosCampoPorcentaje / 100);
@@ -662,20 +758,20 @@ window.app = {
     
         const baseConIndirectos = subtotal + totalSobrecostos;
     
+        const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
         const utilidad = baseConIndirectos * (utilidadPorcentaje / 100);
         const iva = (baseConIndirectos + utilidad) * 0.16;
         const total = baseConIndirectos + utilidad + iva;
     
-        // ─────────────────────────────────────────────────────────────────
-        // ACTUALIZAR UI
-        // ─────────────────────────────────────────────────────────────────
+        // Actualizar UI
         const elementos = {
             'resumen-costo-directo': subtotal,
             'resumen-indirectos-oficina': indirectosOficina,
             'resumen-indirectos-campo': indirectosCampo,
             'resumen-financiamiento': financiamiento,
             'resumen-sobrecosto-monto': totalSobrecostos,
-            'resumen-subtotal': baseConIndirectos + utilidad,
+            'resumen-sobrecosto-porcentaje': porcentajeSobrecostos.toFixed(2) + '%',
+            'resumen-utilidad': utilidad,
             'resumen-iva': iva,
             'resumen-total': total
         };
@@ -683,19 +779,64 @@ window.app = {
         const app = this;
         Object.entries(elementos).forEach(function(par) {
             const el = document.getElementById(par[0]);
-            if (el) el.textContent = calculator.formatoMoneda(par[1]);
+            if (el) {
+                if (par[0].includes('porcentaje')) {
+                    el.textContent = par[1];
+                } else {
+                    el.textContent = calculator.formatoMoneda(par[1]);
+                }
+            }
         });
     
+        // Actualizar utilidad en costo
+        const utilidadCostoEl = document.getElementById('resumen-utilidad-costo');
+        if (utilidadCostoEl) {
+            utilidadCostoEl.textContent = calculator.formatoMoneda(utilidad);
+        };
+        
         // Actualizar porcentajes
         const elPorcentajeSobrecosto = document.getElementById('resumen-sobrecosto-porcentaje');
         if (elPorcentajeSobrecosto) {
             elPorcentajeSobrecosto.textContent = porcentajeSobrecostos.toFixed(2) + '%';
         }
     
+        // Actualizar tiempo de ejecución
+        this.actualizarTiempoEjecucion(totalJOR);
+    
         // Verificar margen
         const margenReal = utilidad > 0 ? (utilidad / total) * 100 : 0;
         this.verificarSmartMargin({ margenReal: margenReal, indirectosTotal: totalSobrecostos });
     },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // ACTUALIZAR TIEMPO DE EJECUCIÓN (NUEVA FUNCIÓN)
+    // ─────────────────────────────────────────────────────────────────────
+    actualizarTiempoEjecucion: function(totalJOR) {
+        const diasHabilesEl = document.getElementById('tiempo-dias-habiles');
+        const semanasEl = document.getElementById('tiempo-semanas');
+        const mesesEl = document.getElementById('tiempo-meses');
+    
+        if (!diasHabilesEl || !semanasEl || !mesesEl) return;
+    
+        // Considerar 1 jornada = 1 día hábil
+        const diasHabiles = Math.ceil(totalJOR);
+        const semanas = Math.ceil(diasHabiles / 5); // 5 días laborales por semana
+        const meses = (semanas / 4.33).toFixed(1); // 4.33 semanas por mes
+    
+        diasHabilesEl.textContent = diasHabiles + ' días hábiles';
+        semanasEl.textContent = semanas + ' semanas';
+        mesesEl.textContent = meses + ' meses';
+    
+        // Guardar para programación
+        this.tiempoEjecucion = {
+            jornadas: totalJOR,
+            diasHabiles: diasHabiles,
+            semanas: semanas,
+            meses: parseFloat(meses)
+        };
+    },
+    
+
 
     // ─────────────────────────────────────────────────────────────────────
     // VERIFICAR SMART MARGIN (ACTUALIZADO)
@@ -939,5 +1080,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
