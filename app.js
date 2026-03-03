@@ -345,7 +345,7 @@ window.app = {
             this.calcularTotalConConceptos();
             this.actualizarConceptosSeleccionadosUI();
             
-            this.notificacion('✅ Concepto ' + concepto.codigo + ' agregado', 'exito');
+            this.notificacion('✅ Concepto ' + concepto.codigo + ' agregado (' + this.datosCotizacion.conceptosSeleccionados.length + ' total)', 'exito');
             
         } catch (error) {
             console.error('❌ Error agregando concepto:', error);
@@ -353,27 +353,61 @@ window.app = {
         }
     },
     
+    // ─────────────────────────────────────────────────────────────────────
+    // ACTUALIZAR UI DE CONCEPTOS SELECCIONADOS (CORREGIDO)
+    // ─────────────────────────────────────────────────────────────────────
     actualizarConceptosSeleccionadosUI: function() {
-        const container = document.getElementById('conceptos-seleccionados');
-        if (!container) return;
-        
-        if (this.datosCotizacion.conceptosSeleccionados.length === 0) {
-            container.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">No hay conceptos seleccionados</div>';
-            return;
+        // Actualizar en pantalla de Nueva Cotización
+        const containerCotizacion = document.getElementById('conceptos-seleccionados');
+        if (containerCotizacion) {
+            if (this.datosCotizacion.conceptosSeleccionados.length === 0) {
+                containerCotizacion.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">No hay conceptos seleccionados</div>';
+            } else {
+                const app = this;
+                containerCotizacion.innerHTML = this.datosCotizacion.conceptosSeleccionados.map(function(c, index) {
+                    return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin:10px 0;background:white;">' +
+                        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+                        '<div>' +
+                        '<div style="font-weight:700;color:#1a1a1a;">' + c.codigo + '</div>' +
+                        '<div style="color:#666;font-size:13px;">' + c.descripcion_corta.substring(0, 50) + '...</div>' +
+                        '</div>' +
+                        '<button onclick="app.eliminarConceptoDeCotizacion(' + index + ')" ' +
+                        'style="background:#f44336;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;">🗑️</button>' +
+                        '</div>' +
+                        '</div>';
+                }).join('');
+            }
         }
         
-        const app = this;
-        container.innerHTML = this.datosCotizacion.conceptosSeleccionados.map(function(c, index) {
-            return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin:10px 0;background:white;">' +
-                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
-                '<div>' +
-                '<div style="font-weight:700;color:#1a1a1a;">' + c.codigo + '</div>' +
-                '<div style="color:#666;font-size:13px;">' + c.descripcion_corta.substring(0, 50) + '...</div>' +
-                '</div>' +
-                '<button onclick="app.eliminarConceptoDeCotizacion(' + index + ')" style="background:#f44336;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;">🗑️</button>' +
-                '</div>' +
-                '</div>';
-        }).join('');
+        // Actualizar en pantalla de Catálogos
+        const containerCatalogo = document.getElementById('conceptos-seleccionados-catalogo');
+        const countLabel = document.getElementById('conceptos-count');
+    
+        if (containerCatalogo) {
+            if (this.datosCotizacion.conceptosSeleccionados.length === 0) {
+            containerCatalogo.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">No hay conceptos seleccionados aún</div>';
+            } else {
+                const app = this;
+                containerCatalogo.innerHTML = this.datosCotizacion.conceptosSeleccionados.map(function(c, index) {
+                    return '<div style="padding:10px;border:1px solid #ddd;border-radius:8px;margin:5px 0;background:#f5f7fa;">' +
+                        '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                        '<div style="font-weight:600;color:#1a1a1a;font-size:13px;">' + c.codigo + '</div>' +
+                        '<button onclick="app.eliminarConceptoDeCotizacion(' + index + ')" ' +
+                        'style="background:#f44336;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;font-size:12px;">🗑️</button>' +
+                        '</div>' +
+                        '<div style="color:#666;font-size:11px;margin-top:5px;">' + c.descripcion_corta.substring(0, 40) + '...</div>' +
+                        '</div>';
+                }).join('');
+            }
+        }
+    
+        // Actualizar contador
+        if (countLabel) {
+            countLabel.textContent = this.datosCotizacion.conceptosSeleccionados.length;
+        }
+    
+        // Recalcular totales
+        this.calcularTotalConConceptos();
     },
     
     eliminarConceptoDeCotizacion: function(index) {
@@ -758,3 +792,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
