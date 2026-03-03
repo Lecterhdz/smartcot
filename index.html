@@ -371,6 +371,72 @@
                     </div>
                 </div>
 
+                <!-- IMPACTO DE FACTORES DE AJUSTE (NUEVA SECCIÓN) -->
+                <div id="seccion-impacto-factores" style="display:none;margin-top:25px;padding:25px;background:linear-gradient(135deg,#FFF3E0,#FFE0B2);border-radius:15px;border-left:5px solid #FF9800;">
+                    <h4 style="color:#E65100;margin:0 0 20px 0;display:flex;align-items:center;gap:10px;">
+                        <span>⚠️ Impacto de Factores de Ajuste</span>
+                        <button onclick="app.abrirFactoresAjuste()" 
+                                style="background:#FF9800;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;font-size:12px;margin-left:auto;">
+                            ✏️ Editar Factores
+                        </button>
+                    </h4>
+                    
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-bottom:20px;">
+                        <!-- Tiempo Original -->
+                        <div style="background:white;padding:15px;border-radius:10px;">
+                            <div style="font-size:12px;color:#666;margin-bottom:5px;">📅 Tiempo Original</div>
+                            <div style="font-size:24px;font-weight:700;color:#1a1a1a;" id="impacto-tiempo-original">0 días</div>
+                            <div style="font-size:11px;color:#999;margin-top:5px;" id="impacto-semanas-original">0 semanas</div>
+                        </div>
+                        
+                        <!-- Tiempo Ajustado -->
+                        <div style="background:white;padding:15px;border-radius:10px;">
+                            <div style="font-size:12px;color:#666;margin-bottom:5px;">📅 Tiempo Ajustado</div>
+                            <div style="font-size:24px;font-weight:700;color:#f44336;" id="impacto-tiempo-ajustado">0 días</div>
+                            <div style="font-size:11px;color:#999;margin-top:5px;" id="impacto-semanas-ajustado">0 semanas</div>
+                        </div>
+                        
+                        <!-- Días Incrementados -->
+                        <div style="background:white;padding:15px;border-radius:10px;">
+                            <div style="font-size:12px;color:#666;margin-bottom:5px;">📈 Días Incrementados</div>
+                            <div style="font-size:24px;font-weight:700;color:#FF9800;" id="impacto-dias-incremento">+0 días</div>
+                            <div style="font-size:11px;color:#999;margin-top:5px;" id="impacto-porcentaje-tiempo">+0%</div>
+                        </div>
+                        
+                        <!-- Factor Total -->
+                        <div style="background:white;padding:15px;border-radius:10px;">
+                            <div style="font-size:12px;color:#666;margin-bottom:5px;">🔢 Factor Total</div>
+                            <div style="font-size:24px;font-weight:700;color:#1a1a1a;" id="impacto-factor-total">1.00x</div>
+                            <div style="font-size:11px;color:#999;margin-top:5px;" id="impacto-detalle-factores">-</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Costo por Tiempo Extendido -->
+                    <div style="background:white;padding:15px;border-radius:10px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                            <div style="font-size:14px;font-weight:600;color:#1a1a1a;">💰 Costo Estimado por Tiempo Extendido</div>
+                            <div style="font-size:20px;font-weight:700;color:#f44336;" id="impacto-costo-tiempo">$0.00</div>
+                        </div>
+                        <div style="font-size:12px;color:#666;">
+                            Incluye: supervisión, equipos de tiempo completo, instalaciones temporales, etc.
+                        </div>
+                        <div style="margin-top:10px;padding-top:10px;border-top:2px dashed #ddd;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <div style="font-size:13px;font-weight:600;color:#1a1a1a;">📊 Costo Total con Factores</div>
+                                <div style="font-size:24px;font-weight:700;color:#f44336;" id="impacto-costo-total">$0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Desglose de Factores Aplicados -->
+                    <div style="margin-top:15px;background:white;padding:15px;border-radius:10px;">
+                        <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:10px;">📋 Factores Aplicados:</div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;" id="impacto-desglose-factores">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+                        
                 <!-- Botones de Acción (CORREGIDO - MISMA FILA) -->
 
                         <!-- Botón para abrir factores (ANTES de Guardar Cotización) -->
@@ -704,6 +770,7 @@
                     
 </body>
 </html>
+
 
 
 
