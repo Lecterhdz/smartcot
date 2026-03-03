@@ -591,36 +591,63 @@ window.app = {
         if (el) el.remove();
         this.calcularTotal();
     },
-    
-    // ─────────────────────────────────────────────────────────────────
-    // MANO DE OBRA
-    // ─────────────────────────────────────────────────────────────────
+
+    // ─────────────────────────────────────────────────────────────────────
+    // AGREGAR MANO DE OBRA ADICIONAL (CON JOR PARA TIEMPO)
+    // ─────────────────────────────────────────────────────────────────────
     agregarManoObra: function() {
         const container = document.getElementById('mano-obra-lista');
         if (!container) return;
         
         const id = Date.now();
-        this.datosCotizacion.manoObra.push({ id: id, concepto: '', horas: 1, precioHora: 0 });
+        this.datosCotizacion.manoObra.push({ 
+            id: id, 
+            concepto: '', 
+            jornadas: 0,      // Para tiempo de ejecución
+            costoJornada: 0,   // Costo por jornada
+            importe: 0         // Total calculado
+        });
         
         const div = document.createElement('div');
         div.className = 'mano-obra-item';
         div.dataset.id = id;
-        div.innerHTML = '<div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;margin:10px 0;">' +
-            '<input type="text" placeholder="Concepto" onchange="app.actualizarManoObra(' + id + ', \'concepto\', this.value)" style="padding:10px;border:1px solid #ddd;border-radius:8px;">' +
-            '<input type="number" placeholder="Horas" value="1" min="1" onchange="app.actualizarManoObra(' + id + ', \'horas\', this.value)" style="padding:10px;border:1px solid #ddd;border-radius:8px;">' +
-            '<input type="number" placeholder="$ Hora" value="0" min="0" step="0.01" onchange="app.actualizarManoObra(' + id + ', \'precioHora\', this.value)" style="padding:10px;border:1px solid #ddd;border-radius:8px;">' +
-            '<button onclick="app.eliminarManoObra(' + id + ')" style="background:#f44336;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;">🗑️</button>' +
-            '</div>';
+        div.innerHTML = `
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px;margin:10px 0;">
+                <input type="text" placeholder="Concepto (ej: Ayudante general)" 
+                       onchange="app.actualizarManoObra(${id}, 'concepto', this.value)" 
+                       style="padding:10px;border:1px solid #ddd;border-radius:8px;">
+                <input type="number" placeholder="Jor" value="0" min="0" step="0.01" 
+                       onchange="app.actualizarManoObra(${id}, 'jornadas', this.value)" 
+                       style="padding:10px;border:1px solid #ddd;border-radius:8px;" 
+                       title="Jornadas para tiempo de ejecución">
+                <input type="number" placeholder="$ / Jor" value="0" min="0" step="0.01" 
+                       onchange="app.actualizarManoObra(${id}, 'costoJornada', this.value)" 
+                       style="padding:10px;border:1px solid #ddd;border-radius:8px;">
+                <div style="padding:10px;background:#f5f7fa;border-radius:8px;text-align:center;font-weight:600;" 
+                     id="mo-importe-${id}">$0.00</div>
+                <button onclick="app.eliminarManoObra(${id})" 
+                        style="background:#f44336;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;">🗑️</button>
+            </div>
+        `;
         container.appendChild(div);
-        this.calcularTotal();
+        this.calcularTotalConConceptos();
     },
     
     actualizarManoObra: function(id, campo, valor) {
-        const mo = this.datosCotizacion.manoObra.find(function(m) { return m.id === id; });
+        const mo = this.datosCotizacion.manoObra.find(m => m.id === id);
         if (mo) {
             mo[campo] = campo === 'concepto' ? valor : (parseFloat(valor) || 0);
+            
+            // Calcular importe automáticamente
+            if (campo === 'jornadas' || campo === 'costoJornada') {
+                mo.importe = (mo.jornadas || 0) * (mo.costoJornada || 0);
+                const importeEl = document.getElementById(`mo-importe-${id}`);
+                if (importeEl) {
+                    importeEl.textContent = calculator.formatoMoneda(mo.importe);
+                }
+            }
         }
-        this.calcularTotal();
+        this.calcularTotalConConceptos();
     },
     
     eliminarManoObra: function(id) {
@@ -919,10 +946,10 @@ window.app = {
             warning.style.display = 'none';
         }
     },
-    
-    // ─────────────────────────────────────────────────────────────────
-    // GUARDAR COTIZACIÓN
-    // ─────────────────────────────────────────────────────────────────
+
+    // ─────────────────────────────────────────────────────────────────────
+    // GUARDAR COTIZACIÓN (ACTUALIZADO - INCLUYE ADICIONALES)
+    // ─────────────────────────────────────────────────────────────────────
     guardarCotizacion: async function() {
         try {
             console.log('💾 Guardando cotización...');
@@ -933,10 +960,15 @@ window.app = {
                 return;
             }
             
-            const clienteId = document.getElementById('cot-cliente') ? document.getElementById('cot-cliente').value : '';
-            const descripcion = document.getElementById('cot-descripcion') ? document.getElementById('cot-descripcion').value : '';
-            const ubicacion = document.getElementById('cot-ubicacion') ? document.getElementById('cot-ubicacion').value : '';
-            const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 15;
+            const clienteId = document.getElementById('cot-cliente')?.value;
+            const descripcion = document.getElementById('cot-descripcion')?.value;
+            const ubicacion = document.getElementById('cot-ubicacion')?.value;
+            
+            // Obtener valores de indirectos editables
+            const indirectosOficinaPorcentaje = parseFloat(document.getElementById('cot-indirectos-oficina')?.value) || 5;
+            const indirectosCampoPorcentaje = parseFloat(document.getElementById('cot-indirectos-campo')?.value) || 15;
+            const financiamientoPorcentaje = parseFloat(document.getElementById('cot-financiamiento')?.value) || 0.85;
+            const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
             
             if (!clienteId || !descripcion) {
                 this.notificacion('⚠️ Completa cliente y descripción', 'error');
@@ -948,34 +980,55 @@ window.app = {
                 return;
             }
             
-            const resultado = calculator.calcularCotizacion({
-                materiales: this.datosCotizacion.materiales,
-                manoObra: this.datosCotizacion.manoObra,
-                indirectos: this.datosCotizacion.indirectos,
-                utilidadPorcentaje: utilidadPorcentaje,
-                ivaPorcentaje: 16
-            });
+            // Calcular totales
+            this.calcularTotalConConceptos();
             
+            // Crear cotización COMPLETA
             const cotizacion = {
                 clienteId: clienteId,
                 descripcion: descripcion,
                 ubicacion: ubicacion || '',
-                materiales: this.datosCotizacion.materiales,
-                manoObra: this.datosCotizacion.manoObra,
-                indirectos: this.datosCotizacion.indirectos,
-                conceptos: this.datosCotizacion.conceptosSeleccionados,
-                utilidadPorcentaje: utilidadPorcentaje,
-                subtotal: resultado.subtotal,
-                indirectosTotal: resultado.indirectosTotal,
-                utilidad: resultado.utilidad,
-                iva: resultado.iva,
-                totalFinal: resultado.totalFinal,
+                
+                // Conceptos del catálogo
+                conceptosCatalogo: this.datosCotizacion.conceptosSeleccionados,
+                
+                // ADICIONALES (ESTO ES LO NUEVO)
+                materialesAdicionales: this.datosCotizacion.materiales,
+                manoObraAdicional: this.datosCotizacion.manoObra,
+                equiposAdicionales: this.datosCotizacion.equipos,
+                herramientaAdicional: this.datosCotizacion.herramienta,
+                indirectosAdicionales: this.datosCotizacion.indirectos,
+                
+                // Porcentajes aplicados
+                porcentajes: {
+                    indirectosOficina: indirectosOficinaPorcentaje,
+                    indirectosCampo: indirectosCampoPorcentaje,
+                    financiamiento: financiamientoPorcentaje,
+                    utilidad: utilidadPorcentaje
+                },
+                
+                // Totales calculados
+                costoDirecto: this.costoDirectoCalculado || 0,
+                totalIndirectos: this.totalIndirectosCalculado || 0,
+                utilidad: this.utilidadCalculada || 0,
+                iva: this.ivaCalculado || 0,
+                totalFinal: this.totalFinalCalculado || 0,
+                
+                // Tiempo de ejecución
+                tiempoEjecucion: this.tiempoEjecucion || {
+                    jornadas: 0,
+                    diasHabiles: 0,
+                    semanas: 0,
+                    meses: 0
+                },
+                
                 fecha: new Date().toISOString(),
                 estado: 'pendiente'
             };
             
             await window.db.cotizaciones.add(cotizacion);
             
+            console.log('✅ Cotización guardada:', cotizacion);
             this.notificacion('✅ Cotización guardada exitosamente', 'exito');
             
             this.resetearFormulario();
@@ -986,26 +1039,6 @@ window.app = {
             console.error('❌ Error guardando cotización:', error);
             this.notificacion('❌ Error: ' + error.message, 'error');
         }
-    },
-    
-    resetearFormulario: function() {
-        this.datosCotizacion = {
-            materiales: [],
-            manoObra: [],
-            equipos: [],
-            herramienta: [],
-            indirectos: [],
-            conceptosSeleccionados: []
-        };
-        
-        const ids = ['materiales-lista', 'mano-obra-lista', 'equipos-lista', 'indirectos-lista', 'conceptos-seleccionados'];
-        const app = this;
-        ids.forEach(function(id) {
-            const el = document.getElementById(id);
-            if (el) el.innerHTML = '';
-        });
-        
-        this.inicializarFormularios();
     },
     
     // ─────────────────────────────────────────────────────────────────
@@ -1132,6 +1165,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
