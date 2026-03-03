@@ -211,45 +211,61 @@
                     <h4 style="margin-bottom:15px;color:#1a1a1a;">🔧 Recursos Manuales Adicionales (Opcional)</h4>
                     
                     <div style="background:#f9f9f9;padding:20px;border-radius:15px;">
-                        <!-- Materiales -->
+
+                        <!-- Materiales Adicionales -->
                         <div class="form-group" style="margin-bottom:20px;">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                                 <label style="font-size:14px;color:#1a1a1a;font-weight:600;">📦 Materiales Adicionales</label>
                                 <button class="btn btn-secondary" onclick="app.agregarMaterial()" style="padding:8px 15px;font-size:13px;">➕ Agregar</button>
                             </div>
-                            <div id="materiales-lista"></div>
+                            <div style="background:#fff;padding:15px;border-radius:10px;border:1px solid #ddd;">
+                                <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:2px solid #ddd;">
+                                    <div style="font-size:12px;font-weight:600;color:#666;">Descripción del Material</div>
+                                    <div style="font-size:12px;font-weight:600;color:#666;">Cantidad</div>
+                                    <div style="font-size:12px;font-weight:600;color:#666;">Costo Unitario</div>
+                                    <div style="font-size:12px;font-weight:600;color:#666;text-align:right;">Importe</div>
+                                    <div></div>
+                                </div>
+                                <div id="materiales-lista"></div>
+                            </div>
                         </div>
                         
-                        <!-- Mano de Obra -->
+                        <!-- Mano de Obra Adicional -->
                         <div class="form-group" style="margin-bottom:20px;">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                                 <label style="font-size:14px;color:#1a1a1a;font-weight:600;">👷 Mano de Obra Adicional</label>
                                 <button class="btn btn-secondary" onclick="app.agregarManoObra()" style="padding:8px 15px;font-size:13px;">➕ Agregar</button>
                             </div>
-                            <div id="mano-obra-lista"></div>
+                            <div style="background:#fff;padding:15px;border-radius:10px;border:1px solid #ddd;">
+                                <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:2px solid #ddd;">
+                                    <div style="font-size:12px;font-weight:600;color:#666;">Puesto / Concepto</div>
+                                    <div style="font-size:12px;font-weight:600;color:#666;">Jornadas</div>
+                                    <div style="font-size:12px;font-weight:600;color:#666;">Costo / Jornada</div>
+                                    <div style="font-size:12px;font-weight:600;color:#666;text-align:right;">Importe</div>
+                                    <div></div>
+                                </div>
+                                <div id="mano-obra-lista"></div>
+                            </div>
                         </div>
                         
-                        <!-- Equipos -->
+                        <!-- Equipos Adicionales -->
                         <div class="form-group" style="margin-bottom:20px;">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                                 <label style="font-size:14px;color:#1a1a1a;font-weight:600;">🏗️ Equipos Adicionales</label>
                                 <button class="btn btn-secondary" onclick="app.agregarEquipo()" style="padding:8px 15px;font-size:13px;">➕ Agregar</button>
                             </div>
-                            <div id="equipos-lista"></div>
-                        </div>
-                        
-                        <!-- Indirectos -->
-                        <div class="form-group">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                                <label style="font-size:14px;color:#1a1a1a;font-weight:600;">📊 Indirectos Adicionales</label>
-                                <button class="btn btn-secondary" onclick="app.agregarIndirecto()" style="padding:8px 15px;font-size:13px;">➕ Agregar</button>
+                            <div style="background:#fff;padding:15px;border-radius:10px;border:1px solid #ddd;">
+                                <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:2px solid #ddd;">
+                                    <div style="font-size:12px;font-weight:600;color:#666;">Equipo</div>
+                                    <div style="font-size:12px;font-weight:600;color:#666;">Horas / Días</div>
+                                    <div style="font-size:12px;font-weight:600;color:#666;">Costo Unitario</div>
+                                    <div style="font-size:12px;font-weight:600;color:#666;text-align:right;">Importe</div>
+                                    <div></div>
+                                </div>
+                                <div id="equipos-lista"></div>
                             </div>
-                            <div id="indirectos-lista"></div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Resumen Financiero -->
                 <!-- Resumen Financiero COMPLETO -->
                 <div style="margin-top:25px;padding:25px;background:linear-gradient(135deg,#1a1a1a,#333333);border-radius:15px;color:white;">
                     <h4 style="margin-bottom:20px;">💰 Resumen Financiero</h4>
@@ -580,5 +596,6 @@
     </script>
 </body>
 </html>
+
 
 
