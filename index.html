@@ -299,12 +299,6 @@
                                        onchange="app.calcularTotalConConceptos()"
                                        style="width:100%;padding:8px;border:2px solid #FF9800;border-radius:8px;font-weight:700;font-size:14px;">
                             </div>
-                            <div>
-                                <label style="font-size:11px;opacity:0.8;">Utilidad (%)</label>
-                                <input type="number" id="cot-utilidad" value="10" min="0" max="100" step="0.1"
-                                       onchange="app.calcularTotalConConceptos()"
-                                       style="width:100%;padding:8px;border:2px solid #4CAF50;border-radius:8px;font-weight:700;font-size:14px;">
-                            </div>
                         </div>
                         
                         <!-- Total Sobrecostos -->
@@ -322,6 +316,14 @@
                     <!-- Utilidad en Costo -->
                     <div style="background:rgba(76,175,80,0.2);padding:15px;border-radius:10px;margin-bottom:15px;">
                         <div style="font-size:13px;opacity:0.8;">💵 UTILIDAD EN COSTO</div>
+
+                            <div>
+                                <label style="font-size:11px;opacity:0.8;">Utilidad (%)</label>
+                                <input type="number" id="cot-utilidad" value="10" min="0" max="100" step="0.1"
+                                       onchange="app.calcularTotalConConceptos()"
+                                       style="width:100%;padding:8px;border:2px solid #4CAF50;border-radius:8px;font-weight:700;font-size:14px;">
+                            </div>
+                        
                         <div style="font-size:24px;font-weight:700;color:#4CAF50;" id="resumen-utilidad-costo">$0.00</div>
                     </div>
                     
@@ -596,6 +598,7 @@
     </script>
 </body>
 </html>
+
 
 
 
