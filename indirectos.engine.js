@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - MOTOR DE INDIRECTOS
+// SMARTCOT v2.0 - MOTOR DE INDIRECTOS (CORREGIDO)
 // Basado en estructura REAL de tu Excel
 // ─────────────────────────────────────────────────────────────────────
 
@@ -41,20 +41,47 @@ window.indirectosEngine = {
     // CALCULAR INDIRECTOS DE UN CONCEPTO
     // ─────────────────────────────────────────────────────────────────
     calcularIndirectos: function(concepto) {
+        // VALIDACIÓN: Verificar que concepto existe
+        if (!concepto) {
+            console.error('❌ Error: concepto es undefined o null');
+            return {
+                detalle: {},
+                total: 0,
+                costoDirecto: 0,
+                costoConIndirectos: 0,
+                porcentajeTotal: 0,
+                error: 'Concepto no válido'
+            };
+        }
+        
+        // VALIDACIÓN: Verificar que tiene recursos
+        if (!concepto.recursos) {
+            console.error('❌ Error: concepto no tiene recursos', concepto);
+            return {
+                detalle: {},
+                total: 0,
+                costoDirecto: 0,
+                costoConIndirectos: 0,
+                porcentajeTotal: 0,
+                error: 'Concepto no tiene recursos'
+            };
+        }
+        
         const costoDirecto = this.calcularCostoDirecto(concepto);
         const indirectos = {};
         let totalIndirectos = 0;
         
         // Buscar todos los %MO en los recursos del concepto
-        if (concepto.recursos?.herramienta) {
+        if (concepto.recursos.herramienta && Array.isArray(concepto.recursos.herramienta)) {
             concepto.recursos.herramienta.forEach(herr => {
-                const tipo = this.tiposIndirectos[herr.herramienta_codigo || herr.codigo];
+                const codigo = herr.herramienta_codigo || herr.codigo;
+                const tipo = this.tiposIndirectos[codigo];
                 
                 if (tipo) {
                     const monto = costoDirecto * (herr.porcentaje / 100);
                     
-                    indirectos[herr.herramienta_codigo || herr.codigo] = {
-                        codigo: herr.herramienta_codigo || herr.codigo,
+                    indirectos[codigo] = {
+                        codigo: codigo,
                         nombre: tipo.nombre,
                         tipo: tipo.tipo,
                         porcentaje: herr.porcentaje,
@@ -77,14 +104,40 @@ window.indirectosEngine = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // CALCULAR COSTO DIRECTO
+    // CALCULAR COSTO DIRECTO (CORREGIDO)
     // ─────────────────────────────────────────────────────────────────
     calcularCostoDirecto: function(concepto) {
-        const materiales = concepto.recursos?.materiales?.reduce((sum, m) => sum + (m.importe || 0), 0) || 0;
-        const manoObra = concepto.recursos?.mano_obra?.reduce((sum, mo) => sum + (mo.importe || 0), 0) || 0;
-        const equipos = concepto.recursos?.equipos?.reduce((sum, e) => sum + (e.importe || 0), 0) || 0;
+        // VALIDACIÓN: Verificar que concepto existe
+        if (!concepto) {
+            console.warn('⚠️ concepto es undefined en calcularCostoDirecto');
+            return 0;
+        }
         
-        return materiales + manoObra + equipos;
+        // VALIDACIÓN: Verificar que tiene recursos
+        if (!concepto.recursos) {
+            console.warn('⚠️ concepto no tiene recursos en calcularCostoDirecto');
+            return 0;
+        }
+        
+        // Sumar materiales
+        const materiales = Array.isArray(concepto.recursos.materiales) 
+            ? concepto.recursos.materiales.reduce((sum, m) => sum + (m.importe || 0), 0) 
+            : 0;
+        
+        // Sumar mano de obra
+        const manoObra = Array.isArray(concepto.recursos.mano_obra) 
+            ? concepto.recursos.mano_obra.reduce((sum, mo) => sum + (mo.importe || 0), 0) 
+            : 0;
+        
+        // Sumar equipos
+        const equipos = Array.isArray(concepto.recursos.equipos) 
+            ? concepto.recursos.equipos.reduce((sum, e) => sum + (e.importe || 0), 0) 
+            : 0;
+        
+        const total = materiales + manoObra + equipos;
+        
+        console.log('📊 Costo Directo:', { materiales, manoObra, equipos, total });
+        return total;
     },
     
     // ─────────────────────────────────────────────────────────────────
@@ -100,6 +153,20 @@ window.indirectosEngine = {
     validarIndirectos: function(concepto) {
         const alertas = [];
         const indirectos = this.calcularIndirectos(concepto);
+        
+        // Verificar si hay error
+        if (indirectos.error) {
+            alertas.push({
+                tipo: 'error',
+                codigo: 'CONCEPTO_INVALIDO',
+                mensaje: indirectos.error
+            });
+            return {
+                valido: false,
+                alertas: alertas,
+                indirectos: indirectos
+            };
+        }
         
         // Verificar si faltan indirectos comunes
         if (!indirectos.detalle['%MO1']) {
@@ -165,4 +232,4 @@ window.indirectosEngine = {
     }
 };
 
-console.log('✅ indirectos.engine.js listo');
+console.log('✅ indirectos.engine.js listo - Versión Corregida');
