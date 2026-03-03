@@ -948,6 +948,65 @@ window.app = {
         }
     },
 
+
+    // ─────────────────────────────────────────────────────────────────────
+    // ABRIR FACTORES DE AJUSTE
+    // ─────────────────────────────────────────────────────────────────────
+    abrirFactoresAjuste: function() {
+        document.getElementById('modal-factores').style.display = 'flex';
+        this.aplicarFactores();
+    },
+    
+    // ─────────────────────────────────────────────────────────────────────
+    // APLICAR FACTORES
+    // ─────────────────────────────────────────────────────────────────────
+    aplicarFactores: function() {
+        const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
+        const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
+        const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
+        
+        const factorTotal = factorAltura * factorClima * factorAcceso;
+        
+        // Calcular impacto
+        const tiempoOriginal = this.tiempoEjecucion?.diasHabiles || 0;
+        const tiempoAjustado = Math.ceil(tiempoOriginal * factorTotal);
+        
+        document.getElementById('tiempo-original').textContent = tiempoOriginal + ' días';
+        document.getElementById('tiempo-ajustado').textContent = tiempoAjustado + ' días';
+        
+        this.factorAjusteActual = factorTotal;
+    },
+    
+    // ─────────────────────────────────────────────────────────────────────
+    // GUARDAR FACTORES
+    // ─────────────────────────────────────────────────────────────────────
+    guardarFactores: function() {
+        const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
+        const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
+        const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
+        
+        this.factoresAplicados = {
+            altura: factorAltura,
+            clima: factorClima,
+            acceso: factorAcceso,
+            total: this.factorAjusteActual || 1
+        };
+        
+        // Recalcular tiempo con factores
+        if (this.tiempoEjecucion) {
+            this.tiempoEjecucion.diasHabilesAjustado = Math.ceil(
+                this.tiempoEjecucion.diasHabiles * (this.factorAjusteActual || 1)
+            );
+            this.tiempoEjecucion.semanasAjustado = (this.tiempoEjecucion.diasHabilesAjustado / 5).toFixed(2);
+            this.tiempoEjecucion.mesesAjustado = (this.tiempoEjecucion.semanasAjustado / 4.33).toFixed(2);
+        }
+        
+        document.getElementById('modal-factores').style.display = 'none';
+        this.notificacion('✅ Factores aplicados: ' + ((this.factorAjusteActual || 1) * 100).toFixed(0) + '%', 'exito');
+        
+        this.calcularTotalConConceptos();
+    },
+    
     // ─────────────────────────────────────────────────────────────────────
     // GUARDAR COTIZACIÓN (ACTUALIZADO - INCLUYE ADICIONALES)
     // ─────────────────────────────────────────────────────────────────────
@@ -1166,6 +1225,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
