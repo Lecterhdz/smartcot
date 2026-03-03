@@ -519,49 +519,110 @@ window.app = {
         this.verificarSmartMargin(resultado);
     },
     
+    // ─────────────────────────────────────────────────────────────────────
+    // CALCULAR TOTAL CON CONCEPTOS (ACTUALIZADO - INDIRECTOS EDITABLES)
+    // ─────────────────────────────────────────────────────────────────────
     calcularTotalConConceptos: function() {
         let subtotal = 0;
-        
+    
+        // Sumar conceptos del catálogo
         this.datosCotizacion.conceptosSeleccionados.forEach(function(c) {
             subtotal += (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
         });
-        
-        subtotal += this.datosCotizacion.materiales.reduce(function(sum, m) { return sum + (m.cantidad * m.precioUnitario); }, 0);
-        subtotal += this.datosCotizacion.manoObra.reduce(function(sum, m) { return sum + (m.horas * m.precioHora); }, 0);
-        subtotal += this.datosCotizacion.equipos.reduce(function(sum, e) { return sum + (e.horas * e.costoUnitario); }, 0);
-        
-        const indirectos = this.datosCotizacion.indirectos.reduce(function(sum, i) { return sum + i.monto; }, 0);
-        const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 15;
-        const utilidad = (subtotal + indirectos) * (utilidadPorcentaje / 100);
-        const iva = (subtotal + indirectos + utilidad) * 0.16;
-        const total = subtotal + indirectos + utilidad + iva;
-        
+    
+        // Sumar materiales, MO, equipos manuales
+        subtotal += this.datosCotizacion.materiales.reduce(function(sum, m) { 
+            return sum + (m.cantidad * m.precioUnitario); 
+        }, 0);
+        subtotal += this.datosCotizacion.manoObra.reduce(function(sum, m) { 
+            return sum + (m.horas * m.precioHora); 
+        }, 0);
+        subtotal += this.datosCotizacion.equipos.reduce(function(sum, e) { 
+            return sum + (e.horas * e.costoUnitario); 
+        }, 0);
+    
+        // Indirectos manuales (si los hay)
+        const indirectosManuales = this.datosCotizacion.indirectos.reduce(function(sum, i) { 
+            return sum + i.monto; 
+        }, 0);
+    
+        // ─────────────────────────────────────────────────────────────────
+        // INDIRECTOS PORCENTUALES (EDITABLES)
+        // ─────────────────────────────────────────────────────────────────
+        const indirectosOficinaPorcentaje = parseFloat(document.getElementById('cot-indirectos-oficina')?.value) || 5;
+        const indirectosCampoPorcentaje = parseFloat(document.getElementById('cot-indirectos-campo')?.value) || 15;
+        const financiamientoPorcentaje = parseFloat(document.getElementById('cot-financiamiento')?.value) || 0.85;
+        const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
+    
+        const indirectosOficina = subtotal * (indirectosOficinaPorcentaje / 100);
+        const indirectosCampo = subtotal * (indirectosCampoPorcentaje / 100);
+        const financiamiento = subtotal * (financiamientoPorcentaje / 100);
+    
+        const totalSobrecostos = indirectosOficina + indirectosCampo + financiamiento + indirectosManuales;
+        const porcentajeSobrecostos = subtotal > 0 ? (totalSobrecostos / subtotal) * 100 : 0;
+    
+        const baseConIndirectos = subtotal + totalSobrecostos;
+    
+        const utilidad = baseConIndirectos * (utilidadPorcentaje / 100);
+        const iva = (baseConIndirectos + utilidad) * 0.16;
+        const total = baseConIndirectos + utilidad + iva;
+    
+        // ─────────────────────────────────────────────────────────────────
+        // ACTUALIZAR UI
+        // ─────────────────────────────────────────────────────────────────
         const elementos = {
-            'resumen-subtotal': subtotal,
-            'resumen-indirectos': indirectos,
-            'resumen-utilidad': utilidad,
+            'resumen-costo-directo': subtotal,
+            'resumen-indirectos-oficina': indirectosOficina,
+            'resumen-indirectos-campo': indirectosCampo,
+            'resumen-financiamiento': financiamiento,
+            'resumen-sobrecosto-monto': totalSobrecostos,
+            'resumen-subtotal': baseConIndirectos + utilidad,
             'resumen-iva': iva,
             'resumen-total': total
         };
-        
+    
         const app = this;
         Object.entries(elementos).forEach(function(par) {
             const el = document.getElementById(par[0]);
             if (el) el.textContent = calculator.formatoMoneda(par[1]);
         });
-    },
     
+        // Actualizar porcentajes
+        const elPorcentajeSobrecosto = document.getElementById('resumen-sobrecosto-porcentaje');
+        if (elPorcentajeSobrecosto) {
+            elPorcentajeSobrecosto.textContent = porcentajeSobrecostos.toFixed(2) + '%';
+        }
+    
+        // Verificar margen
+        const margenReal = utilidad > 0 ? (utilidad / total) * 100 : 0;
+        this.verificarSmartMargin({ margenReal: margenReal, indirectosTotal: totalSobrecostos });
+    },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // VERIFICAR SMART MARGIN (ACTUALIZADO)
+    // ─────────────────────────────────────────────────────────────────────
     verificarSmartMargin: function(resultado) {
         const warning = document.getElementById('smartmargin-warning');
-        if (!warning) return;
-        
+        const alertasEl = document.getElementById('smartmargin-alertas');
+        if (!warning || !alertasEl) return;
+    
         const alertas = [];
-        if (resultado.margenReal < 15) alertas.push('⚠️ Utilidad menor al 15% recomendado.');
-        if (resultado.indirectosTotal === 0) alertas.push('⚠️ No se incluyeron costos indirectos.');
-        
+    
+        if (resultado.margenReal < 10) {
+            alertas.push('⚠️ Utilidad menor al 10% recomendado para proyectos electromecánicos.');
+        }
+    
+        if (resultado.margenReal < 5) {
+            alertas.push('🚨 Utilidad CRÍTICA (<5%). Considera revisar costos o rechazar el proyecto.');
+        }
+    
+        if (resultado.indirectosTotal === 0) {
+            alertas.push('⚠️ No se incluyeron costos indirectos. Lo normal es 20-25% del costo directo.');
+        }
+    
         if (alertas.length > 0) {
             warning.style.display = 'block';
-            warning.innerHTML = '<strong>⚠️ SmartMargin Alertas:</strong><br>' + alertas.join('<br>');
+            alertasEl.innerHTML = alertas.join('<br>');
         } else {
             warning.style.display = 'none';
         }
@@ -779,3 +840,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
