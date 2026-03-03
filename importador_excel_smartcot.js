@@ -1,6 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - IMPORTADOR EXCEL (PARA TU ESTRUCTURA REAL)
-// Basado en: Relacion de Rendimientos de Insumos_ExplosiónXConceptoconimporte.xlsx
+// SMARTCOT v2.0 - IMPORTADOR EXCEL (CORREGIDO PARA TU ESTRUCTURA)
 // ─────────────────────────────────────────────────────────────────────
 
 console.log('📥 importador_excel_smartcot.js cargado');
@@ -42,7 +41,6 @@ window.importadorSmartCot = {
                         console.log('📋 Fila 0 (headers):', json[0]);
                         console.log('📋 Fila 1:', json[1]);
                         console.log('📋 Fila 2:', json[2]);
-                        console.log('📋 Fila 3:', json[3]);
                         
                         const resultado = await this.procesarDatos(json);
                         console.log('✅ Procesamiento completado:', resultado);
@@ -72,7 +70,7 @@ window.importadorSmartCot = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // PROCESAR DATOS (PARA TU ESTRUCTURA REAL)
+    // PROCESAR DATOS (CORREGIDO - COLUMNAS CORRECTAS)
     // ─────────────────────────────────────────────────────────────────
     procesarDatos: function(rows) {
         const conceptos = new Map();
@@ -88,44 +86,46 @@ window.importadorSmartCot = {
         
         console.log('🔄 Procesando', rows.length, 'filas...');
         
-        for (let i = 1; i < rows.length; i++) {
+        // Empezar desde fila 2 (índice 2) - después de headers
+        for (let i = 2; i < rows.length; i++) {
             const row = rows[i];
             
+            // Saltar filas vacías o con menos de 4 columnas
             if (!row || row.length < 4) {
                 filasSaltadas++;
                 continue;
             }
             
-            // ─────────────────────────────────────────────────────────────
-            // ESTRUCTURA REAL DE TU EXCEL:
-            // Columna A (0): Unidad concepto (M2, M, PZA, KG, SAL, MES, VIAJE)
-            // Columna B (1): Clave concepto (10301-001) - SOLO primera fila
-            // Columna C (2): Descripción concepto
-            // Columna D (3): Clave insumo (301-ARE-0101, MO011, %MO1, CFREV)
-            // Columna E (4): Descripción insumo
-            // Columna F (5): Unidad insumo (M3, JOR, %, HRS, PZA, KG, etc.)
+            // ─────────────────────────────────────────────────────────
+            // MAPEO CORRECTO DE COLUMNAS (SEGÚN TUS HEADERS):
+            // Columna A (0): Clave del concepto (10301-001) o VACÍO
+            // Columna B (1): Descripción del concepto
+            // Columna C (2): Unidad del concepto (M2, M, PZA, etc.)
+            // Columna D (3): Clave del insumo (301-ARE-0101, MO011, %MO1)
+            // Columna E (4): Descripción del insumo
+            // Columna F (5): Unidad del insumo
             // Columna G (6): Rendimiento/Cantidad
             // Columna H (7): Costo
             // Columna I (8): Importe
-            // ─────────────────────────────────────────────────────────────
+            // ─────────────────────────────────────────────────────────
             
-            const unidadConcepto = (row[0] || '').toString().trim();
-            const claveConcepto = (row[1] || '').toString().trim();
-            const descripcionConcepto = (row[2] || '').toString().trim();
+            const claveConcepto = (row[0] || '').toString().trim();      // Columna A
+            const descripcionConcepto = (row[1] || '').toString().trim(); // Columna B
+            const unidadConcepto = (row[2] || '').toString().trim();      // Columna C
             
-            const claveInsumo = (row[3] || '').toString().trim();
-            const descripcionInsumo = (row[4] || '').toString().trim();
-            const unidadInsumo = (row[5] || '').toString().trim();
-            const rendimiento = parseFloat(row[6]) || 0;
-            const costo = parseFloat((row[7] || '0').toString().replace(',', '')) || 0;
-            const importe = parseFloat((row[8] || '0').toString().replace(',', '')) || 0;
+            const claveInsumo = (row[3] || '').toString().trim();         // Columna D
+            const descripcionInsumo = (row[4] || '').toString().trim();   // Columna E
+            const unidadInsumo = (row[5] || '').toString().trim();        // Columna F
+            const rendimiento = parseFloat(row[6]) || 0;                  // Columna G
+            const costo = parseFloat((row[7] || '0').toString().replace(',', '')) || 0; // Columna H
+            const importe = parseFloat((row[8] || '0').toString().replace(',', '')) || 0; // Columna I
             
             // DEBUG: Mostrar primeras 25 filas
             if (i < 25) {
                 console.log(`Fila ${i}:`, {
-                    unidadConcepto,
                     claveConcepto,
                     descripcionConcepto: descripcionConcepto ? descripcionConcepto.substring(0, 30) : '',
+                    unidadConcepto,
                     claveInsumo,
                     descripcionInsumo: descripcionInsumo ? descripcionInsumo.substring(0, 30) : '',
                     unidadInsumo,
@@ -135,15 +135,17 @@ window.importadorSmartCot = {
                 });
             }
             
-            // Saltar headers y filas de empresa
+            // Saltar filas de encabezado/empresa
             if (claveConcepto === 'Clave del concepto' || claveConcepto.includes('SU EMPRESA')) {
                 filasSaltadas++;
                 continue;
             }
             
-            // ─────────────────────────────────────────────────────────────
+            // ─────────────────────────────────────────────────────────
             // DETECTAR NUEVO CONCEPTO
-            // ─────────────────────────────────────────────────────────────
+            // Si Columna A tiene código (XXXXX-XXX), es NUEVO concepto
+            // Si Columna A está vacía, es continuación del concepto anterior
+            // ─────────────────────────────────────────────────────────
             const esNuevoConcepto = claveConcepto && /^\d{5}-\d{3}$/.test(claveConcepto);
             
             if (esNuevoConcepto) {
@@ -206,12 +208,13 @@ window.importadorSmartCot = {
                 continue;
             }
             
-            // ─────────────────────────────────────────────────────────────
-            // DETECTAR TIPO DE INSUMO
-            // ─────────────────────────────────────────────────────────────
-            const tipoInsumo = this.detectarTipoInsumo(claveInsumo, unidadInsumo);
+            // ─────────────────────────────────────────────────────────
+            // PROCESAR INSUMO
+            // ─────────────────────────────────────────────────────────
+            const tipoInsumo = this.detectarTipoInsumo(claveInsumo);
             
             if (tipoInsumo === 'material') {
+                // Agregar a materiales globales
                 if (!materiales.has(claveInsumo)) {
                     materiales.set(claveInsumo, {
                         id: 'MAT-' + claveInsumo,
@@ -226,6 +229,7 @@ window.importadorSmartCot = {
                     });
                 }
                 
+                // Agregar al concepto actual
                 conceptoActual.recursos.materiales.push({
                     material_codigo: claveInsumo,
                     nombre: descripcionInsumo,
@@ -239,6 +243,7 @@ window.importadorSmartCot = {
                 conceptoActual.costos_base.costo_material += importe;
                 
             } else if (tipoInsumo === 'mano_obra') {
+                // Agregar a mano de obra global
                 if (!manoObra.has(claveInsumo)) {
                     manoObra.set(claveInsumo, {
                         id: 'MO-' + claveInsumo,
@@ -253,6 +258,7 @@ window.importadorSmartCot = {
                     });
                 }
                 
+                // Agregar al concepto actual
                 conceptoActual.recursos.mano_obra.push({
                     mano_obra_codigo: claveInsumo,
                     puesto: descripcionInsumo,
@@ -266,6 +272,7 @@ window.importadorSmartCot = {
                 conceptoActual.costos_base.costo_mano_obra += importe;
                 
             } else if (tipoInsumo === 'equipo') {
+                // Agregar a equipos globales
                 if (!equipos.has(claveInsumo)) {
                     equipos.set(claveInsumo, {
                         id: 'EQUIP-' + claveInsumo,
@@ -280,6 +287,7 @@ window.importadorSmartCot = {
                     });
                 }
                 
+                // Agregar al concepto actual
                 conceptoActual.recursos.equipos.push({
                     equipo_codigo: claveInsumo,
                     nombre: descripcionInsumo,
@@ -292,6 +300,7 @@ window.importadorSmartCot = {
                 conceptoActual.costos_base.costo_equipo += importe;
                 
             } else if (tipoInsumo === 'herramienta') {
+                // Agregar a herramienta global
                 if (!herramienta.has(claveInsumo)) {
                     herramienta.set(claveInsumo, {
                         id: 'HERR-' + claveInsumo,
@@ -303,6 +312,7 @@ window.importadorSmartCot = {
                     });
                 }
                 
+                // Agregar al concepto actual
                 conceptoActual.recursos.herramienta.push({
                     herramienta_codigo: claveInsumo,
                     nombre: descripcionInsumo,
@@ -324,7 +334,7 @@ window.importadorSmartCot = {
                 conceptoActual.costos_base.costo_mano_obra +
                 conceptoActual.costos_base.costo_equipo;
             
-            // Calcular rendimiento base (1 / total horas MO)
+            // Calcular rendimiento base
             const totalHorasMO = conceptoActual.recursos.mano_obra.reduce(function(sum, mo) {
                 return sum + (mo.horas_jornada || 0);
             }, 0);
@@ -344,6 +354,8 @@ window.importadorSmartCot = {
         console.log('   - Mano de Obra:', manoObra.size);
         console.log('   - Equipos:', equipos.size);
         console.log('   - Herramienta:', herramienta.size);
+        console.log('   - Filas procesadas:', filasProcesadas);
+        console.log('   - Filas saltadas:', filasSaltadas);
         
         this.estadisticas = {
             conceptos: conceptos.size,
@@ -370,23 +382,12 @@ window.importadorSmartCot = {
     // FUNCIONES DE DETECCIÓN
     // ─────────────────────────────────────────────────────────────────
     
-    // ─────────────────────────────────────────────────────────────────────
-    // DETECTAR TIPO DE INSUMO (MEJORADO)
-    // ─────────────────────────────────────────────────────────────────────
-    detectarTipoInsumo: function(clave, unidad) {
+    detectarTipoInsumo: function(clave) {
         if (!clave) return 'desconocido';
-        
-        // Mano de obra: MO seguido de números
         if (/^MO\d+$/.test(clave)) return 'mano_obra';
-        
-        // Herramienta/Indirectos: %MO seguido de número
         if (/^%MO\d+$/.test(clave)) return 'herramienta';
-        
-        // Equipos: CF o LL seguido de letras
         if (/^CF[A-Z]+$/.test(clave)) return 'equipo';
         if (/^LL[A-Z]+$/.test(clave)) return 'equipo';
-        
-        // Materiales: todo lo demás
         return 'material';
     },
     
@@ -397,9 +398,9 @@ window.importadorSmartCot = {
         if (desc.includes('soldad') || desc.includes('estructura')) return 'Estructuras';
         if (desc.includes('limpiez') || desc.includes('desmont')) return 'Limpieza';
         if (desc.includes('pint')) return 'Pintura';
-        if (desc.includes('tapial') || desc.includes('carpa') || desc.includes('cortina') || desc.includes('protección') || desc.includes('seguridad')) return 'Provisionales';
-        if (desc.includes('sanitario') || desc.includes('baño')) return 'Sanitarios';
-        if (desc.includes('rotulo') || desc.includes('señal') || desc.includes('aviso')) return 'Señalamiento';
+        if (desc.includes('tapial') || desc.includes('carpa') || desc.includes('cortina') || desc.includes('protección')) return 'Provisionales';
+        if (desc.includes('sanitario')) return 'Sanitarios';
+        if (desc.includes('rotulo') || desc.includes('señal')) return 'Señalamiento';
         if (desc.includes('trazo') || desc.includes('nivelación')) return 'Trazo';
         return 'General';
     },
@@ -411,13 +412,12 @@ window.importadorSmartCot = {
         if (desc.includes('limpiez')) return 'Limpieza';
         if (desc.includes('trazo')) return 'Trazo';
         if (desc.includes('sanitario')) return 'Sanitarios';
-        if (desc.includes('rotulo')) return 'Rótulos';
         return 'General';
     },
     
     detectarEspecialidad: function(clave, descripcion) {
         const desc = (descripcion || '').toLowerCase();
-        if (desc.includes('alb añil')) return 'Albañilería';
+        if (desc.includes('albañil')) return 'Albañilería';
         if (desc.includes('colocador')) return 'Colocación';
         if (desc.includes('herrero')) return 'Herrería';
         if (desc.includes('carpintero')) return 'Carpintería';
@@ -427,6 +427,7 @@ window.importadorSmartCot = {
         if (desc.includes('peón') || desc.includes('peon')) return 'Peón';
         if (desc.includes('ayudante')) return 'Ayudante';
         if (desc.includes('oficial')) return 'Oficial';
+        if (desc.includes('soldador')) return 'Soldadura';
         return 'General';
     },
     
@@ -664,4 +665,3 @@ window.importadorSmartCot = {
 };
 
 console.log('✅ importador_excel_smartcot.js listo');
-
