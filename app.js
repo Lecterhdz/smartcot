@@ -113,25 +113,28 @@ const app = {
     // NAVEGACIÓN ENTRE PANTALLAS 
     // ─────────────────────────────────────────────────────────────────
     mostrarPantalla: function(id) {
+        console.log('📄 Navegando a:', id);
+    
         // Ocultar todas las pantallas
         document.querySelectorAll('.screen').forEach(s => {
             s.classList.remove('active');
             s.style.display = 'none';
-            console.log('Ocultando:', s.id);
         });
-        
+    
         // Mostrar pantalla seleccionada
         const pantalla = document.getElementById(id);
-        if (pantalla) {
-            console.error('❌ Pantalla no encontrada:', id);
+        if (!pantalla) {
+            console.error('❌ Pantalla NO encontrada:', id);
+            console.log('Pantallas disponibles:', Array.from(document.querySelectorAll('.screen')).map(s => s.id));
             return;
         }
     
         pantalla.classList.add('active');
         pantalla.style.display = 'block';
-        
+        console.log('✅ Pantalla mostrada:', id);
+    
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        
+    
         // Cargar datos específicos
         switch(id) {
             case 'dashboard-screen':
@@ -141,11 +144,9 @@ const app = {
                 this.cargarCatalogoCompleto();
                 break;
             case 'importar-screen':
-                console.log('Pantalla de importar lista');
+                console.log('✅ Pantalla de importar lista');
                 break;
         }
-        
-        console.log('📄 Pantalla:', id);
     },
     
     // ─────────────────────────────────────────────────────────────────
@@ -558,7 +559,15 @@ const app = {
     agregarIndirecto: function() {
         const container = document.getElementById('indirectos-lista');
         if (!container) {
-            console.warn('⚠️ No existe indirectos-lista en el HTML - Se omite');
+            console.warn('⚠️ indirectos-lista no existe - Creando contenedor...');
+            // Crear el contenedor si no existe
+            const newContainer = document.createElement('div');
+            newContainer.id = 'indirectos-lista';
+            // Insertar antes del botón
+            const btn = document.querySelector('button[onclick="app.agregarIndirecto()"]');
+            if (btn && btn.previousElementSibling) {
+                btn.previousElementSibling.parentNode.insertBefore(newContainer, btn);
+            }
             return;
         }
 
@@ -574,15 +583,10 @@ const app = {
         div.dataset.id = id;
         div.innerHTML = `
             <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:10px;margin:10px 0;">
-                <input type="text" placeholder="Concepto" 
-                       onchange="app.actualizarIndirecto(${id}, 'concepto', this.value)"
-                      style="padding:10px;border:1px solid #ddd;border-radius:8px;">
-                <input type="number" placeholder="Monto" value="0" min="0" step="0.01" 
-                       onchange="app.actualizarIndirecto(${id}, 'monto', this.value)"
-                       style="padding:10px;border:1px solid #ddd;border-radius:8px;">
-                <button onclick="app.eliminarIndirecto(${id})" 
-                        style="background:#f44336;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;">🗑️</button>
-           </div>
+                <input type="text" placeholder="Concepto" onchange="app.actualizarIndirecto(${id}, 'concepto', this.value)" style="padding:10px;border:1px solid #ddd;border-radius:8px;">
+                <input type="number" placeholder="Monto" value="0" min="0" step="0.01" onchange="app.actualizarIndirecto(${id}, 'monto', this.value)" style="padding:10px;border:1px solid #ddd;border-radius:8px;">
+                <button onclick="app.eliminarIndirecto(${id})" style="background:#f44336;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;">🗑️</button>
+            </div>
         `;
         container.appendChild(div);
         this.calcularTotal();
@@ -1164,6 +1168,7 @@ if (typeof document !== 'undefined') {
 }
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
