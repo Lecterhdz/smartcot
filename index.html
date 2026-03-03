@@ -239,46 +239,77 @@
                 <div style="margin-top:25px;padding:25px;background:linear-gradient(135deg,#1a1a1a,#333333);border-radius:15px;color:white;">
                     <h4 style="margin-bottom:20px;">💰 Resumen Financiero</h4>
     
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-bottom:20px;">
-                        <div>
-                            <div style="font-size:13px;opacity:0.8;">Subtotal (Costo Directo)</div>
-                            <div style="font-size:24px;font-weight:700;" id="resumen-subtotal">$0.00</div>
+                    <!-- Costo Directo -->
+                    <div style="background:rgba(255,255,255,0.1);padding:15px;border-radius:10px;margin-bottom:15px;">
+                        <div style="font-size:13px;opacity:0.8;">Costo Directo (Materiales + Mano de Obra + Equipos)</div>
+                        <div style="font-size:28px;font-weight:700;" id="resumen-costo-directo">$0.00</div>
+                    </div>
+    
+                    <!-- Sobrecostos Editables -->
+                    <div style="background:rgba(255,255,255,0.1);padding:15px;border-radius:10px;margin-bottom:15px;">
+                        <div style="font-size:14px;font-weight:600;margin-bottom:15px;">📊 SOBRECOSTOS (Editables)</div>
+        
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;">
+                            <div>
+                                <label style="font-size:12px;opacity:0.8;">Indirectos Oficina (%)</label>
+                                <input type="number" id="cot-indirectos-oficina" value="5" min="0" max="100" step="0.1"
+                                       onchange="app.calcularTotalConConceptos()"
+                                       style="width:100%;padding:8px;border:2px solid #FF9800;border-radius:8px;font-weight:700;font-size:14px;">
+                            </div>
+                            <div>
+                                <label style="font-size:12px;opacity:0.8;">Indirectos Campo (%)</label>
+                                <input type="number" id="cot-indirectos-campo" value="15" min="0" max="100" step="0.1"
+                                       onchange="app.calcularTotalConConceptos()"
+                                       style="width:100%;padding:8px;border:2px solid #FF9800;border-radius:8px;font-weight:700;font-size:14px;">
+                            </div>
+                            <div>
+                                <label style="font-size:12px;opacity:0.8;">Financiamiento (%)</label>
+                                <input type="number" id="cot-financiamiento" value="0.85" min="0" max="100" step="0.01"
+                                       onchange="app.calcularTotalConConceptos()"
+                                       style="width:100%;padding:8px;border:2px solid #FF9800;border-radius:8px;font-weight:700;font-size:14px;">
+                            </div>
+                            <div>
+                                <label style="font-size:12px;opacity:0.8;">Utilidad (%)</label>
+                                <input type="number" id="cot-utilidad" value="10" min="0" max="100" step="0.1"
+                                       onchange="app.calcularTotalConConceptos()"
+                                       style="width:100%;padding:8px;border:2px solid #4CAF50;border-radius:8px;font-weight:700;font-size:14px;">
+                            </div>
                         </div>
-                        <div>
-                            <div style="font-size:13px;opacity:0.8;">Indirectos Oficina (5%)</div>
-                            <div style="font-size:20px;font-weight:700;color:#FF9800;" id="resumen-indirectos-oficina">$0.00</div>
-                        </div>
-                        <div>
-                            <div style="font-size:13px;opacity:0.8;">Indirectos Campo (15%)</div>
-                            <div style="font-size:20px;font-weight:700;color:#FF9800;" id="resumen-indirectos-campo">$0.00</div>
-                        </div>
-                        <div>
-                            <div style="font-size:13px;opacity:0.8;">Financiamiento (0.85%)</div>
-                            <div style="font-size:20px;font-weight:700;color:#FF9800;" id="resumen-financiamiento">$0.00</div>
+        
+                        <!-- Total Sobrecostos -->
+                        <div style="margin-top:15px;padding-top:15px;border-top:2px solid rgba(255,255,255,0.2);">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <div style="font-size:13px;opacity:0.8;">📈 TOTAL SOBRECOSTOS</div>
+                                <div style="font-size:20px;font-weight:700;color:#FF9800;">
+                                    <span id="resumen-sobrecosto-porcentaje">0.00%</span>
+                                    <span style="margin-left:15px;" id="resumen-sobrecosto-monto">$0.00</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
     
-                    <div style="border-top:2px solid rgba(255,255,255,0.2);padding-top:20px;">
-                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;">
+                    <!-- Totales -->
+                    <div style="border-top:2px solid rgba(255,255,255,0.3);padding-top:20px;">
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:20px;">
                             <div>
-                                <div style="font-size:13px;opacity:0.8;">Utilidad (%)</div>
-                                <input type="number" id="cot-utilidad" value="10" min="0" max="100" 
-                                       onchange="app.calcularTotalConConceptos()"
-                                       style="width:100%;padding:8px;border:2px solid #4CAF50;border-radius:8px;font-weight:700;font-size:16px;">
-                            </div>
-                            <div>
-                                <div style="font-size:13px;opacity:0.8;">Utilidad ($)</div>
-                                <div style="font-size:24px;font-weight:700;color:#4CAF50;" id="resumen-utilidad">$0.00</div>
+                                <div style="font-size:13px;opacity:0.8;">Subtotal</div>
+                                <div style="font-size:24px;font-weight:700;" id="resumen-subtotal">$0.00</div>
                             </div>
                             <div>
                                 <div style="font-size:13px;opacity:0.8;">IVA (16%)</div>
                                 <div style="font-size:24px;font-weight:700;color:#2196F3;" id="resumen-iva">$0.00</div>
                             </div>
-                            <div>
+                            <div style="grid-column:span 2;">
                                 <div style="font-size:13px;opacity:0.8;">TOTAL FINAL</div>
-                                <div style="font-size:32px;font-weight:700;" id="resumen-total">$0.00</div>
+                                <div style="font-size:32px;font-weight:700;color:#4CAF50;" id="resumen-total">$0.00</div>
                             </div>
                         </div>
+                    </div>
+    
+                    <!-- Alerta de Margen -->
+                    <div id="smartmargin-warning" style="display:none;margin-top:15px;padding:15px;background:rgba(255,152,0,0.2);border-radius:10px;border-left:4px solid #FF9800;">
+                        <strong>⚠️ SmartMargin Alertas:</strong><br>
+                        <span id="smartmargin-alertas"></span>
                     </div>
                 </div>
 
@@ -449,6 +480,7 @@
     </script>
 </body>
 </html>
+
 
 
 
