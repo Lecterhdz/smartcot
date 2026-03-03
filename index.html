@@ -13,7 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #e8ecef 100%); min-height: 100vh; }
+        body { font-family: 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #e8ecef 100%); min-height: 100vh; color: #333; }
         .header { background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); color: white; padding: 20px 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100; }
         .header-content { display: flex; align-items: center; justify-content: space-between; max-width: 1400px; margin: 0 auto; }
         .logo { display: flex; align-items: center; gap: 15px; }
@@ -22,7 +22,7 @@
         .logo-text p { font-size: 12px; opacity: 0.8; margin: 3px 0 0 0; }
         .header-actions { display: flex; gap: 15px; align-items: center; }
         .license-badge { background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; }
-        .btn-header { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .btn-header { background: rgba(255,255,255,0.2); color: white !important; border: 1px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
         .btn-header:hover { background: rgba(255,255,255,0.3); }
         .main-container { max-width: 1400px; margin: 0 auto; padding: 30px; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 40px; }
@@ -48,16 +48,18 @@
         .empty-state-icon { font-size: 64px; margin-bottom: 20px; }
         .empty-state h3 { font-size: 20px; margin-bottom: 10px; color: #666; }
         .empty-state p { font-size: 14px; }
-        .screen { display: none; }
-        .screen.active { display: block; }
+        .screen { display: none !important; }
+        .screen.active { display: block !important; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .card { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 20px 0; }
+        .card h2 { color: #1a1a1a; margin-bottom: 25px; font-size: 24px; }
         .form-group { margin: 20px 0; }
         .form-group label { display: block; margin: 0 0 8px 0; font-weight: 600; color: #333; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 10px; font-size: 15px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 10px; font-size: 15px; background: white; color: #333; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #1a1a1a; }
-        .btn { padding: 14px 28px; border: none; border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-primary { background: linear-gradient(135deg, #1a1a1a, #333333); color: white; }
-        .btn-secondary { background: linear-gradient(135deg, #f5f7fa, #e8ecef); color: #333; border: 2px solid #ddd; }
+        .btn { padding: 14px 28px; border: none; border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; color: white !important; }
+        .btn-primary { background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); }
+        .btn-secondary { background: linear-gradient(135deg, #6c757d 0%, #495057 100%); }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         .alert { padding: 15px 20px; border-radius: 10px; margin: 20px 0; }
         .alert-warning { background: #FFF3E0; color: #E65100; border-left: 5px solid #FF9800; }
@@ -91,8 +93,6 @@
         
         <!-- DASHBOARD SCREEN -->
         <section id="dashboard-screen" class="screen active">
-            
-            <!-- STATS -->
             <div class="stats-grid">
                 <div class="stat-card blue">
                     <div class="stat-icon">📋</div>
@@ -116,14 +116,13 @@
                 </div>
             </div>
 
-            <!-- QUICK ACTIONS -->
             <div class="actions-section">
                 <h2 class="section-title">⚡ Acciones Rápidas</h2>
                 <div class="actions-grid">
                     <div class="action-card" onclick="app.mostrarPantalla('nueva-cotizacion-screen')">
                         <div class="action-icon">📝</div>
                         <div class="action-title">Nueva Cotización</div>
-                        <div class="action-desc">Crear cotización desde cero seleccionando conceptos del catálogo</div>
+                        <div class="action-desc">Crear cotización seleccionando conceptos del catálogo</div>
                     </div>
                     <div class="action-card" onclick="app.mostrarPantalla('catalogos-screen')">
                         <div class="action-icon">📚</div>
@@ -143,7 +142,6 @@
                 </div>
             </div>
 
-            <!-- RECENT ACTIVITY -->
             <div class="recent-section">
                 <h2 class="section-title">📊 Actividad Reciente</h2>
                 <div id="recent-activity">
@@ -159,7 +157,7 @@
         <!-- NUEVA COTIZACIÓN SCREEN -->
         <section id="nueva-cotizacion-screen" class="screen">
             <div class="card">
-                <h2 style="margin-bottom: 25px;">📝 Nueva Cotización</h2>
+                <h2>📝 Nueva Cotización</h2>
                 
                 <div style="background: #E3F2FD; padding: 20px; border-radius: 15px; margin-bottom: 25px;">
                     <h4 style="color: #1565C0; margin: 0 0 15px 0;">📋 Datos del Proyecto</h4>
@@ -182,19 +180,30 @@
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
-                    <!-- Left: Concept Selection -->
-                    <div>
-                        <h4 style="margin-bottom: 15px; color: #1a1a1a;">🔍 Buscar Conceptos</h4>
-                        <input type="text" id="buscar-concepto" placeholder="Buscar por código o descripción..." style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px; margin-bottom: 15px;">
-                        <div id="resultados-busqueda" style="max-height: 400px; overflow-y: auto; background: #f5f7fa; padding: 15px; border-radius: 10px;"></div>
-                    </div>
+                <h4 style="margin-bottom: 15px; color: #1a1a1a;">🔧 Recursos Manuales</h4>
+                
+                <div class="form-group">
+                    <label>📦 Materiales</label>
+                    <div id="materiales-lista"></div>
+                    <button class="btn btn-secondary" onclick="app.agregarMaterial()" style="margin-top: 10px;">➕ Agregar Material</button>
+                </div>
 
-                    <!-- Right: Selected Concepts -->
-                    <div>
-                        <h4 style="margin-bottom: 15px; color: #1a1a1a;">📋 Conceptos Seleccionados</h4>
-                        <div id="conceptos-seleccionados" style="max-height: 400px; overflow-y: auto; background: #f5f7fa; padding: 15px; border-radius: 10px;"></div>
-                    </div>
+                <div class="form-group">
+                    <label>👷 Mano de Obra</label>
+                    <div id="mano-obra-lista"></div>
+                    <button class="btn btn-secondary" onclick="app.agregarManoObra()" style="margin-top: 10px;">➕ Agregar Mano de Obra</button>
+                </div>
+
+                <div class="form-group">
+                    <label>🏗️ Equipos</label>
+                    <div id="equipos-lista"></div>
+                    <button class="btn btn-secondary" onclick="app.agregarEquipo()" style="margin-top: 10px;">➕ Agregar Equipo</button>
+                </div>
+
+                <div class="form-group">
+                    <label>📊 Indirectos</label>
+                    <div id="indirectos-lista"></div>
+                    <button class="btn btn-secondary" onclick="app.agregarIndirecto()" style="margin-top: 10px;">➕ Agregar Indirecto</button>
                 </div>
 
                 <div style="margin-top: 25px; padding: 25px; background: linear-gradient(135deg, #1a1a1a, #333333); border-radius: 15px; color: white;">
@@ -229,7 +238,7 @@
         <!-- CATÁLOGOS SCREEN -->
         <section id="catalogos-screen" class="screen">
             <div class="card">
-                <h2 style="margin-bottom: 20px;">📚 Catálogo de Conceptos</h2>
+                <h2>📚 Catálogo de Conceptos</h2>
                 <input type="text" id="buscar-catalogo" placeholder="🔍 Buscar conceptos por código o descripción..." style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px; margin-bottom: 20px;">
                 <div id="lista-catalogo" style="max-height: 600px; overflow-y: auto;"></div>
             </div>
@@ -238,14 +247,14 @@
         <!-- IMPORTAR SCREEN -->
         <section id="importar-screen" class="screen">
             <div class="card">
-                <h2 style="margin-bottom: 20px;">📥 Importar Datos desde Excel</h2>
+                <h2>📥 Importar Datos desde Excel</h2>
                 <div style="background: #E3F2FD; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
                     <h4 style="color: #1565C0; margin: 0 0 15px 0;">📋 Instrucciones</h4>
                     <ol style="color: #555; padding-left: 20px; line-height: 1.8;">
-                        <li>Selecciona tu archivo Excel de APU (Análisis de Precios Unitarios)</li>
-                        <li>El sistema detectará automáticamente conceptos, materiales, mano de obra y equipos</li>
-                        <li>Se importarán todos los registros a la base de datos local</li>
-                        <li>El proceso puede tomar varios minutos dependiendo del tamaño del archivo</li>
+                        <li>Selecciona tu archivo Excel de APU</li>
+                        <li>El sistema detectará automáticamente conceptos y subpartidas</li>
+                        <li>Se importarán todos los registros a la base de datos</li>
+                        <li>El proceso puede tomar varios minutos</li>
                     </ol>
                 </div>
                 <div class="form-group">
@@ -273,7 +282,7 @@
         <!-- CONFIGURACIÓN SCREEN -->
         <section id="configuracion-screen" class="screen">
             <div class="card">
-                <h2 style="margin-bottom: 20px;">⚙️ Configuración</h2>
+                <h2>⚙️ Configuración</h2>
                 
                 <div style="margin-bottom: 30px;">
                     <h4 style="margin-bottom: 15px; color: #1a1a1a;">🏢 Datos de la Empresa</h4>
@@ -289,18 +298,12 @@
 
                 <div>
                     <h4 style="margin-bottom: 15px; color: #1a1a1a;">💾 Respaldo de Datos</h4>
-                    <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Exporta tus datos para evitar perderlos al limpiar el navegador.</p>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Exporta tus datos para evitar perderlos.</p>
                     <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                         <button class="btn btn-primary" onclick="app.exportarDatos()" style="padding: 14px 30px;">📤 Exportar Datos</button>
                         <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()" style="padding: 14px 30px;">📥 Importar Datos</button>
                         <input type="file" id="import-file" accept=".json" style="display: none;" onchange="app.importarDatos(event)">
                     </div>
-                </div>
-
-                <div style="margin-top: 30px; padding: 20px; background: #FFF3E0; border-radius: 10px; border-left: 5px solid #FF9800;">
-                    <h4 style="color: #E65100; margin: 0 0 10px 0;">⚠️ Zona de Peligro</h4>
-                    <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Estas acciones no se pueden deshacer.</p>
-                    <button class="btn" onclick="dbUtils.limpiarTodo()" style="background: #f44336; color: white; padding: 14px 30px;">🗑️ Eliminar Todos los Datos</button>
                 </div>
 
                 <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="margin-top: 25px; padding: 14px 30px;">↩️ Volver al Dashboard</button>
@@ -336,7 +339,7 @@
         </div>
     </div>
 
-    <!-- SCRIPTS - ORDEN CORRECTO -->
+    <!-- SCRIPTS -->
     <script type="module" src="firebase-config.js"></script>
     <script src="auth.js"></script>
     <script src="db.js"></script>
