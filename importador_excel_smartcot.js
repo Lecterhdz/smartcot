@@ -671,36 +671,44 @@ window.importadorSmartCot = {
         });
     },
     
+    // ─────────────────────────────────────────────────────────────────────
+    // INICIAR IMPORTACIÓN (CORREGIDO - CON TRY-CATCH)
+    // ─────────────────────────────────────────────────────────────────────
     iniciarImportacion: async function() {
         const fileInput = document.getElementById('excel-file');
-        const file = fileInput.files[0];
-        
+        const file = fileInput?.files[0];
+    
         if (!file) {
             alert('⚠️ Por favor selecciona un archivo Excel');
             return;
         }
-        
-        document.getElementById('import-progress').style.display = 'block';
+    
+        const progressDiv = document.getElementById('import-progress');
+        if (progressDiv) progressDiv.style.display = 'block';
+    
         this.log('📥 Leyendo archivo...');
-        
+    
         try {
             this.actualizarProgreso(10, 'Procesando datos...');
-            
+        
             const resultado = await this.importarArchivo(file);
-            
+        
             this.actualizarProgreso(90, 'Finalizando...');
-            
+        
             this.mostrarResultado(resultado);
-            
+        
             this.actualizarProgreso(100, '✅ Completado');
-            
+        
         } catch (error) {
             console.error('❌ Error en importación:', error);
             alert('❌ Error en importación: ' + error.message);
             this.log('❌ Error: ' + error.message);
+            this.actualizarProgreso(0, '❌ Error');
         }
     },
-    
+    // ─────────────────────────────────────────────────────────────────────
+    // LOG (CORREGIDO - CON VALIDACIÓN NULL)
+    // ─────────────────────────────────────────────────────────────────────
     log: function(mensaje) {
         const logDiv = document.getElementById('progress-log');
         if (logDiv) {
@@ -709,7 +717,9 @@ window.importadorSmartCot = {
         }
         console.log(mensaje);
     },
-    
+    // ─────────────────────────────────────────────────────────────────────
+    // ACTUALIZAR PROGRESO (CORREGIDO - CON VALIDACIONES NULL)
+    // ─────────────────────────────────────────────────────────────────────
     actualizarProgreso: function(percent, status) {
         const percentEl = document.getElementById('progress-percent');
         const barEl = document.getElementById('progress-bar');
@@ -758,6 +768,7 @@ window.importadorSmartCot = {
 };
 
 console.log('✅ importador_excel_smartcot.js listo - ESTRUCTURA REAL');
+
 
 
 
