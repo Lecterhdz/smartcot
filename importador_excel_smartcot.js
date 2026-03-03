@@ -711,9 +711,14 @@ window.importadorSmartCot = {
     },
     
     actualizarProgreso: function(percent, status) {
-        document.getElementById('progress-percent').textContent = percent + '%';
-        document.getElementById('progress-bar').style.width = percent + '%';
-        document.getElementById('progress-status').textContent = status;
+        const percentEl = document.getElementById('progress-percent');
+        const barEl = document.getElementById('progress-bar');
+        const statusEl = document.getElementById('progress-status');
+    
+        if (percentEl) percentEl.textContent = percent + '%';
+        if (barEl) barEl.style.width = percent + '%';
+        if (statusEl) statusEl.textContent = status;
+    
         this.log(status);
     },
     
@@ -753,5 +758,6 @@ window.importadorSmartCot = {
 };
 
 console.log('✅ importador_excel_smartcot.js listo - ESTRUCTURA REAL');
+
 
 
