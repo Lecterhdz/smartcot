@@ -549,7 +549,7 @@ const app = {
     agregarIndirecto: function() {
         const container = document.getElementById('indirectos-lista');
         if (!container) {
-            console.warn('⚠️ No existe indirectos-lista en el HTML');
+            console.warn('⚠️ No existe indirectos-lista en el HTML - Se omitió');
             return;
         }
     
@@ -1163,3 +1163,4 @@ if (typeof document !== 'undefined') {
 }
 
 console.log('✅ app.js v2.0 listo');
+
