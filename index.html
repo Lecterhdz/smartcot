@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#1a1a1a">
-    <title>SmartCot - Dashboard</title>
+    <title>SmartCot v2.0 - Cotizador Industrial</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2933/2933245.png">
@@ -14,82 +14,20 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #e8ecef 100%); min-height: 100vh; }
-        
-        /* HEADER */
-        .header {
-            background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
-            color: white;
-            padding: 20px 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+        .header { background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); color: white; padding: 20px 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100; }
+        .header-content { display: flex; align-items: center; justify-content: space-between; max-width: 1400px; margin: 0 auto; }
+        .logo { display: flex; align-items: center; gap: 15px; }
         .logo-icon { font-size: 40px; }
         .logo-text h1 { font-size: 24px; margin: 0; font-weight: 700; }
         .logo-text p { font-size: 12px; opacity: 0.8; margin: 3px 0 0 0; }
-        .header-actions {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-        .license-badge {
-            background: rgba(255,255,255,0.15);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .btn-header {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
+        .header-actions { display: flex; gap: 15px; align-items: center; }
+        .license-badge { background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .btn-header { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
         .btn-header:hover { background: rgba(255,255,255,0.3); }
-        
-        /* MAIN CONTENT */
-        .main-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 30px;
-        }
-        
-        /* STATS GRID */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-        .stat-card {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            border-left: 5px solid #1a1a1a;
-            transition: all 0.3s;
-        }
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-        }
+        .main-container { max-width: 1400px; margin: 0 auto; padding: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        .stat-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 5px solid #1a1a1a; transition: all 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
         .stat-card.blue { border-left-color: #2196F3; }
         .stat-card.green { border-left-color: #4CAF50; }
         .stat-card.orange { border-left-color: #FF9800; }
@@ -97,82 +35,36 @@
         .stat-icon { font-size: 32px; margin-bottom: 15px; }
         .stat-number { font-size: 36px; font-weight: 700; color: #1a1a1a; margin-bottom: 5px; }
         .stat-label { color: #666; font-size: 14px; font-weight: 600; }
-        
-        /* ACTION CARDS */
-        .actions-section {
-            margin-bottom: 40px;
-        }
-        .section-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-        }
-        .action-card {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            color: inherit;
-            display: block;
-        }
-        .action-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-        }
-        .action-icon {
-            font-size: 48px;
-            margin-bottom: 20px;
-        }
-        .action-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 8px;
-        }
-        .action-desc {
-            font-size: 14px;
-            color: #666;
-            line-height: 1.5;
-        }
-        
-        /* RECENT ACTIVITY */
-        .recent-section {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
+        .actions-section { margin-bottom: 40px; }
+        .section-title { font-size: 20px; font-weight: 700; color: #1a1a1a; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .action-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s; text-decoration: none; color: inherit; display: block; }
+        .action-card:hover { transform: translateY(-5px); box-shadow: 0 8px 30px rgba(0,0,0,0.15); }
+        .action-icon { font-size: 48px; margin-bottom: 20px; }
+        .action-title { font-size: 18px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+        .action-desc { font-size: 14px; color: #666; line-height: 1.5; }
+        .recent-section { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
         .empty-state-icon { font-size: 64px; margin-bottom: 20px; }
         .empty-state h3 { font-size: 20px; margin-bottom: 10px; color: #666; }
         .empty-state p { font-size: 14px; }
-        
-        /* SCREENS */
         .screen { display: none; }
         .screen.active { display: block; }
-        
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .header-content { flex-direction: column; gap: 15px; text-align: center; }
-            .stats-grid, .actions-grid { grid-template-columns: 1fr; }
-            .main-container { padding: 20px; }
-        }
+        .card { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 20px 0; }
+        .form-group { margin: 20px 0; }
+        .form-group label { display: block; margin: 0 0 8px 0; font-weight: 600; color: #333; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 10px; font-size: 15px; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #1a1a1a; }
+        .btn { padding: 14px 28px; border: none; border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: linear-gradient(135deg, #1a1a1a, #333333); color: white; }
+        .btn-secondary { background: linear-gradient(135deg, #f5f7fa, #e8ecef); color: #333; border: 2px solid #ddd; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .alert { padding: 15px 20px; border-radius: 10px; margin: 20px 0; }
+        .alert-warning { background: #FFF3E0; color: #E65100; border-left: 5px solid #FF9800; }
+        .alert-success { background: #E8F5E9; color: #2E7D32; border-left: 5px solid #4CAF50; }
+        @media (max-width: 768px) { .header-content { flex-direction: column; gap: 15px; text-align: center; } .stats-grid, .actions-grid { grid-template-columns: 1fr; } .main-container { padding: 20px; } }
+        #modal-cliente { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        #modal-cliente > div { background: white; padding: 30px; border-radius: 20px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -266,21 +158,22 @@
 
         <!-- NUEVA COTIZACIÓN SCREEN -->
         <section id="nueva-cotizacion-screen" class="screen">
-            <div class="recent-section">
-                <h2 class="section-title">📝 Nueva Cotización</h2>
+            <div class="card">
+                <h2 style="margin-bottom: 25px;">📝 Nueva Cotización</h2>
                 
                 <div style="background: #E3F2FD; padding: 20px; border-radius: 15px; margin-bottom: 25px;">
-                    <h4 style="color: #1565C0; margin: 0 0 10px 0;">📋 Datos del Proyecto</h4>
+                    <h4 style="color: #1565C0; margin: 0 0 15px 0;">📋 Datos del Proyecto</h4>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                         <div>
                             <label style="font-size: 13px; color: #666; display: block; margin-bottom: 5px;">Cliente</label>
                             <select id="cot-cliente" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px;">
                                 <option value="">Seleccionar cliente...</option>
                             </select>
+                            <small id="sin-clientes-msg" style="color: #f44336; display: none;">⚠️ No hay clientes</small>
                         </div>
                         <div>
                             <label style="font-size: 13px; color: #666; display: block; margin-bottom: 5px;">Nombre del Proyecto</label>
-                            <input type="text" id="cot-proyecto" placeholder="Ej: Instalación eléctrica nave industrial" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px;">
+                            <input type="text" id="cot-descripcion" placeholder="Ej: Instalación eléctrica nave industrial" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px;">
                         </div>
                         <div>
                             <label style="font-size: 13px; color: #666; display: block; margin-bottom: 5px;">Ubicación</label>
@@ -327,16 +220,16 @@
                 </div>
 
                 <div style="display: flex; gap: 15px; margin-top: 25px; flex-wrap: wrap;">
-                    <button class="btn-header" onclick="app.guardarCotizacion()" style="background: #4CAF50; border: none; flex: 1; padding: 16px;">💾 Guardar Cotización</button>
-                    <button class="btn-header" onclick="app.mostrarPantalla('dashboard-screen')" style="flex: 1; padding: 16px;">↩️ Volver</button>
+                    <button class="btn btn-primary" onclick="app.guardarCotizacion()" style="flex: 1; padding: 16px;">💾 Guardar Cotización</button>
+                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="flex: 1; padding: 16px;">↩️ Volver</button>
                 </div>
             </div>
         </section>
 
         <!-- CATÁLOGOS SCREEN -->
         <section id="catalogos-screen" class="screen">
-            <div class="recent-section">
-                <h2 class="section-title">📚 Catálogo de Conceptos</h2>
+            <div class="card">
+                <h2 style="margin-bottom: 20px;">📚 Catálogo de Conceptos</h2>
                 <input type="text" id="buscar-catalogo" placeholder="🔍 Buscar conceptos por código o descripción..." style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px; margin-bottom: 20px;">
                 <div id="lista-catalogo" style="max-height: 600px; overflow-y: auto;"></div>
             </div>
@@ -344,8 +237,8 @@
 
         <!-- IMPORTAR SCREEN -->
         <section id="importar-screen" class="screen">
-            <div class="recent-section">
-                <h2 class="section-title">📥 Importar Datos desde Excel</h2>
+            <div class="card">
+                <h2 style="margin-bottom: 20px;">📥 Importar Datos desde Excel</h2>
                 <div style="background: #E3F2FD; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
                     <h4 style="color: #1565C0; margin: 0 0 15px 0;">📋 Instrucciones</h4>
                     <ol style="color: #555; padding-left: 20px; line-height: 1.8;">
@@ -369,17 +262,18 @@
                     </div>
                     <div id="progress-log" style="margin-top: 15px; color: #666; font-size: 13px; max-height: 150px; overflow-y: auto;"></div>
                 </div>
+                <div id="import-result" style="display: none; background: #E8F5E9; padding: 20px; border-radius: 10px; margin: 20px 0;"></div>
                 <div style="display: flex; gap: 15px; margin-top: 25px;">
-                    <button class="btn-header" onclick="importadorSmartCot.iniciarImportacion()" style="background: #2196F3; border: none; flex: 1; padding: 16px;">🚀 Iniciar Importación</button>
-                    <button class="btn-header" onclick="app.mostrarPantalla('dashboard-screen')" style="flex: 1; padding: 16px;">↩️ Volver</button>
+                    <button class="btn btn-primary" onclick="importadorSmartCot.iniciarImportacion()" style="flex: 1; padding: 16px;">🚀 Iniciar Importación</button>
+                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="flex: 1; padding: 16px;">↩️ Volver</button>
                 </div>
             </div>
         </section>
 
         <!-- CONFIGURACIÓN SCREEN -->
         <section id="configuracion-screen" class="screen">
-            <div class="recent-section">
-                <h2 class="section-title">⚙️ Configuración</h2>
+            <div class="card">
+                <h2 style="margin-bottom: 20px;">⚙️ Configuración</h2>
                 
                 <div style="margin-bottom: 30px;">
                     <h4 style="margin-bottom: 15px; color: #1a1a1a;">🏢 Datos de la Empresa</h4>
@@ -390,15 +284,15 @@
                             <input type="number" id="config-utilidad" placeholder="Utilidad %" value="15" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px;">
                         </div>
                     </div>
-                    <button class="btn-header" onclick="app.guardarConfiguracion()" style="background: #4CAF50; border: none; margin-top: 15px; padding: 14px 30px;">💾 Guardar Configuración</button>
+                    <button class="btn btn-primary" onclick="app.guardarConfiguracion()" style="margin-top: 15px; padding: 14px 30px;">💾 Guardar Configuración</button>
                 </div>
 
                 <div>
                     <h4 style="margin-bottom: 15px; color: #1a1a1a;">💾 Respaldo de Datos</h4>
                     <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Exporta tus datos para evitar perderlos al limpiar el navegador.</p>
                     <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                        <button class="btn-header" onclick="app.exportarDatos()" style="background: #2196F3; border: none; padding: 14px 30px;">📤 Exportar Datos</button>
-                        <button class="btn-header" onclick="document.getElementById('import-file').click()" style="padding: 14px 30px;">📥 Importar Datos</button>
+                        <button class="btn btn-primary" onclick="app.exportarDatos()" style="padding: 14px 30px;">📤 Exportar Datos</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()" style="padding: 14px 30px;">📥 Importar Datos</button>
                         <input type="file" id="import-file" accept=".json" style="display: none;" onchange="app.importarDatos(event)">
                     </div>
                 </div>
@@ -406,14 +300,41 @@
                 <div style="margin-top: 30px; padding: 20px; background: #FFF3E0; border-radius: 10px; border-left: 5px solid #FF9800;">
                     <h4 style="color: #E65100; margin: 0 0 10px 0;">⚠️ Zona de Peligro</h4>
                     <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Estas acciones no se pueden deshacer.</p>
-                    <button class="btn-header" onclick="dbUtils.limpiarTodo()" style="background: #f44336; border: none; padding: 14px 30px;">🗑️ Eliminar Todos los Datos</button>
+                    <button class="btn" onclick="dbUtils.limpiarTodo()" style="background: #f44336; color: white; padding: 14px 30px;">🗑️ Eliminar Todos los Datos</button>
                 </div>
 
-                <button class="btn-header" onclick="app.mostrarPantalla('dashboard-screen')" style="margin-top: 25px; padding: 14px 30px;">↩️ Volver al Dashboard</button>
+                <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="margin-top: 25px; padding: 14px 30px;">↩️ Volver al Dashboard</button>
             </div>
         </section>
 
     </main>
+
+    <!-- MODAL CLIENTE RÁPIDO -->
+    <div id="modal-cliente">
+        <div>
+            <h3 style="margin: 0 0 20px 0; color: #1a1a1a;">👤 Agregar Cliente Rápido</h3>
+            <div class="form-group">
+                <label>Nombre del Cliente *</label>
+                <input type="text" id="modal-cliente-nombre" placeholder="Nombre de la empresa o persona">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="modal-cliente-email" placeholder="cliente@email.com">
+            </div>
+            <div class="form-group">
+                <label>Teléfono</label>
+                <input type="tel" id="modal-cliente-telefono" placeholder="55-1234-5678">
+            </div>
+            <div class="form-group">
+                <label>Notas (opcional)</label>
+                <textarea id="modal-cliente-notas" placeholder="Dirección, RFC, comentarios..." style="min-height: 60px;"></textarea>
+            </div>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 25px;">
+                <button onclick="app.guardarClienteRapido()" class="btn btn-primary" style="flex: 1; padding: 14px;">💾 Guardar y Seleccionar</button>
+                <button onclick="app.cerrarModalCliente()" class="btn btn-secondary" style="flex: 1; padding: 14px;">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module" src="firebase-config.js"></script>
     <script src="auth.js"></script>
