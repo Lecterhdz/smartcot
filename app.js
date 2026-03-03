@@ -120,6 +120,11 @@ window.app = {
             case 'catalogos-screen':
                 this.cargarCatalogoCompleto();
                 break;
+            case 'nueva-cotizacion-screen':
+                this.verificarClientesDisponibles();
+                this.actualizarConceptosSeleccionadosUI(); // ← IMPORTANTE: Mostrar conceptos
+                this.calcularTotalConConceptos();
+                break;
             case 'importar-screen':
                 console.log('✅ Pantalla de importar lista');
                 break;
@@ -442,64 +447,200 @@ window.app = {
     // ACTUALIZAR UI DE CONCEPTOS SELECCIONADOS (CORREGIDO)
     // ─────────────────────────────────────────────────────────────────────
     actualizarConceptosSeleccionadosUI: function() {
-        // Actualizar en pantalla de Nueva Cotización
-        const containerCotizacion = document.getElementById('conceptos-seleccionados');
-        if (containerCotizacion) {
-            if (this.datosCotizacion.conceptosSeleccionados.length === 0) {
-                containerCotizacion.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">No hay conceptos seleccionados</div>';
-            } else {
-                const app = this;
-                containerCotizacion.innerHTML = this.datosCotizacion.conceptosSeleccionados.map(function(c, index) {
-                    return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin:10px 0;background:white;">' +
-                        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
-                        '<div>' +
-                        '<div style="font-weight:700;color:#1a1a1a;">' + c.codigo + '</div>' +
-                        '<div style="color:#666;font-size:13px;">' + c.descripcion_corta.substring(0, 50) + '...</div>' +
-                        '</div>' +
-                        '<button onclick="app.eliminarConceptoDeCotizacion(' + index + ')" ' +
-                        'style="background:#f44336;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;">🗑️</button>' +
-                        '</div>' +
-                        '</div>';
-                }).join('');
-            }
-        }
-        
-        // Actualizar en pantalla de Catálogos
-        const containerCatalogo = document.getElementById('conceptos-seleccionados-catalogo');
-        const countLabel = document.getElementById('conceptos-count');
-    
-        if (containerCatalogo) {
-            if (this.datosCotizacion.conceptosSeleccionados.length === 0) {
-            containerCatalogo.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">No hay conceptos seleccionados aún</div>';
-            } else {
-                const app = this;
-                containerCatalogo.innerHTML = this.datosCotizacion.conceptosSeleccionados.map(function(c, index) {
-                    return '<div style="padding:10px;border:1px solid #ddd;border-radius:8px;margin:5px 0;background:#f5f7fa;">' +
-                        '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                        '<div style="font-weight:600;color:#1a1a1a;font-size:13px;">' + c.codigo + '</div>' +
-                        '<button onclick="app.eliminarConceptoDeCotizacion(' + index + ')" ' +
-                        'style="background:#f44336;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;font-size:12px;">🗑️</button>' +
-                        '</div>' +
-                        '<div style="color:#666;font-size:11px;margin-top:5px;">' + c.descripcion_corta.substring(0, 40) + '...</div>' +
-                        '</div>';
-                }).join('');
-            }
+        const container = document.getElementById('conceptos-seleccionados');
+        if (!container) {
+            console.warn('⚠️ Container conceptos-seleccionados no encontrado');
+            return;
         }
     
-        // Actualizar contador
-        if (countLabel) {
-            countLabel.textContent = this.datosCotizacion.conceptosSeleccionados.length;
+        if (this.datosCotizacion.conceptosSeleccionados.length === 0) {
+            container.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">No hay conceptos seleccionados</div>';
+            return;
         }
     
-        // Recalcular totales
-        this.calcularTotalConConceptos();
+        const app = this;
+        container.innerHTML = this.datosCotizacion.conceptosSeleccionados.map(function(c, index) {
+            const subtotal = (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
+            return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin:10px 0;background:white;">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+                '<div>' +
+                '<div style="font-weight:700;color:#1a1a1a;">' + c.codigo + '</div>' +
+                '<div style="color:#666;font-size:13px;">' + (c.descripcion_corta || '').substring(0, 50) + '...</div>' +
+                '</div>' +
+                '<button onclick="app.eliminarConceptoDeCotizacion(' + index + ')" ' +
+                'style="background:#f44336;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;">🗑️</button>' +
+                '</div>' +
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+                '<div>' +
+                '<label style="font-size:12px;color:#666;">Cantidad</label>' +
+                '<input type="number" value="' + (c.cantidad || 1) + '" min="1" step="1" ' +
+                'onchange="app.actualizarCantidadConcepto(' + index + ', this.value)" ' +
+                'style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">' +
+                '</div>' +
+                '<div>' +
+                '<label style="font-size:12px;color:#666;">Subtotal</label>' +
+                '<div style="font-weight:700;color:#1a1a1a;">' + calculator.formatoMoneda(subtotal) + '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+        }).join('');
     },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // GUARDAR COTIZACIÓN (CORREGIDO - FUNCIÓN COMPLETA)
+    // ─────────────────────────────────────────────────────────────────────
+    guardarCotizacion: async function() {
+        try {
+            console.log('💾 Guardando cotización...');
+        
+            // Verificar licencia
+            const limite = await window.licencia.verificarLimite();
+            if (!limite.permitido) {
+                this.notificacion(limite.razon, 'error');
+                return;
+            }
+        
+            // Validar datos
+            const clienteId = document.getElementById('cot-cliente') ? document.getElementById('cot-cliente').value : '';
+            const descripcion = document.getElementById('cot-descripcion') ? document.getElementById('cot-descripcion').value : '';
+            const ubicacion = document.getElementById('cot-ubicacion') ? document.getElementById('cot-ubicacion').value : '';
+            const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad') ? document.getElementById('cot-utilidad').value : '15') || 15;
+        
+            if (!clienteId || !descripcion) {
+                this.notificacion('⚠️ Completa cliente y descripción', 'error');
+                return;
+            }
+        
+            // Verificar que haya conceptos
+            if (this.datosCotizacion.conceptosSeleccionados.length === 0) {
+                this.notificacion('⚠️ Agrega al menos un concepto', 'error');
+                return;
+            }
+        
+            // Calcular totales
+            const resultado = calculator.calcularCotizacion({
+                materiales: this.datosCotizacion.materiales,
+                manoObra: this.datosCotizacion.manoObra,
+                indirectos: this.datosCotizacion.indirectos,
+                utilidadPorcentaje: utilidadPorcentaje,
+                ivaPorcentaje: 16
+            });
+        
+            // Crear cotización
+            const cotizacion = {
+                clienteId: clienteId,
+                descripcion: descripcion,
+                ubicacion: ubicacion || '',
+                materiales: this.datosCotizacion.materiales,
+                manoObra: this.datosCotizacion.manoObra,
+                indirectos: this.datosCotizacion.indirectos,
+                conceptos: this.datosCotizacion.conceptosSeleccionados,
+                utilidadPorcentaje: utilidadPorcentaje,
+                subtotal: resultado.subtotal,
+                indirectosTotal: resultado.indirectosTotal,
+                utilidad: resultado.utilidad,
+                iva: resultado.iva,
+                totalFinal: resultado.totalFinal,
+                fecha: new Date().toISOString(),
+                estado: 'pendiente'
+            };
+        
+            // Guardar en DB
+            await window.db.cotizaciones.add(cotizacion);
+        
+            this.notificacion('✅ Cotización guardada exitosamente', 'exito');
+        
+            // Resetear formulario
+            this.resetearFormulario();
+        
+            // Actualizar estadísticas
+            await this.cargarEstadisticas();
+        
+            // Ir al dashboard
+            this.mostrarPantalla('dashboard-screen');
+        
+        } catch (error) {
+            console.error('❌ Error guardando cotización:', error);
+            this.notificacion('❌ Error: ' + error.message, 'error');
+        }
+    },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // RESETEAR FORMULARIO
+    // ─────────────────────────────────────────────────────────────────────
+    resetearFormulario: function() {
+        this.datosCotizacion = {
+            materiales: [],
+            manoObra: [],
+            equipos: [],
+            herramienta: [],
+            indirectos: [],
+            conceptosSeleccionados: []
+        };
     
+        const ids = ['materiales-lista', 'mano-obra-lista', 'equipos-lista', 'indirectos-lista', 'conceptos-seleccionados'];
+        ids.forEach(function(id) {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = '';
+        });
+    
+        this.inicializarFormularios();
+    },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // ACTUALIZAR CANTIDAD DE CONCEPTO
+    // ─────────────────────────────────────────────────────────────────────
+    actualizarCantidadConcepto: function(index, cantidad) {
+        if (this.datosCotizacion.conceptosSeleccionados[index]) {
+            this.datosCotizacion.conceptosSeleccionados[index].cantidad = parseFloat(cantidad) || 1;
+            this.calcularTotalConConceptos();
+            this.actualizarConceptosSeleccionadosUI();
+        }
+    },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // ELIMINAR CONCEPTO DE COTIZACIÓN
+    // ─────────────────────────────────────────────────────────────────────
     eliminarConceptoDeCotizacion: function(index) {
         this.datosCotizacion.conceptosSeleccionados.splice(index, 1);
         this.calcularTotalConConceptos();
         this.actualizarConceptosSeleccionadosUI();
         this.notificacion('Concepto eliminado', 'advertencia');
+    },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // CALCULAR TOTAL CON CONCEPTOS
+    // ─────────────────────────────────────────────────────────────────────
+    calcularTotalConConceptos: function() {
+        let subtotal = 0;
+    
+        this.datosCotizacion.conceptosSeleccionados.forEach(function(c) {
+            subtotal += (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
+        });
+    
+        subtotal += this.datosCotizacion.materiales.reduce(function(sum, m) { return sum + (m.cantidad * m.precioUnitario); }, 0);
+        subtotal += this.datosCotizacion.manoObra.reduce(function(sum, m) { return sum + (m.horas * m.precioHora); }, 0);
+        subtotal += this.datosCotizacion.equipos.reduce(function(sum, e) { return sum + (e.horas * e.costoUnitario); }, 0);
+    
+        const indirectos = this.datosCotizacion.indirectos.reduce(function(sum, i) { return sum + i.monto; }, 0);
+        const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad') ? document.getElementById('cot-utilidad').value : '15') || 15;
+        const utilidad = (subtotal + indirectos) * (utilidadPorcentaje / 100);
+        const iva = (subtotal + indirectos + utilidad) * 0.16;
+        const total = subtotal + indirectos + utilidad + iva;
+    
+        const elementos = {
+            'resumen-subtotal': subtotal,
+            'resumen-indirectos': indirectos,
+            'resumen-utilidad': utilidad,
+            'resumen-iva': iva,
+            'resumen-total': total
+        };
+    
+        const app = this;
+        Object.entries(elementos).forEach(function(par) {
+            const el = document.getElementById(par[0]);
+            if (el) el.textContent = calculator.formatoMoneda(par[1]);
+        });
     },
     
     // ─────────────────────────────────────────────────────────────────
@@ -877,5 +1018,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
