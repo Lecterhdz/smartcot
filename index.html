@@ -402,6 +402,53 @@
             </div>
         </section>
 
+        <!-- PROGRAMACIÓN SCREEN -->
+        <section id="programacion-screen" class="screen">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                    <h2 style="margin:0;color:#1a1a1a;">📅 Programación de Obra</h2>
+                    <button class="btn" onclick="app.mostrarPantalla('dashboard-screen')" 
+                            style="padding:10px 20px;background:#1a1a1a;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;">↩️ Volver</button>
+                </div>
+                
+                <div style="background:#E3F2FD;padding:20px;border-radius:15px;margin-bottom:25px;">
+                    <h4 style="color:#1565C0;margin:0 0 15px 0;">⏱️ Tiempo de Ejecución</h4>
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;">
+                        <div style="text-align:center;background:white;padding:20px;border-radius:10px;">
+                            <div style="font-size:13px;color:#666;">Jornadas Totales</div>
+                            <div style="font-size:32px;font-weight:700;color:#1a1a1a;" id="prog-jornadas">0</div>
+                        </div>
+                        <div style="text-align:center;background:white;padding:20px;border-radius:10px;">
+                            <div style="font-size:13px;color:#666;">Días Hábiles</div>
+                            <div style="font-size:32px;font-weight:700;color:#2196F3;" id="prog-dias">0</div>
+                        </div>
+                        <div style="text-align:center;background:white;padding:20px;border-radius:10px;">
+                            <div style="font-size:13px;color:#666;">Semanas</div>
+                            <div style="font-size:32px;font-weight:700;color:#FF9800;" id="prog-semanas">0</div>
+                        </div>
+                        <div style="text-align:center;background:white;padding:20px;border-radius:10px;">
+                            <div style="font-size:13px;color:#666;">Meses</div>
+                            <div style="font-size:32px;font-weight:700;color:#4CAF50;" id="prog-meses">0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background:#FFF3E0;padding:20px;border-radius:15px;margin-bottom:25px;">
+                    <h4 style="color:#E65100;margin:0 0 15px 0;">📦 Tiempos de Suministro</h4>
+                    <div id="programa-suministros" style="max-height:300px;overflow-y:auto;">
+                        <div style="text-align:center;color:#999;padding:20px;">Agrega conceptos para ver tiempos de suministro</div>
+                    </div>
+                </div>
+                
+                <div style="background:#E8F5E9;padding:20px;border-radius:15px;">
+                    <h4 style="color:#2E7D32;margin:0 0 15px 0;">📊 Cronograma Estimado</h4>
+                    <div id="programa-cronograma" style="max-height:300px;overflow-y:auto;">
+                        <div style="text-align:center;color:#999;padding:20px;">El cronograma se genera automáticamente</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
         <!-- IMPORTAR SCREEN -->
         <section id="importar-screen" class="screen">
             <div class="card">
@@ -518,3 +565,4 @@
     </script>
 </body>
 </html>
+
