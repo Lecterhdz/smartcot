@@ -110,7 +110,7 @@ const app = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // NAVEGACIÓN
+    // NAVEGACIÓN ENTRE PANTALLAS 
     // ─────────────────────────────────────────────────────────────────
     mostrarPantalla: function(id) {
         // Ocultar todas las pantallas
@@ -122,9 +122,12 @@ const app = {
         // Mostrar pantalla seleccionada
         const pantalla = document.getElementById(id);
         if (pantalla) {
-            pantalla.classList.add('active');
-            pantalla.style.display = 'block';
+            console.error('❌ Pantalla no encontrada:', id);
+            return;
         }
+    
+        pantalla.classList.add('active');
+        pantalla.style.display = 'block';
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
         
@@ -144,7 +147,6 @@ const app = {
                 break;
             case 'nueva-cotizacion-screen':
                 this.verificarClientesDisponibles();
-                this.cargarCatalogoBusqueda();
                 break;
             case 'catalogos-screen':
                 this.cargarCatalogoCompleto();
@@ -362,13 +364,25 @@ const app = {
         this.notificacion('Concepto eliminado', 'advertencia');
     },
     
+    // ─────────────────────────────────────────────────────────────────────
+    // CATÁLOGO COMPLETO (CORREGIDO - SIN conceptosService)
+    // ─────────────────────────────────────────────────────────────────────
     cargarCatalogoCompleto: async function() {
-        const container = document.getElementById('lista-catalogo');
-        if (!container) return;
-        
         try {
-            const conceptos = await window.conceptosService.listar(0, 50);
-            
+            if (!window.db) {
+                console.error('❌ DB no disponible');
+                return;
+            }
+        
+            const container = document.getElementById('lista-catalogo');
+            if (!container) {
+                console.error('❌ Container lista-catalogo no encontrado');
+                return;
+            }
+        
+            // Obtener conceptos directamente de DB
+            const conceptos = await window.db.conceptos.limit(50).toArray();
+        
             if (conceptos.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
@@ -381,7 +395,7 @@ const app = {
                 `;
                 return;
             }
-            
+        
             container.innerHTML = conceptos.map(c => `
                 <div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin-bottom:10px;background:white;">
                     <div style="display:flex;justify-content:space-between;align-items:start;">
@@ -390,15 +404,18 @@ const app = {
                             <div style="color:#666;font-size:14px;">${c.descripcion_corta}</div>
                             <div style="color:#999;font-size:12px;margin-top:5px;">Unidad: ${c.unidad} | Rendimiento: ${c.rendimiento_base}</div>
                         </div>
-                        <button onclick="app.agregarConceptoACotizacion('${c.id}')" 
+                        <button onclick="console.log('Agregar concepto:', c.codigo)" 
                                 style="background:#4CAF50;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;">➕ Agregar</button>
                     </div>
                 </div>
             `).join('');
-            
+        
         } catch (error) {
             console.error('❌ Error cargando catálogo:', error);
-            container.innerHTML = '<div style="padding:20px;text-align:center;color:#f44336;">Error cargando catálogo</div>';
+            const container = document.getElementById('lista-catalogo');
+            if (container) {
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:#f44336;">Error cargando catálogo: ' + error.message + '</div>';
+            }
         }
     },
     
@@ -543,23 +560,23 @@ const app = {
         this.calcularTotal();
     },
     
-    // ─────────────────────────────────────────────────────────────────
-    // INDIRECTOS
-    // ─────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // AGREGAR INDIRECTO (CORREGIDO - CON VALIDACIÓN)
+    // ─────────────────────────────────────────────────────────────────────
     agregarIndirecto: function() {
         const container = document.getElementById('indirectos-lista');
         if (!container) {
-            console.warn('⚠️ No existe indirectos-lista en el HTML - Se omitió');
+            console.warn('⚠️ No existe indirectos-lista en el HTML - Se omite');
             return;
         }
-    
+
         if (!this.datosCotizacion.indirectos) {
             this.datosCotizacion.indirectos = [];
         }
-        
+    
         const id = Date.now();
         this.datosCotizacion.indirectos.push({ id, concepto: '', monto: 0 });
-        
+    
         const div = document.createElement('div');
         div.className = 'indirecto-item';
         div.dataset.id = id;
@@ -567,23 +584,15 @@ const app = {
             <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:10px;margin:10px 0;">
                 <input type="text" placeholder="Concepto" 
                        onchange="app.actualizarIndirecto(${id}, 'concepto', this.value)"
-                       style="padding:10px;border:1px solid #ddd;border-radius:8px;">
+                      style="padding:10px;border:1px solid #ddd;border-radius:8px;">
                 <input type="number" placeholder="Monto" value="0" min="0" step="0.01" 
                        onchange="app.actualizarIndirecto(${id}, 'monto', this.value)"
                        style="padding:10px;border:1px solid #ddd;border-radius:8px;">
                 <button onclick="app.eliminarIndirecto(${id})" 
                         style="background:#f44336;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;">🗑️</button>
-            </div>
+           </div>
         `;
         container.appendChild(div);
-        this.calcularTotal();
-    },
-    
-    actualizarIndirecto: function(id, campo, valor) {
-        const ind = this.datosCotizacion.indirectos.find(i => i.id === id);
-        if (ind) {
-            ind[campo] = campo === 'concepto' ? valor : parseFloat(valor) || 0;
-        }
         this.calcularTotal();
     },
     
@@ -1163,4 +1172,5 @@ if (typeof document !== 'undefined') {
 }
 
 console.log('✅ app.js v2.0 listo');
+
 
