@@ -894,32 +894,33 @@ window.app = {
         const diasHabilesEl = document.getElementById('tiempo-dias-habiles');
         const semanasEl = document.getElementById('tiempo-semanas');
         const mesesEl = document.getElementById('tiempo-meses');
-    
+        
         if (!diasHabilesEl || !semanasEl || !mesesEl) return;
-    
+        
         // Considerar 1 jornada = 1 día hábil
         const diasHabiles = Math.ceil(totalJOR);
-        const semanas = Math.ceil(diasHabiles / 5); // 5 días laborales por semana
-        const meses = (semanas / 4.33).toFixed(1); // 4.33 semanas por mes
-    
+        const semanas = (diasHabiles / 5).toFixed(2); // 5 días laborales por semana, 2 decimales
+        const meses = ((diasHabiles / 5) / 4.33).toFixed(2); // 4.33 semanas por mes, 2 decimales
+        
         diasHabilesEl.textContent = diasHabiles + ' días hábiles';
         semanasEl.textContent = semanas + ' semanas';
         mesesEl.textContent = meses + ' meses';
-    
-        // Guardar para programación
+        
+        // Guardar para programación y reporte
         this.tiempoEjecucion = {
-            jornadas: totalJOR,
+            jornadas: totalJOR.toFixed(2),
             diasHabiles: diasHabiles,
-            semanas: semanas,
+            semanas: parseFloat(semanas),
             meses: parseFloat(meses)
         };
+        
+        console.log('⏱️ Tiempo de ejecución:', this.tiempoEjecucion);
     },
     
-
-
     // ─────────────────────────────────────────────────────────────────────
     // VERIFICAR SMART MARGIN (ACTUALIZADO)
     // ─────────────────────────────────────────────────────────────────────
+    
     verificarSmartMargin: function(resultado) {
         const warning = document.getElementById('smartmargin-warning');
         const alertasEl = document.getElementById('smartmargin-alertas');
@@ -1165,6 +1166,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
