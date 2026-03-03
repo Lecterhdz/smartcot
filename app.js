@@ -475,9 +475,11 @@ window.app = {
                 '<div style="background:#f5f7fa;padding:15px;border-radius:10px;margin-top:10px;">' +
                 '<div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;border-bottom:2px solid #ddd;padding-bottom:5px;">👷 MANO DE OBRA (' + manoObra.length + ') - ' + calculator.formatoMoneda(totalManoObra) + '</div>' +
                 (manoObra.length > 0 ? manoObra.map(function(mo) {
-                    return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ddd;font-size:12px;">' +
-                        '<span style="color:#666;">' + (mo.puesto || mo.mano_obra_codigo || 'Sin nombre') + '</span>' +
-                        '<span style="font-weight:600;">' + mo.horas_jornada + ' JOR × ' + calculator.formatoMoneda(mo.salario_hora || 0) + ' = <span style="color:#1a1a1a;">' + calculator.formatoMoneda(mo.importe || 0) + '</span></span>' +
+                    return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #ddd;font-size:13px;">' +
+                        '<span style="color:#666;">' + (mo.puesto || 'Sin nombre') + '</span>' +
+                        '<span style="font-weight:600;">' + mo.horas_jornada + ' JOR × ' + 
+                        calculator.formatoMoneda(mo.salario_hora * 8) + '/JOR = ' + 
+                        '<span style="color:#1a1a1a;">' + calculator.formatoMoneda(mo.importe || 0) + '</span></span>' +
                         '</div>';
                 }).join('') : '<div style="color:#999;padding:10px;text-align:center;">Sin mano de obra</div>') +
                 '</div>' +
@@ -495,9 +497,10 @@ window.app = {
                 '<div style="background:#f5f7fa;padding:15px;border-radius:10px;margin-top:10px;">' +
                 '<div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;border-bottom:2px solid #ddd;padding-bottom:5px;">🔧 HERRAMIENTA (' + herramienta.length + ') - ' + calculator.formatoMoneda(totalHerramienta) + '</div>' +
                 (herramienta.length > 0 ? herramienta.map(function(h) {
-                    return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ddd;font-size:12px;">' +
-                        '<span style="color:#666;">' + (h.nombre || h.herramienta_codigo || 'Sin nombre') + '</span>' +
-                        '<span style="font-weight:600;">' + h.porcentaje + '% = <span style="color:#1a1a1a;">' + calculator.formatoMoneda(h.importe || 0) + '</span></span>' +
+                    return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #ddd;font-size:13px;">' +
+                        '<span style="color:#666;">' + (h.nombre || 'Sin nombre') + '</span>' +
+                        '<span style="font-weight:600;">' + h.porcentaje + '% = ' + 
+                        '<span style="color:#1a1a1a;">' + calculator.formatoMoneda(h.importe || 0) + '</span></span>' +
                         '</div>';
                 }).join('') : '<div style="color:#999;padding:10px;text-align:center;">Sin herramienta</div>') +
                 '</div>' +
@@ -723,47 +726,75 @@ window.app = {
     // ─────────────────────────────────────────────────────────────────────
     calcularTotalConConceptos: function() {
         let subtotal = 0;
-        let totalJOR = 0; // Para cálculo de tiempo
-    
+        let totalJOR = 0;
+        
         // Sumar conceptos del catálogo
         this.datosCotizacion.conceptosSeleccionados.forEach(function(c) {
-            subtotal += (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
-        
-            // Sumar jornadas de mano de obra
+            // Calcular costo directo desde recursos si no existe costos_base
+            let costoDirecto = c.costos_base?.costo_directo_total || 0;
+            
+            // Si es cero, calcular desde recursos
+            if (costoDirecto === 0) {
+                const mat = (c.recursos?.materiales || []).reduce(function(sum, m) { 
+                    return sum + (m.importe || 0); 
+                }, 0);
+                const mo = (c.recursos?.mano_obra || []).reduce(function(sum, mo) { 
+                    return sum + (mo.importe || 0); 
+                }, 0);
+                const eq = (c.recursos?.equipos || []).reduce(function(sum, e) { 
+                    return sum + (e.importe || 0); 
+                }, 0);
+                const herr = (c.recursos?.herramienta || []).reduce(function(sum, h) { 
+                    return sum + (h.importe || 0); 
+                }, 0);
+                costoDirecto = mat + mo + eq + herr;
+            }
+            
+            subtotal += costoDirecto * (c.cantidad || 1);
+            
+            // Sumar jornadas para tiempo de ejecución
             if (c.recursos?.mano_obra) {
                 c.recursos.mano_obra.forEach(function(mo) {
                     totalJOR += (mo.horas_jornada || 0) * (c.cantidad || 1);
                 });
             }
         });
-    
-        // Sumar materiales, MO, equipos manuales
-        subtotal += this.datosCotizacion.materiales.reduce(function(sum, m) { return sum + (m.cantidad * m.precioUnitario); }, 0);
-        subtotal += this.datosCotizacion.manoObra.reduce(function(sum, m) { return sum + (m.horas * m.precioHora); }, 0);
-        subtotal += this.datosCotizacion.equipos.reduce(function(sum, e) { return sum + (e.horas * e.costoUnitario); }, 0);
-    
-        const indirectosManuales = this.datosCotizacion.indirectos.reduce(function(sum, i) { return sum + i.monto; }, 0);
-    
+        
+        // Sumar materiales, MO, equipos manuales adicionales
+        subtotal += this.datosCotizacion.materiales.reduce(function(sum, m) { 
+            return sum + (m.cantidad * m.precioUnitario); 
+        }, 0);
+        subtotal += this.datosCotizacion.manoObra.reduce(function(sum, m) { 
+            return sum + (m.horas * m.precioHora); 
+        }, 0);
+        subtotal += this.datosCotizacion.equipos.reduce(function(sum, e) { 
+            return sum + (e.horas * e.costoUnitario); 
+        }, 0);
+        
+        const indirectosManuales = this.datosCotizacion.indirectos.reduce(function(sum, i) { 
+            return sum + i.monto; 
+        }, 0);
+        
         // Indirectos porcentuales (EDITABLES)
         const indirectosOficinaPorcentaje = parseFloat(document.getElementById('cot-indirectos-oficina')?.value) || 5;
         const indirectosCampoPorcentaje = parseFloat(document.getElementById('cot-indirectos-campo')?.value) || 15;
         const financiamientoPorcentaje = parseFloat(document.getElementById('cot-financiamiento')?.value) || 0.85;
-    
+        
         const indirectosOficina = subtotal * (indirectosOficinaPorcentaje / 100);
         const indirectosCampo = subtotal * (indirectosCampoPorcentaje / 100);
         const financiamiento = subtotal * (financiamientoPorcentaje / 100);
-    
+        
         const totalSobrecostos = indirectosOficina + indirectosCampo + financiamiento + indirectosManuales;
         const porcentajeSobrecostos = subtotal > 0 ? (totalSobrecostos / subtotal) * 100 : 0;
-    
+        
         const baseConIndirectos = subtotal + totalSobrecostos;
-    
+        
         const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
         const utilidad = baseConIndirectos * (utilidadPorcentaje / 100);
         const iva = (baseConIndirectos + utilidad) * 0.16;
         const total = baseConIndirectos + utilidad + iva;
-    
-        // Actualizar UI
+        
+        // Actualizar UI - TODOS los campos
         const elementos = {
             'resumen-costo-directo': subtotal,
             'resumen-indirectos-oficina': indirectosOficina,
@@ -772,10 +803,12 @@ window.app = {
             'resumen-sobrecosto-monto': totalSobrecostos,
             'resumen-sobrecosto-porcentaje': porcentajeSobrecostos.toFixed(2) + '%',
             'resumen-utilidad': utilidad,
+            'resumen-utilidad-costo': utilidad,
             'resumen-iva': iva,
+            'resumen-subtotal': baseConIndirectos + utilidad,
             'resumen-total': total
         };
-    
+        
         const app = this;
         Object.entries(elementos).forEach(function(par) {
             const el = document.getElementById(par[0]);
@@ -787,18 +820,6 @@ window.app = {
                 }
             }
         });
-    
-        // Actualizar utilidad en costo
-        const utilidadCostoEl = document.getElementById('resumen-utilidad-costo');
-        if (utilidadCostoEl) {
-            utilidadCostoEl.textContent = calculator.formatoMoneda(utilidad);
-        };
-        
-        // Actualizar porcentajes
-        const elPorcentajeSobrecosto = document.getElementById('resumen-sobrecosto-porcentaje');
-        if (elPorcentajeSobrecosto) {
-            elPorcentajeSobrecosto.textContent = porcentajeSobrecostos.toFixed(2) + '%';
-        }
     
         // Actualizar tiempo de ejecución
         this.actualizarTiempoEjecucion(totalJOR);
@@ -1080,6 +1101,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
