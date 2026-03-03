@@ -1081,6 +1081,47 @@ window.app = {
             this.notificacion('❌ Error: ' + error.message, 'error');
         }
     },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // VERIFICAR CLIENTES DISPONIBLES
+    // ─────────────────────────────────────────────────────────────────────
+    verificarClientesDisponibles: async function() {
+        try {
+            if (!window.db) return;
+        
+            const clientes = await window.db.clientes.toArray();
+            const select = document.getElementById('cot-cliente');
+            const mensaje = document.getElementById('sin-clientes-msg');
+        
+            if (clientes.length === 0) {
+                if (mensaje) mensaje.style.display = 'block';
+                if (select) select.disabled = true;
+            
+                const alertaExistente = document.getElementById('alerta-sin-clientes');
+                if (!alertaExistente) {
+                    const alerta = document.createElement('div');
+                    alerta.className = 'alert alert-warning';
+                    alerta.id = 'alerta-sin-clientes';
+                    alerta.innerHTML = '<strong>⚠️ No hay clientes registrados</strong><br>Primero debes agregar al menos un cliente.';
+                
+                    const parent = select?.parentElement;
+                    if (parent) parent.insertBefore(alerta, select);
+                }
+            
+                setTimeout(() => { this.mostrarModalCliente(); }, 1000);
+            
+            } else {
+                if (mensaje) mensaje.style.display = 'none';
+                if (select) select.disabled = false;
+            
+                const alertaExistente = document.getElementById('alerta-sin-clientes');
+                if (alertaExistente) alertaExistente.remove();
+            }
+        
+        } catch (error) {
+            console.error('❌ Error verificando clientes:', error);
+        }
+    },
     
     // ─────────────────────────────────────────────────────────────────
     // CONFIGURACIÓN
@@ -1166,6 +1207,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
