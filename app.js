@@ -345,6 +345,26 @@ window.app = {
         }
     },
 
+    // ACTUALIZAR CONTADOR GENERAL
+    actualizarContadorGeneral: function() {
+        const count = this.datosCotizacion.conceptosSeleccionados.length;
+        
+        // Actualizar contador en Nueva Cotización
+        const countNuevaCot = document.getElementById('conceptos-count');
+        if (countNuevaCot) {
+            countNuevaCot.textContent = count;
+        }
+        
+        // Actualizar contador en Catálogo
+        const countCatalogo = document.getElementById('conceptos-count-catalogo');
+        if (countCatalogo) {
+            countCatalogo.textContent = count;
+        }
+        
+        console.log('📊 Contador actualizado:', count, 'conceptos');
+    },
+ 
+
     // ─────────────────────────────────────────────────────────────────────
     // LIMPIAR CONCEPTOS SELECCIONADOS (CORREGIDO)
     // ─────────────────────────────────────────────────────────────────────
@@ -358,7 +378,7 @@ window.app = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // AGREGAR CONCEPTO
+    // AGREGAR CONCEPTO A COTIZACIÓN (CORREGIDO)
     // ─────────────────────────────────────────────────────────────────
     agregarConceptoACotizacion: async function(conceptoId) {
         try {
@@ -386,16 +406,21 @@ window.app = {
             console.log('✅ Concepto agregado:', concepto.codigo);
             console.log('📊 Total conceptos:', this.datosCotizacion.conceptosSeleccionados.length);
             
+            // Actualizar UI en TODAS las pantallas
             this.actualizarConceptosSeleccionadosUI();
+            this.actualizarContadorGeneral();
             this.calcularTotalConConceptos();
             
-            this.notificacion('✅ Concepto ' + concepto.codigo + ' agregado', 'exito');
+            this.notificacion('✅ Concepto ' + concepto.codigo + ' agregado (' + 
+                this.datosCotizacion.conceptosSeleccionados.length + ' total)', 'exito');
             
         } catch (error) {
             console.error('❌ Error agregando concepto:', error);
             this.notificacion('Error al agregar concepto: ' + error.message, 'error');
         }
     },
+
+
     
     // ─────────────────────────────────────────────────────────────────────
     // ACTUALIZAR UI DE CONCEPTOS SELECCIONADOS (CON DESGLOSE COMPLETO)
@@ -403,7 +428,10 @@ window.app = {
     actualizarConceptosSeleccionadosUI: function() {
         const container = document.getElementById('conceptos-seleccionados');
         const containerCatalogo = document.getElementById('conceptos-seleccionados-catalogo');
-    
+       
+        // Actualizar contador primero
+        this.actualizarContadorGeneral();
+       
         if (!container && !containerCatalogo) return;
     
         if (this.datosCotizacion.conceptosSeleccionados.length === 0) {
@@ -688,23 +716,33 @@ window.app = {
     // CÁLCULOS
     // ─────────────────────────────────────────────────────────────────
     calcularTotal: function() {
-        const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 15;
-        const ivaPorcentaje = 16;
+        // Si hay conceptos del catálogo, usar calcularTotalConConceptos
+        if (this.datosCotizacion.conceptosSeleccionados && this.datosCotizacion.conceptosSeleccionados.length > 0) {
+            this.calcularTotalConConceptos();
+            return;
+        }
         
-        const resultado = calculator.calcularCotizacion({
-            materiales: this.datosCotizacion.materiales,
-            manoObra: this.datosCotizacion.manoObra,
-            indirectos: this.datosCotizacion.indirectos,
-            utilidadPorcentaje: utilidadPorcentaje,
-            ivaPorcentaje: ivaPorcentaje
-        });
+        // Si no, calcular solo adicionales
+        const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 15;
+        
+        const subtotal = 
+            this.datosCotizacion.materiales.reduce(function(sum, m) { return sum + (m.cantidad * m.precioUnitario); }, 0) +
+            this.datosCotizacion.manoObra.reduce(function(sum, m) { return sum + (m.horas * m.precioHora); }, 0) +
+            this.datosCotizacion.equipos.reduce(function(sum, e) { return sum + (e.horas * e.costoUnitario); }, 0);
+        
+        const indirectos = this.datosCotizacion.indirectos.reduce(function(sum, i) { return sum + i.monto; }, 0);
+        const utilidad = (subtotal + indirectos) * (utilidadPorcentaje / 100);
+        const iva = (subtotal + indirectos + utilidad) * 0.16;
+        const total = subtotal + indirectos + utilidad + iva;
         
         const elementos = {
-            'resumen-subtotal': resultado.subtotal,
-            'resumen-indirectos': resultado.indirectosTotal,
-            'resumen-utilidad': resultado.utilidad,
-            'resumen-iva': resultado.iva,
-            'resumen-total': resultado.totalFinal
+            'resumen-costo-directo': subtotal,
+            'resumen-subtotal': subtotal + indirectos + utilidad,
+            'resumen-indirectos': indirectos,
+            'resumen-utilidad': utilidad,
+            'resumen-utilidad-costo': utilidad,
+            'resumen-iva': iva,
+            'resumen-total': total
         };
         
         const app = this;
@@ -712,13 +750,6 @@ window.app = {
             const el = document.getElementById(par[0]);
             if (el) el.textContent = calculator.formatoMoneda(par[1]);
         });
-        
-        const lblUtilidad = document.getElementById('lbl-utilidad');
-        const lblIva = document.getElementById('lbl-iva');
-        if (lblUtilidad) lblUtilidad.textContent = utilidadPorcentaje;
-        if (lblIva) lblIva.textContent = ivaPorcentaje;
-        
-        this.verificarSmartMargin(resultado);
     },
     
     // ─────────────────────────────────────────────────────────────────────
@@ -1101,6 +1132,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
