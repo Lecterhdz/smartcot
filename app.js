@@ -415,31 +415,40 @@ window.app = {
     // ─────────────────────────────────────────────────────────────────
     agregarConceptoACotizacion: async function(conceptoId) {
         try {
+            console.log('📋 Agregando concepto:', conceptoId);
+        
             const concepto = await window.db.conceptos.get(conceptoId);
-            
+        
             if (!concepto) {
                 this.notificacion('Concepto no encontrado', 'error');
                 return;
             }
-            
+        
             // Verificar si ya está agregado
-            const existe = this.datosCotizacion.conceptosSeleccionados.find(function(c) { return c.id === conceptoId; });
+            const existe = this.datosCotizacion.conceptosSeleccionados.find(function(c) { 
+                return c.id === conceptoId; 
+            });
+        
             if (existe) {
-                this.notificacion('Este concepto ya está en la cotización', 'advertencia');
+                this.notificacion('⚠️ Este concepto ya está en la cotización', 'advertencia');
                 return;
             }
-            
+        
+            // Agregar con cantidad por defecto
             concepto.cantidad = 1;
             this.datosCotizacion.conceptosSeleccionados.push(concepto);
-            this.calcularTotalConConceptos();
+        
+            console.log('✅ Concepto agregado:', concepto.codigo);
+            console.log('📊 Total conceptos:', this.datosCotizacion.conceptosSeleccionados.length);
+        
+            // Actualizar UI en TODAS las pantallas
             this.actualizarConceptosSeleccionadosUI();
-            this.mostrarDetalleConceptos(); // ← NUEVO: Mostrar detalle
-            
+        
             this.notificacion('✅ Concepto ' + concepto.codigo + ' agregado (' + this.datosCotizacion.conceptosSeleccionados.length + ' total)', 'exito');
-            
+        
         } catch (error) {
             console.error('❌ Error agregando concepto:', error);
-            this.notificacion('Error al agregar concepto', 'error');
+            this.notificacion('Error al agregar concepto: ' + error.message, 'error');
         }
     },
     
@@ -448,42 +457,114 @@ window.app = {
     // ─────────────────────────────────────────────────────────────────────
     actualizarConceptosSeleccionadosUI: function() {
         const container = document.getElementById('conceptos-seleccionados');
+        const countLabel = document.getElementById('conceptos-count');
+    
         if (!container) {
             console.warn('⚠️ Container conceptos-seleccionados no encontrado');
             return;
         }
     
+        // Actualizar contador
+        if (countLabel) {
+            countLabel.textContent = this.datosCotizacion.conceptosSeleccionados.length;
+        }
+    
         if (this.datosCotizacion.conceptosSeleccionados.length === 0) {
-            container.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">No hay conceptos seleccionados</div>';
+            container.innerHTML = '<div style="padding:40px;text-align:center;color:#999;">' +
+                '<div style="font-size:48px;margin-bottom:10px;">📭</div>' +
+                '<div>No hay conceptos seleccionados</div>' +
+                '<div style="font-size:13px;margin-top:5px;">Ve a Catálogos y agrega conceptos para comenzar</div>' +
+                '</div>';
             return;
         }
     
         const app = this;
         container.innerHTML = this.datosCotizacion.conceptosSeleccionados.map(function(c, index) {
             const subtotal = (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
-            return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin:10px 0;background:white;">' +
-                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
-                '<div>' +
-                '<div style="font-weight:700;color:#1a1a1a;">' + c.codigo + '</div>' +
-                '<div style="color:#666;font-size:13px;">' + (c.descripcion_corta || '').substring(0, 50) + '...</div>' +
+        
+            // Obtener desglose de recursos
+            const materiales = c.recursos?.materiales || [];
+            const manoObra = c.recursos?.mano_obra || [];
+            const equipos = c.recursos?.equipos || [];
+            const herramienta = c.recursos?.herramienta || [];
+        
+            return '<div style="padding:20px;border:2px solid #ddd;border-radius:15px;margin:15px 0;background:white;">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">' +
+                '<div style="flex:1;">' +
+                '<div style="font-weight:700;color:#1a1a1a;font-size:16px;">' + c.codigo + '</div>' +
+                '<div style="color:#666;font-size:13px;margin-top:5px;">' + (c.descripcion_corta || '').substring(0, 80) + '...</div>' +
+                '<div style="color:#999;font-size:12px;margin-top:5px;">Unidad: ' + c.unidad + ' | Rendimiento: ' + c.rendimiento_base + '</div>' +
                 '</div>' +
                 '<button onclick="app.eliminarConceptoDeCotizacion(' + index + ')" ' +
-                'style="background:#f44336;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;">🗑️</button>' +
+                'style="background:#f44336;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;">🗑️ Eliminar</button>' +
                 '</div>' +
-                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+            
+                '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:15px;">' +
                 '<div>' +
-                '<label style="font-size:12px;color:#666;">Cantidad</label>' +
+                '<label style="font-size:12px;color:#666;">Cantidad Total</label>' +
                 '<input type="number" value="' + (c.cantidad || 1) + '" min="1" step="1" ' +
                 'onchange="app.actualizarCantidadConcepto(' + index + ', this.value)" ' +
-                'style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">' +
+                'style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;font-weight:600;">' +
+                '</div>' +
+                '<div>' +
+                '<label style="font-size:12px;color:#666;">Unidad</label>' +
+                '<div style="padding:10px;background:#f5f7fa;border-radius:8px;font-weight:600;">' + c.unidad + '</div>' +
+                '</div>' +
+                '<div>' +
+                '<label style="font-size:12px;color:#666;">Costo Unitario</label>' +
+                '<div style="padding:10px;background:#E8F5E9;border-radius:8px;font-weight:700;color:#2E7D32;">' + calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0) + '</div>' +
                 '</div>' +
                 '<div>' +
                 '<label style="font-size:12px;color:#666;">Subtotal</label>' +
-                '<div style="font-weight:700;color:#1a1a1a;">' + calculator.formatoMoneda(subtotal) + '</div>' +
+                '<div style="padding:10px;background:#1a1a1a;color:white;border-radius:8px;font-weight:700;">' + calculator.formatoMoneda(subtotal) + '</div>' +
                 '</div>' +
                 '</div>' +
+            
+                '<div style="background:#f5f7fa;padding:15px;border-radius:10px;margin-top:15px;">' +
+                '<div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;border-bottom:2px solid #ddd;padding-bottom:5px;">📦 Materiales (' + materiales.length + ')</div>' +
+                (materiales.length > 0 ? materiales.map(function(m) {
+                    return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #ddd;font-size:13px;">' +
+                        '<span style="color:#666;">' + (m.nombre || m.material_codigo || 'Sin nombre') + '</span>' +
+                        '<span style="font-weight:600;">' + m.cantidad + ' ' + m.unidad + ' × ' + calculator.formatoMoneda(m.precio_unitario || 0) + ' = <span style="color:#1a1a1a;">' + calculator.formatoMoneda(m.importe || 0) + '</span></span>' +
+                        '</div>';
+                }).join('') : '<div style="color:#999;padding:10px;text-align:center;">Sin materiales</div>') +
+                '</div>' +
+            
+                '<div style="background:#f5f7fa;padding:15px;border-radius:10px;margin-top:10px;">' +
+                '<div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;border-bottom:2px solid #ddd;padding-bottom:5px;">👷 Mano de Obra (' + manoObra.length + ')</div>' +
+                (manoObra.length > 0 ? manoObra.map(function(mo) {
+                    return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #ddd;font-size:13px;">' +
+                        '<span style="color:#666;">' + (mo.puesto || mo.mano_obra_codigo || 'Sin nombre') + '</span>' +
+                        '<span style="font-weight:600;">' + mo.horas_jornada + ' hrs × ' + calculator.formatoMoneda(mo.salario_hora || 0) + ' = <span style="color:#1a1a1a;">' + calculator.formatoMoneda(mo.importe || 0) + '</span></span>' +
+                        '</div>';
+                }).join('') : '<div style="color:#999;padding:10px;text-align:center;">Sin mano de obra</div>') +
+                '</div>' +
+            
+                '<div style="background:#f5f7fa;padding:15px;border-radius:10px;margin-top:10px;">' +
+                '<div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;border-bottom:2px solid #ddd;padding-bottom:5px;">🏗️ Equipos (' + equipos.length + ')</div>' +
+                (equipos.length > 0 ? equipos.map(function(eq) {
+                    return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #ddd;font-size:13px;">' +
+                        '<span style="color:#666;">' + (eq.nombre || eq.equipo_codigo || 'Sin nombre') + '</span>' +
+                        '<span style="font-weight:600;">' + eq.horas + ' hrs × ' + calculator.formatoMoneda(eq.costo_unitario || 0) + ' = <span style="color:#1a1a1a;">' + calculator.formatoMoneda(eq.importe || 0) + '</span></span>' +
+                        '</div>';
+                }).join('') : '<div style="color:#999;padding:10px;text-align:center;">Sin equipos</div>') +
+                '</div>' +
+            
+                '<div style="background:#f5f7fa;padding:15px;border-radius:10px;margin-top:10px;">' +
+                '<div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;border-bottom:2px solid #ddd;padding-bottom:5px;">🔧 Herramienta (' + herramienta.length + ')</div>' +
+                (herramienta.length > 0 ? herramienta.map(function(h) {
+                    return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #ddd;font-size:13px;">' +
+                        '<span style="color:#666;">' + (h.nombre || h.herramienta_codigo || 'Sin nombre') + '</span>' +
+                        '<span style="font-weight:600;">' + h.porcentaje + '% = <span style="color:#1a1a1a;">' + calculator.formatoMoneda(h.importe || 0) + '</span></span>' +
+                        '</div>';
+                }).join('') : '<div style="color:#999;padding:10px;text-align:center;">Sin herramienta</div>') +
+                '</div>' +
+            
                 '</div>';
         }).join('');
+    
+        // Recalcular totales
+        this.calcularTotalConConceptos();
     },
 
     // ─────────────────────────────────────────────────────────────────────
@@ -1018,6 +1099,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
