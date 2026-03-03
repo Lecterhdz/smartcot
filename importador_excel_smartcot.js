@@ -96,6 +96,22 @@ window.importadorSmartCot = {
                 filasSaltadas++;
                 continue;
             }
+            // En importador_excel_smartcot.js - procesarDatos
+            // Asegúrate de guardar los recursos en el concepto
+
+            conceptoActual.recursos = {
+                materiales: [],
+                mano_obra: [],
+                equipos: [],
+                herramienta: []
+            };
+
+            conceptoActual.costos_base = {
+                costo_material: 0,
+                costo_mano_obra: 0,
+                costo_equipo: 0,
+                costo_directo_total: 0
+            };
         
             // ─────────────────────────────────────────────────────────────
             // ESTRUCTURA REAL DE TU EXCEL (basado en tu archivo):
@@ -768,7 +784,4 @@ window.importadorSmartCot = {
 };
 
 console.log('✅ importador_excel_smartcot.js listo - ESTRUCTURA REAL');
-
-
-
 
