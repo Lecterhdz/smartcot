@@ -238,56 +238,81 @@
                 <!-- Resumen Financiero COMPLETO -->
                 <div style="margin-top:25px;padding:25px;background:linear-gradient(135deg,#1a1a1a,#333333);border-radius:15px;color:white;">
                     <h4 style="margin-bottom:20px;">💰 Resumen Financiero</h4>
-    
+                    
                     <!-- Costo Directo -->
                     <div style="background:rgba(255,255,255,0.1);padding:15px;border-radius:10px;margin-bottom:15px;">
-                        <div style="font-size:13px;opacity:0.8;">Costo Directo (Materiales + Mano de Obra + Equipos)</div>
+                        <div style="font-size:13px;opacity:0.8;">Costo Directo (Materiales + Mano de Obra + Equipos + Herramienta)</div>
                         <div style="font-size:28px;font-weight:700;" id="resumen-costo-directo">$0.00</div>
                     </div>
-    
+                    
                     <!-- Sobrecostos Editables -->
                     <div style="background:rgba(255,255,255,0.1);padding:15px;border-radius:10px;margin-bottom:15px;">
                         <div style="font-size:14px;font-weight:600;margin-bottom:15px;">📊 SOBRECOSTOS (Editables)</div>
-        
-                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;">
+                        
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;">
                             <div>
-                                <label style="font-size:12px;opacity:0.8;">Indirectos Oficina (%)</label>
+                                <label style="font-size:11px;opacity:0.8;">Ind. Oficina (%)</label>
                                 <input type="number" id="cot-indirectos-oficina" value="5" min="0" max="100" step="0.1"
                                        onchange="app.calcularTotalConConceptos()"
                                        style="width:100%;padding:8px;border:2px solid #FF9800;border-radius:8px;font-weight:700;font-size:14px;">
                             </div>
                             <div>
-                                <label style="font-size:12px;opacity:0.8;">Indirectos Campo (%)</label>
+                                <label style="font-size:11px;opacity:0.8;">Ind. Campo (%)</label>
                                 <input type="number" id="cot-indirectos-campo" value="15" min="0" max="100" step="0.1"
                                        onchange="app.calcularTotalConConceptos()"
                                        style="width:100%;padding:8px;border:2px solid #FF9800;border-radius:8px;font-weight:700;font-size:14px;">
                             </div>
                             <div>
-                                <label style="font-size:12px;opacity:0.8;">Financiamiento (%)</label>
+                                <label style="font-size:11px;opacity:0.8;">Financiamiento (%)</label>
                                 <input type="number" id="cot-financiamiento" value="0.85" min="0" max="100" step="0.01"
                                        onchange="app.calcularTotalConConceptos()"
                                        style="width:100%;padding:8px;border:2px solid #FF9800;border-radius:8px;font-weight:700;font-size:14px;">
                             </div>
                             <div>
-                                <label style="font-size:12px;opacity:0.8;">Utilidad (%)</label>
+                                <label style="font-size:11px;opacity:0.8;">Utilidad (%)</label>
                                 <input type="number" id="cot-utilidad" value="10" min="0" max="100" step="0.1"
                                        onchange="app.calcularTotalConConceptos()"
                                        style="width:100%;padding:8px;border:2px solid #4CAF50;border-radius:8px;font-weight:700;font-size:14px;">
                             </div>
                         </div>
-        
+                        
                         <!-- Total Sobrecostos -->
                         <div style="margin-top:15px;padding-top:15px;border-top:2px solid rgba(255,255,255,0.2);">
                             <div style="display:flex;justify-content:space-between;align-items:center;">
                                 <div style="font-size:13px;opacity:0.8;">📈 TOTAL SOBRECOSTOS</div>
-                                <div style="font-size:20px;font-weight:700;color:#FF9800;">
+                                <div style="font-size:18px;font-weight:700;color:#FF9800;">
                                     <span id="resumen-sobrecosto-porcentaje">0.00%</span>
                                     <span style="margin-left:15px;" id="resumen-sobrecosto-monto">$0.00</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-    
+                    
+                    <!-- Utilidad en Costo -->
+                    <div style="background:rgba(76,175,80,0.2);padding:15px;border-radius:10px;margin-bottom:15px;">
+                        <div style="font-size:13px;opacity:0.8;">💵 UTILIDAD EN COSTO</div>
+                        <div style="font-size:24px;font-weight:700;color:#4CAF50;" id="resumen-utilidad-costo">$0.00</div>
+                    </div>
+                    
+                    <!-- Tiempo de Ejecución -->
+                    <div style="background:rgba(33,150,243,0.2);padding:15px;border-radius:10px;margin-bottom:15px;">
+                        <div style="font-size:13px;opacity:0.8;margin-bottom:10px;">⏱️ TIEMPO DE EJECUCIÓN ESTIMADO</div>
+                        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;opacity:0.8;">Días Hábiles</div>
+                                <div style="font-size:16px;font-weight:700;" id="tiempo-dias-habiles">0 días</div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;opacity:0.8;">Semanas</div>
+                                <div style="font-size:16px;font-weight:700;" id="tiempo-semanas">0 sem</div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;opacity:0.8;">Meses</div>
+                                <div style="font-size:16px;font-weight:700;" id="tiempo-meses">0 mes</div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Totales -->
                     <div style="border-top:2px solid rgba(255,255,255,0.3);padding-top:20px;">
                         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:20px;">
@@ -305,7 +330,7 @@
                             </div>
                         </div>
                     </div>
-    
+                    
                     <!-- Alerta de Margen -->
                     <div id="smartmargin-warning" style="display:none;margin-top:15px;padding:15px;background:rgba(255,152,0,0.2);border-radius:10px;border-left:4px solid #FF9800;">
                         <strong>⚠️ SmartMargin Alertas:</strong><br>
@@ -332,34 +357,47 @@
                 <div style="background:#E8F5E9;padding:20px;border-radius:15px;margin-bottom:25px;border:2px solid #4CAF50;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
                         <h4 style="color:#2E7D32;margin:0;">📋 Conceptos Seleccionados</h4>
-                        <span id="conceptos-count-catalogo" style="background:#4CAF50;color:white;padding:5px 15px;border-radius:20px;font-weight:600;">0</span>
+                        <span id="conceptos-count-catalogo" style="background:#4CAF50;color:white;padding:5px 15px;border-radius:20px;font-weight:600;font-size:14px;">0</span>
                     </div>
                     <div id="conceptos-seleccionados-catalogo" style="max-height:200px;overflow-y:auto;background:white;padding:15px;border-radius:10px;">
                         <div style="text-align:center;color:#999;padding:20px;">No hay conceptos seleccionados aún</div>
                     </div>
-                    <div style="margin-top:15px;display:flex;gap:10px;">
-                        <button class="btn btn-primary" onclick="app.mostrarPantalla('nueva-cotizacion-screen')" style="flex:1;padding:12px;">💰 Ir a Cotizar</button>
-                        <button class="btn btn-secondary" onclick="app.limpiarConceptosSeleccionados()" style="padding:12px;">🗑️ Limpiar</button>
+                    <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;">
+                        <button class="btn" onclick="app.mostrarPantalla('nueva-cotizacion-screen')" 
+                                style="flex:1;padding:12px;background:#2196F3;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;">💰 Ir a Cotizar</button>
+                        <button class="btn" onclick="app.limpiarConceptosSeleccionados()" 
+                                style="padding:12px 20px;background:#f44336;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;">🗑️ Limpiar</button>
                     </div>
                 </div>
         
                 <!-- Filtros por Categoría -->
                 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
-                    <button class="btn btn-primary" onclick="app.filtrarCatalogo('todos')" style="padding:8px 16px;">📋 Todos</button>
-                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Eléctrico')" style="padding:8px 16px;">⚡ Eléctrico</button>
-                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Mecánico')" style="padding:8px 16px;">🔧 Mecánico</button>
-                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('HVAC')" style="padding:8px 16px;">❄️ HVAC</button>
-                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Señalamiento')" style="padding:8px 16px;">🚦 Señalamiento</button>
+                    <button class="btn btn-primary" onclick="app.filtrarCatalogo('todos')" 
+                            style="padding:8px 16px;background:#1a1a1a;color:#ffffff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">📋 Todos</button>
+                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Eléctrico')" 
+                            style="padding:8px 16px;background:#6c757d;color:#ffffff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">⚡ Eléctrico</button>
+                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Mecánico')" 
+                            style="padding:8px 16px;background:#6c757d;color:#ffffff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🔧 Mecánico</button>
+                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('HVAC')" 
+                            style="padding:8px 16px;background:#6c757d;color:#ffffff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">❄️ HVAC</button>
+                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Provisionales')" 
+                            style="padding:8px 16px;background:#6c757d;color:#ffffff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🚧 Provisionales</button>
                 </div>
         
                 <!-- Buscador -->
                 <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:20px;">
                     <input type="text" id="buscar-catalogo" placeholder="🔍 Buscar por código o descripción..." 
-                           style="width:100%;padding:14px;border:2px solid #ddd;border-radius:10px;font-size:14px;"
+                           style="width:100%;padding:14px;border:2px solid #ddd;border-radius:10px;font-size:14px;color:#333;"
                            onkeyup="app.buscarEnCatalogo()">
-                    <button class="btn btn-primary" onclick="app.buscarEnCatalogo()" style="padding:14px 25px;">🔍 Buscar</button>
+                    <button class="btn" onclick="app.buscarEnCatalogo()" 
+                            style="padding:14px 25px;background:#1a1a1a;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;">🔍 Buscar</button>
                 </div>
-        
+                <!-- Botón Volver -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                    <h2 style="margin:0;color:#1a1a1a;">📚 Catálogo de Conceptos</h2>
+                    <button class="btn" onclick="app.mostrarPantalla('dashboard-screen')" 
+                            style="padding:10px 20px;background:#1a1a1a;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;">↩️ Volver</button>
+                </div>        
                 <div id="lista-catalogo" style="max-height:600px;overflow-y:auto;"></div>
             </div>
         </section>
@@ -480,6 +518,7 @@
     </script>
 </body>
 </html>
+
 
 
 
