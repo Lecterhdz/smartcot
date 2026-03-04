@@ -240,3 +240,63 @@ document.addEventListener('db-ready', function(e) {
 
 console.log('✅ db.js listo - SmartCotDB inicializada');
 
+// ─────────────────────────────────────────────────────────────────
+// IMPORTAR DATOS (RESPALDO JSON)
+// ─────────────────────────────────────────────────────────────────
+window.dbImportar = async function(datosJSON) {
+    try {
+        const datos = JSON.parse(datosJSON);
+        
+        if (!datos) {
+            throw new Error('Datos inválidos');
+        }
+        
+        // Importar conceptos
+        if (datos.conceptos && datos.conceptos.length > 0) {
+            await db.conceptos.bulkPut(datos.conceptos);
+            console.log('✅ Conceptos importados:', datos.conceptos.length);
+        }
+        
+        // Importar materiales
+        if (datos.materiales && datos.materiales.length > 0) {
+            await db.materiales.bulkPut(datos.materiales);
+            console.log('✅ Materiales importados:', datos.materiales.length);
+        }
+        
+        // Importar mano de obra
+        if (datos.manoObra && datos.manoObra.length > 0) {
+            await db.manoObra.bulkPut(datos.manoObra);
+            console.log('✅ Mano de obra importada:', datos.manoObra.length);
+        }
+        
+        // Importar equipos
+        if (datos.equipos && datos.equipos.length > 0) {
+            await db.equipos.bulkPut(datos.equipos);
+            console.log('✅ Equipos importados:', datos.equipos.length);
+        }
+        
+        // Importar herramienta
+        if (datos.herramienta && datos.herramienta.length > 0) {
+            await db.herramienta.bulkPut(datos.herramienta);
+            console.log('✅ Herramienta importada:', datos.herramienta.length);
+        }
+        
+        // Importar clientes
+        if (datos.clientes && datos.clientes.length > 0) {
+            await db.clientes.bulkPut(datos.clientes);
+            console.log('✅ Clientes importados:', datos.clientes.length);
+        }
+        
+        // Importar cotizaciones
+        if (datos.cotizaciones && datos.cotizaciones.length > 0) {
+            await db.cotizaciones.bulkPut(datos.cotizaciones);
+            console.log('✅ Cotizaciones importadas:', datos.cotizaciones.length);
+        }
+        
+        console.log('✅ Importación completada');
+        
+    } catch (error) {
+        console.error('❌ Error importando:', error);
+        throw error;
+    }
+};
