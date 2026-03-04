@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - HISTORIAL DE COTIZACIONES
+// SMARTCOT v2.0 - HISTORIAL DE COTIZACIONES (CORREGIDO)
 // ─────────────────────────────────────────────────────────────────────
 
 console.log('📋 historial-cotizaciones.js cargado');
@@ -83,12 +83,11 @@ window.historialCotizaciones = {
             return;
         }
         
-        // Reutilizar lógica de renderizado (simplificada)
         await this.cargar();
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // VER COTIZACIÓN (COMPLETO - CON TODOS LOS DATOS)
+    // VER COTIZACIÓN (MODAL COMPLETO)
     // ─────────────────────────────────────────────────────────────────
     ver: async function(id) {
         try {
@@ -101,7 +100,6 @@ window.historialCotizaciones = {
             const clientes = await window.db.clientes.toArray();
             const cliente = clientes.find(cl => cl.id == cotizacion.clienteId);
             
-            // Crear modal con TODA la información
             const modal = document.createElement('div');
             modal.id = 'modal-ver-cotizacion';
             modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;';
@@ -113,7 +111,6 @@ window.historialCotizaciones = {
                         <button onclick="document.getElementById('modal-ver-cotizacion').remove()" style="background:#f44336;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;">❌ Cerrar</button>
                     </div>
                     
-                    <!-- Información General -->
                     <div style="background:#E3F2FD;padding:20px;border-radius:15px;margin-bottom:20px;">
                         <h4 style="color:#1565C0;margin:0 0 15px 0;">📋 Información General</h4>
                         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
@@ -136,7 +133,6 @@ window.historialCotizaciones = {
                         </div>
                     </div>
                     
-                    <!-- Conceptos -->
                     <div style="background:#f5f7fa;padding:20px;border-radius:15px;margin-bottom:20px;">
                         <h4 style="color:#1a1a1a;margin:0 0 15px 0;">📦 Conceptos (${cotizacion.conceptosCatalogo?.length || 0})</h4>
                         <div style="max-height:300px;overflow-y:auto;">
@@ -157,7 +153,6 @@ window.historialCotizaciones = {
                         </div>
                     </div>
                     
-                    <!-- Tiempo de Ejecución -->
                     ${cotizacion.tiempoEjecucion ? `
                     <div style="background:#E8F5E9;padding:20px;border-radius:15px;margin-bottom:20px;">
                         <h4 style="color:#2E7D32;margin:0 0 15px 0;">⏱️ Tiempo de Ejecución</h4>
@@ -182,36 +177,38 @@ window.historialCotizaciones = {
                     </div>
                     ` : ''}
                     
-                    <!-- Factores Aplicados -->
-                    ${cotizacion.factoresAjuste ? `
+                    ${cotizacion.factoresAjuste || cotizacion.porcentajes ? `
                     <div style="background:#FFF3E0;padding:20px;border-radius:15px;margin-bottom:20px;">
-                        <h4 style="color:#E65100;margin:0 0 15px 0;">⚠️ Factores de Ajuste Aplicados</h4>
+                        <h4 style="color:#E65100;margin:0 0 15px 0;">⚠️ Factores y Porcentajes</h4>
                         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;">
+                            ${cotizacion.porcentajes ? `
                             <div style="text-align:center;">
-                                <div style="font-size:11px;color:#666;">Altura</div>
-                                <div style="font-size:16px;font-weight:700;">${cotizacion.factoresAjuste.altura || 1}x</div>
+                                <div style="font-size:11px;color:#666;">Ind. Oficina</div>
+                                <div style="font-size:16px;font-weight:700;">${cotizacion.porcentajes.indirectosOficina || 5}%</div>
                             </div>
                             <div style="text-align:center;">
-                                <div style="font-size:11px;color:#666;">Clima</div>
-                                <div style="font-size:16px;font-weight:700;">${cotizacion.factoresAjuste.clima || 1}x</div>
+                                <div style="font-size:11px;color:#666;">Ind. Campo</div>
+                                <div style="font-size:16px;font-weight:700;">${cotizacion.porcentajes.indirectosCampo || 15}%</div>
                             </div>
                             <div style="text-align:center;">
-                                <div style="font-size:11px;color:#666;">Acceso</div>
-                                <div style="font-size:16px;font-weight:700;">${cotizacion.factoresAjuste.acceso || 1}x</div>
+                                <div style="font-size:11px;color:#666;">Financiamiento</div>
+                                <div style="font-size:16px;font-weight:700;">${cotizacion.porcentajes.financiamiento || 0.85}%</div>
                             </div>
                             <div style="text-align:center;">
-                                <div style="font-size:11px;color:#666;">Seguridad</div>
-                                <div style="font-size:16px;font-weight:700;">${cotizacion.factoresAjuste.seguridad || 1}x</div>
+                                <div style="font-size:11px;color:#666;">Utilidad</div>
+                                <div style="font-size:16px;font-weight:700;">${cotizacion.porcentajes.utilidad || 10}%</div>
                             </div>
+                            ` : ''}
+                            ${cotizacion.factoresAjuste ? `
                             <div style="text-align:center;">
-                                <div style="font-size:11px;color:#666;">Total</div>
+                                <div style="font-size:11px;color:#666;">Factor Total</div>
                                 <div style="font-size:16px;font-weight:700;color:#E65100;">${cotizacion.factoresAjuste.total || 1}x</div>
                             </div>
+                            ` : ''}
                         </div>
                     </div>
                     ` : ''}
                     
-                    <!-- Totales -->
                     <div style="background:linear-gradient(135deg,#1a1a1a,#333333);padding:20px;border-radius:15px;color:white;">
                         <h4 style="margin:0 0 15px 0;">💰 Resumen Financiero</h4>
                         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;">
@@ -238,7 +235,6 @@ window.historialCotizaciones = {
                         </div>
                     </div>
                     
-                    <!-- Botones de Acción -->
                     <div style="display:flex;gap:15px;margin-top:20px;">
                         <button onclick="historialCotizaciones.duplicar(${cotizacion.id}); document.getElementById('modal-ver-cotizacion').remove();" 
                                 style="flex:1;background:#FF9800;color:white;border:none;padding:14px;border-radius:10px;cursor:pointer;font-weight:600;">
@@ -261,7 +257,7 @@ window.historialCotizaciones = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // DUPLICAR COTIZACIÓN (COMPLETO - CON TODOS LOS DATOS)
+    // DUPLICAR COTIZACIÓN (CORREGIDO - CARGA TODOS LOS DATOS)
     // ─────────────────────────────────────────────────────────────────
     duplicar: async function(id) {
         try {
@@ -275,70 +271,117 @@ window.historialCotizaciones = {
                 return;
             }
             
-            // Crear copia con TODOS los datos
-            const cotizacionNueva = {
-                clienteId: cotizacionOriginal.clienteId,
-                descripcion: cotizacionOriginal.descripcion + ' (Copia)',
-                ubicacion: cotizacionOriginal.ubicacion || '',
-                fechaInicio: cotizacionOriginal.fechaInicio || new Date().toISOString(),
-                fechaFinSolicitada: cotizacionOriginal.fechaFinSolicitada || null,
-                
-                // Conceptos del catálogo (CON RECURSOS Y COSTOS)
-                conceptosCatalogo: cotizacionOriginal.conceptosCatalogo || [],
-                
-                // Materiales adicionales
-                materialesAdicionales: cotizacionOriginal.materialesAdicionales || [],
-                
-                // Mano de obra adicional (CON JORNADAS)
-                manoObraAdicional: cotizacionOriginal.manoObraAdicional || [],
-                
-                // Equipos adicionales
-                equiposAdicionales: cotizacionOriginal.equiposAdicionales || [],
-                
-                // Herramienta adicional
-                herramientaAdicional: cotizacionOriginal.herramientaAdicional || [],
-                
-                // Indirectos adicionales
-                indirectosAdicionales: cotizacionOriginal.indirectosAdicionales || [],
-                
-                // Porcentajes aplicados
-                porcentajes: cotizacionOriginal.porcentajes || {
-                    indirectosOficina: 5,
-                    indirectosCampo: 15,
-                    financiamiento: 0.85,
-                    utilidad: 10
-                },
-                
-                // Factores de ajuste (CON TODOS LOS DATOS)
-                factoresAjuste: cotizacionOriginal.factoresAjuste || null,
-                
-                // Tiempo de ejecución (CON JORNADAS, DÍAS, SEMANAS, MESES)
-                tiempoEjecucion: cotizacionOriginal.tiempoEjecucion || {
-                    jornadas: 0,
-                    diasHabiles: 0,
-                    semanas: 0,
-                    meses: 0
-                },
-                
-                // Totales calculados
-                costoDirecto: cotizacionOriginal.costoDirecto || 0,
-                totalIndirectos: cotizacionOriginal.totalIndirectos || 0,
-                utilidad: cotizacionOriginal.utilidad || 0,
-                iva: cotizacionOriginal.iva || 0,
-                totalFinal: cotizacionOriginal.totalFinal || 0,
-                
-                fecha: new Date().toISOString(),
-                estado: 'borrador'
-            };
+            console.log('📋 Duplicando cotización:', cotizacionOriginal);
             
-            const nuevoId = await window.db.cotizaciones.add(cotizacionNueva);
-            
-            alert('✅ Cotización duplicada: #' + nuevoId + '\n\nAhora puedes editarla en Nueva Cotización');
+            // ⚠️ IMPORTANTE: Cargar datos en app.datosCotizacion
+            if (window.app) {
+                // Limpiar datos actuales
+                window.app.datosCotizacion = {
+                    materiales: [],
+                    manoObra: [],
+                    equipos: [],
+                    herramienta: [],
+                    indirectos: [],
+                    conceptosSeleccionados: []
+                };
+                
+                // Cargar conceptos del catálogo
+                if (cotizacionOriginal.conceptosCatalogo && cotizacionOriginal.conceptosCatalogo.length > 0) {
+                    window.app.datosCotizacion.conceptosSeleccionados = JSON.parse(JSON.stringify(cotizacionOriginal.conceptosCatalogo));
+                    console.log('✅ Conceptos cargados:', window.app.datosCotizacion.conceptosSeleccionados.length);
+                }
+                
+                // Cargar materiales adicionales
+                if (cotizacionOriginal.materialesAdicionales && cotizacionOriginal.materialesAdicionales.length > 0) {
+                    window.app.datosCotizacion.materiales = JSON.parse(JSON.stringify(cotizacionOriginal.materialesAdicionales));
+                }
+                
+                // Cargar mano de obra adicional
+                if (cotizacionOriginal.manoObraAdicional && cotizacionOriginal.manoObraAdicional.length > 0) {
+                    window.app.datosCotizacion.manoObra = JSON.parse(JSON.stringify(cotizacionOriginal.manoObraAdicional));
+                }
+                
+                // Cargar equipos adicionales
+                if (cotizacionOriginal.equiposAdicionales && cotizacionOriginal.equiposAdicionales.length > 0) {
+                    window.app.datosCotizacion.equipos = JSON.parse(JSON.stringify(cotizacionOriginal.equiposAdicionales));
+                }
+                
+                // Cargar herramienta adicional
+                if (cotizacionOriginal.herramientaAdicional && cotizacionOriginal.herramientaAdicional.length > 0) {
+                    window.app.datosCotizacion.herramienta = JSON.parse(JSON.stringify(cotizacionOriginal.herramientaAdicional));
+                }
+                
+                // Cargar indirectos adicionales
+                if (cotizacionOriginal.indirectosAdicionales && cotizacionOriginal.indirectosAdicionales.length > 0) {
+                    window.app.datosCotizacion.indirectos = JSON.parse(JSON.stringify(cotizacionOriginal.indirectosAdicionales));
+                }
+                
+                // Cargar tiempo de ejecución
+                if (cotizacionOriginal.tiempoEjecucion) {
+                    window.app.tiempoEjecucion = JSON.parse(JSON.stringify(cotizacionOriginal.tiempoEjecucion));
+                }
+                
+                // Cargar factores de ajuste
+                if (cotizacionOriginal.factoresAjuste) {
+                    window.app.factoresAjuste = JSON.parse(JSON.stringify(cotizacionOriginal.factoresAjuste));
+                    window.app.impactoFactores = {
+                        factorAltura: cotizacionOriginal.factoresAjuste.altura || 1,
+                        factorClima: cotizacionOriginal.factoresAjuste.clima || 1,
+                        factorAcceso: cotizacionOriginal.factoresAjuste.acceso || 1,
+                        factorSeguridad: cotizacionOriginal.factoresAjuste.seguridad || 1,
+                        factorTotal: cotizacionOriginal.factoresAjuste.total || 1,
+                        aplicado: (cotizacionOriginal.factoresAjuste.total || 1) > 1
+                    };
+                }
+                
+                // Cargar porcentajes en los inputs
+                if (cotizacionOriginal.porcentajes) {
+                    setTimeout(function() {
+                        const inpOficina = document.getElementById('cot-indirectos-oficina');
+                        const inpCampo = document.getElementById('cot-indirectos-campo');
+                        const inpFinanciamiento = document.getElementById('cot-financiamiento');
+                        const inpUtilidad = document.getElementById('cot-utilidad');
+                        
+                        if (inpOficina) inpOficina.value = cotizacionOriginal.porcentajes.indirectosOficina || 5;
+                        if (inpCampo) inpCampo.value = cotizacionOriginal.porcentajes.indirectosCampo || 15;
+                        if (inpFinanciamiento) inpFinanciamiento.value = cotizacionOriginal.porcentajes.financiamiento || 0.85;
+                        if (inpUtilidad) inpUtilidad.value = cotizacionOriginal.porcentajes.utilidad || 10;
+                    }, 500);
+                }
+                
+                // Cargar campos de texto
+                setTimeout(function() {
+                    const inpCliente = document.getElementById('cot-cliente');
+                    const inpDescripcion = document.getElementById('cot-descripcion');
+                    const inpUbicacion = document.getElementById('cot-ubicacion');
+                    const inpFechaInicio = document.getElementById('cot-fecha-inicio');
+                    const inpFechaFin = document.getElementById('cot-fecha-fin');
+                    
+                    if (inpCliente) inpCliente.value = cotizacionOriginal.clienteId || '';
+                    if (inpDescripcion) inpDescripcion.value = (cotizacionOriginal.descripcion || '') + ' (Copia)';
+                    if (inpUbicacion) inpUbicacion.value = cotizacionOriginal.ubicacion || '';
+                    if (inpFechaInicio) inpFechaInicio.value = cotizacionOriginal.fechaInicio ? cotizacionOriginal.fechaInicio.split('T')[0] : '';
+                    if (inpFechaFin) inpFechaFin.value = cotizacionOriginal.fechaFinSolicitada ? cotizacionOriginal.fechaFinSolicitada.split('T')[0] : '';
+                }, 500);
+            }
             
             // Navegar a Nueva Cotización
             if (window.app) {
                 window.app.mostrarPantalla('nueva-cotizacion-screen');
+                
+                // ⚠️ IMPORTANTE: Actualizar UI después de navegar
+                setTimeout(function() {
+                    if (window.app) {
+                        window.app.actualizarConceptosSeleccionadosUI();
+                        window.app.actualizarContadorGeneral();
+                        window.app.calcularTotalConConceptos();
+                        window.app.mostrarImpactoFactores();
+                        console.log('✅ UI actualizada para edición');
+                    }
+                }, 1000);
             }
+            
+            alert('✅ Cotización duplicada: #' + id + '\n\nAhora puedes editarla en Nueva Cotización');
             
             // Recargar historial
             await this.cargar();
@@ -368,7 +411,6 @@ window.historialCotizaciones = {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Encabezado
             doc.setFontSize(18);
             doc.text('COTIZACIÓN #' + cotizacion.id, 105, 20, { align: 'center' });
             
@@ -376,7 +418,6 @@ window.historialCotizaciones = {
             doc.text('Fecha: ' + new Date(cotizacion.fecha).toLocaleDateString('es-MX'), 20, 40);
             doc.text('Descripción: ' + (cotizacion.descripcion || 'Sin descripción'), 20, 50);
             
-            // Conceptos
             doc.text('Conceptos:', 20, 70);
             let yPos = 80;
             
@@ -393,7 +434,6 @@ window.historialCotizaciones = {
                 }
             });
             
-            // Totales
             yPos += 10;
             doc.setDrawColor(200);
             doc.line(20, yPos, 190, yPos);
@@ -404,7 +444,6 @@ window.historialCotizaciones = {
             doc.text('TOTAL FINAL:', 140, yPos);
             doc.text(calculator.formatoMoneda(cotizacion.totalFinal || 0), 190, yPos, { align: 'right' });
             
-            // Descargar
             doc.save('Cotizacion-' + cotizacion.id + '.pdf');
             
             console.log('✅ PDF exportado');
