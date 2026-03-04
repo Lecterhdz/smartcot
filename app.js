@@ -1356,6 +1356,68 @@ window.app = {
             console.error('❌ Error verificando clientes:', error);
         }
     },
+
+
+    // ─────────────────────────────────────────────────────────────────────
+    // MODAL CLIENTE RÁPIDO (FUNCIONES FALTANTES)
+    // ─────────────────────────────────────────────────────────────────────
+    
+    // Mostrar modal de cliente
+    mostrarModalCliente: function() {
+        const modal = document.getElementById('modal-cliente');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.getElementById('modal-cliente-nombre')?.focus();
+        } else {
+            console.error('❌ Modal de cliente no encontrado en HTML');
+        }
+    },
+    
+    // Cerrar modal de cliente
+    cerrarModalCliente: function() {
+        const modal = document.getElementById('modal-cliente');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        
+        // Limpiar campos
+        const campos = ['modal-cliente-nombre', 'modal-cliente-email', 'modal-cliente-telefono', 'modal-cliente-notas'];
+        campos.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+    },
+    
+    // Guardar cliente rápido
+    guardarClienteRapido: async function() {
+        try {
+            const nombre = document.getElementById('modal-cliente-nombre')?.value.trim();
+            if (!nombre) {
+                this.notificacion('⚠️ El nombre del cliente es obligatorio', 'error');
+                return;
+            }
+            
+            const clienteId = await window.db.clientes.add({ 
+                nombre: nombre, 
+                email: document.getElementById('modal-cliente-email')?.value.trim(), 
+                telefono: document.getElementById('modal-cliente-telefono')?.value.trim(), 
+                notas: document.getElementById('modal-cliente-notas')?.value.trim(), 
+                activo: true 
+            });
+            
+            await this.cargarClientesSelect();
+            
+            const select = document.getElementById('cot-cliente');
+            if (select) select.value = clienteId;
+            
+            this.cerrarModalCliente();
+            this.notificacion('✅ Cliente guardado y seleccionado', 'exito');
+            
+        } catch (error) {
+            console.error('❌ Error guardando cliente:', error);
+            this.notificacion('❌ Error: ' + error.message, 'error');
+        }
+    },   
     
     // ─────────────────────────────────────────────────────────────────
     // CONFIGURACIÓN
@@ -1441,6 +1503,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
