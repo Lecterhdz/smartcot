@@ -179,19 +179,27 @@
             <div class="card">
                 <h2 style="margin-bottom:25px;">📝 Nueva Cotización</h2>
         
-                <!-- Datos del Proyecto -->
+                <!-- Datos del Proyecto (ACTUALIZADO) -->
                 <div style="background:#E3F2FD;padding:20px;border-radius:15px;margin-bottom:25px;">
                     <h4 style="color:#1565C0;margin:0 0 15px 0;">📋 Datos del Proyecto</h4>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
                         <div>
-                            <label style="font-size:13px;color:#666;display:block;margin-bottom:5px;">Cliente</label>
-                            <select id="cot-cliente" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
-                                <option value="">Seleccionar cliente...</option>
-                            </select>
+                            <label style="font-size:13px;color:#666;display:block;margin-bottom:5px;">Cliente *</label>
+                            <div style="display:grid;grid-template-columns:1fr auto;gap:10px;">
+                                <select id="cot-cliente" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                                    <option value="">Seleccionar cliente...</option>
+                                </select>
+                                <button type="button" onclick="app.mostrarModalCliente()" 
+                                        style="background:#2196F3;color:white;border:none;padding:12px 20px;border-radius:10px;cursor:pointer;font-weight:600;"
+                                        title="Agregar cliente rápido">
+                                    ➕
+                                </button>
+                            </div>
+                            <small id="sin-clientes-msg" style="color:#f44336;display:none;">⚠️ No hay clientes</small>
                         </div>
-                        <div style="grid-column:1/-1;">
+                        <div>
                             <label style="font-size:13px;color:#666;display:block;margin-bottom:5px;">Descripción del Proyecto *</label>
-                            <input type="text" id="cot-descripcion" placeholder="Ej: Instalación eléctrica de nave industrial - Planta 2" 
+                            <input type="text" id="cot-descripcion" placeholder="Ej: Instalación eléctrica nave industrial" 
                                    style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                         </div>
                         <div>
@@ -838,6 +846,7 @@
                     
 </body>
 </html>
+
 
 
 
