@@ -532,4 +532,60 @@ window.curvaS = {
     }
 };
 
+    // ─────────────────────────────────────────────────────────────────────
+    // EXPORTAR REPORTE PDF (NUEVA FUNCIÓN)
+    // ─────────────────────────────────────────────────────────────────────
+    exportarReportePDF: async function() {
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Encabezado
+            doc.setFontSize(18);
+            doc.text('CURVA S - SEGUIMIENTO DE OBRA', 105, 20, { align: 'center' });
+            
+            // Información de cotización
+            doc.setFontSize(12);
+            doc.text('Cotización #' + this.datos.cotizacionId, 20, 40);
+            doc.text('Cliente: ' + this.datos.cliente, 20, 50);
+            doc.text('Fecha de Reporte: ' + new Date().toLocaleDateString('es-MX'), 20, 60);
+            
+            // Gráfica (capturar canvas)
+            const canvas = document.getElementById('curva-s-chart');
+            if (canvas) {
+                const imgData = canvas.toDataURL('image/png');
+                doc.addImage(imgData, 'PNG', 20, 80, 170, 100);
+            }
+            
+            // Tabla de avance
+            doc.text('Avance por Semana:', 20, 190);
+            doc.setFontSize(10);
+            
+            let yPos = 200;
+            this.datos.semanas.forEach((semana, index) => {
+                const programado = this.datos.avanceProgramado[index]?.toFixed(2) || 0;
+                const ejecutado = this.datos.avanceEjecutado[index]?.toFixed(2) || 0;
+                const desviacion = ((ejecutado - programado)).toFixed(2);
+                
+                doc.text(semana + ' | Prog: ' + programado + '% | Ejec: ' + ejecutado + '% | Dev: ' + desviacion + '%', 20, yPos);
+                yPos += 7;
+                
+                if (yPos > 280) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+            });
+            
+            // Descargar PDF
+            doc.save('Curva-S-Cotizacion-' + this.datos.cotizacionId + '.pdf');
+            
+            console.log('✅ Reporte PDF exportado');
+            
+        } catch (error) {
+            console.error('❌ Error exportando PDF:', error);
+            alert('❌ Error: ' + error.message);
+        }
+    },
+
+
 console.log('✅ curva-s.js listo');
