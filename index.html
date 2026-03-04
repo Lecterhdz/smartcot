@@ -8,9 +8,13 @@
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2933/2933245.png">
+    
+    <!-- Librerías Externas -->
     <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #e8ecef 100%); min-height: 100vh; color: #333; }
@@ -65,22 +69,11 @@
         .alert-warning { background: #FFF3E0; color: #E65100; border-left: 5px solid #FF9800; }
         .alert-success { background: #E8F5E9; color: #2E7D32; border-left: 5px solid #4CAF50; }
         @media (max-width: 768px) { .header-content { flex-direction: column; gap: 15px; text-align: center; } .stats-grid, .actions-grid { grid-template-columns: 1fr; } .main-container { padding: 20px; } }
-        #modal-cliente { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-        #modal-cliente > div { background: white; padding: 30px; border-radius: 20px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
-        /* Botones de filtro de categoría */
-        #catalogos-screen .btn-secondary {
-            background: linear-gradient(135deg, #f5f7fa, #e8ecef);
-            color: #333;
-            border: 2px solid #ddd;
-        }
-
-        #catalogos-screen .btn-primary {
-            background: linear-gradient(135deg, #1a1a1a, #333333);
-            color: white;
-        }
+        #modal-cliente, #modal-factores { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        #modal-cliente > div, #modal-factores > div { background: white; padding: 30px; border-radius: 20px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        #catalogos-screen .btn-secondary { background: linear-gradient(135deg, #f5f7fa, #e8ecef); color: #333; border: 2px solid #ddd; }
+        #catalogos-screen .btn-primary { background: linear-gradient(135deg, #1a1a1a, #333333); color: white; }
     </style>
-    <!-- En el <head> de index.html, agrega: -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <!-- HEADER -->
@@ -132,19 +125,16 @@
             <div class="actions-section">
                 <h2 class="section-title">⚡ Acciones Rápidas</h2>
                 <div class="actions-grid">
-
                     <div class="action-card" onclick="curvaS.init(); app.mostrarPantalla('curva-s-screen')">
                         <div class="action-icon">📈</div>
                         <div class="action-title">Curva S</div>
                         <div class="action-desc">Seguimiento de obra programado vs ejecutado</div>
                     </div>
-
-                     <div class="action-card" onclick="app.mostrarPantalla('historial-cotizaciones-screen')">
+                    <div class="action-card" onclick="app.mostrarPantalla('historial-cotizaciones-screen')">
                         <div class="action-icon">📋</div>
                         <div class="action-title">Historial Cotizaciones</div>
                         <div class="action-desc">Ver, editar, duplicar y exportar cotizaciones</div>
-                    </div>            
-                    
+                    </div>
                     <div class="action-card" onclick="app.mostrarPantalla('nueva-cotizacion-screen')">
                         <div class="action-icon">📝</div>
                         <div class="action-title">Nueva Cotización</div>
@@ -184,8 +174,8 @@
         <section id="nueva-cotizacion-screen" class="screen">
             <div class="card">
                 <h2 style="margin-bottom:25px;">📝 Nueva Cotización</h2>
-        
-                <!-- Datos del Proyecto (ACTUALIZADO) -->
+                
+                <!-- Datos del Proyecto -->
                 <div style="background:#E3F2FD;padding:20px;border-radius:15px;margin-bottom:25px;">
                     <h4 style="color:#1565C0;margin:0 0 15px 0;">📋 Datos del Proyecto</h4>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
@@ -195,36 +185,27 @@
                                 <select id="cot-cliente" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                                     <option value="">Seleccionar cliente...</option>
                                 </select>
-                                <button type="button" onclick="app.mostrarModalCliente()" 
-                                        style="background:#2196F3;color:white;border:none;padding:12px 20px;border-radius:10px;cursor:pointer;font-weight:600;"
-                                        title="Agregar cliente rápido">
-                                    ➕
-                                </button>
+                                <button type="button" onclick="app.mostrarModalCliente()" style="background:#2196F3;color:white;border:none;padding:12px 20px;border-radius:10px;cursor:pointer;font-weight:600;" title="Agregar cliente rápido">➕</button>
                             </div>
                             <small id="sin-clientes-msg" style="color:#f44336;display:none;">⚠️ No hay clientes</small>
                         </div>
                         <div>
                             <label style="font-size:13px;color:#666;display:block;margin-bottom:5px;">Descripción del Proyecto *</label>
-                            <input type="text" id="cot-descripcion" placeholder="Ej: Instalación eléctrica nave industrial" 
-                                   style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                            <input type="text" id="cot-descripcion" placeholder="Ej: Instalación eléctrica nave industrial" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                         </div>
                         <div>
                             <label style="font-size:13px;color:#666;display:block;margin-bottom:5px;">Ubicación</label>
-                            <input type="text" id="cot-ubicacion" placeholder="Ciudad, Estado" 
-                                   style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                            <input type="text" id="cot-ubicacion" placeholder="Ciudad, Estado" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                         </div>
-                         <!-- CAMPOS DE FECHA (NUEVOS) -->
                         <div>
                             <label style="font-size:13px;color:#666;display:block;margin-bottom:5px;">Fecha de Inicio *</label>
-                            <input type="date" id="cot-fecha-inicio" 
-                                   style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                            <input type="date" id="cot-fecha-inicio" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                         </div>
                         <div>
                             <label style="font-size:13px;color:#666;display:block;margin-bottom:5px;">Fecha Fin Solicitada</label>
-                            <input type="date" id="cot-fecha-fin" 
-                                   style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                            <input type="date" id="cot-fecha-fin" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                             <small style="color:#666;font-size:11px;">Fecha que pide el cliente</small>
-                        </div>                       
+                        </div>
                     </div>
                 </div>
 
@@ -240,13 +221,11 @@
                     </div>
                 </div>
 
-
                 <!-- Recursos Manuales Adicionales AGRUPADOS -->
                 <div style="margin-bottom:25px;">
                     <h4 style="margin-bottom:15px;color:#1a1a1a;">🔧 Recursos Manuales Adicionales (Opcional)</h4>
-                    
                     <div style="background:#f9f9f9;padding:20px;border-radius:15px;">
-
+                        
                         <!-- Materiales Adicionales -->
                         <div class="form-group" style="margin-bottom:20px;">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -264,7 +243,7 @@
                                 <div id="materiales-lista"></div>
                             </div>
                         </div>
-                        
+
                         <!-- Mano de Obra Adicional -->
                         <div class="form-group" style="margin-bottom:20px;">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -282,7 +261,7 @@
                                 <div id="mano-obra-lista"></div>
                             </div>
                         </div>
-                        
+
                         <!-- Equipos Adicionales -->
                         <div class="form-group" style="margin-bottom:20px;">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -301,6 +280,25 @@
                             </div>
                         </div>
 
+                        <!-- Indirectos Adicionales -->
+                        <div class="form-group">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <label style="font-size:14px;color:#1a1a1a;font-weight:600;">📊 Indirectos Adicionales</label>
+                                <button class="btn btn-secondary" onclick="app.agregarIndirecto()" style="padding:8px 15px;font-size:13px;">➕ Agregar</button>
+                            </div>
+                            <div style="background:#fff;padding:15px;border-radius:10px;border:1px solid #ddd;">
+                                <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:2px solid #ddd;">
+                                    <div style="font-size:12px;font-weight:600;color:#666;">Concepto</div>
+                                    <div style="font-size:12px;font-weight:600;color:#666;">Monto</div>
+                                    <div></div>
+                                </div>
+                                <div id="indirectos-lista"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
                 <!-- Resumen Financiero COMPLETO -->
                 <div style="margin-top:25px;padding:25px;background:linear-gradient(135deg,#1a1a1a,#333333);border-radius:15px;color:white;">
                     <h4 style="margin-bottom:20px;">💰 Resumen Financiero</h4>
@@ -310,33 +308,24 @@
                         <div style="font-size:13px;opacity:0.8;">Costo Directo (Materiales + Mano de Obra + Equipos + Herramienta)</div>
                         <div style="font-size:28px;font-weight:700;" id="resumen-costo-directo">$0.00</div>
                     </div>
-                    
+
                     <!-- Sobrecostos Editables -->
                     <div style="background:rgba(255,255,255,0.1);padding:15px;border-radius:10px;margin-bottom:15px;">
                         <div style="font-size:14px;font-weight:600;margin-bottom:15px;">📊 SOBRECOSTOS (Editables)</div>
-                        
                         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;">
                             <div>
                                 <label style="font-size:11px;opacity:0.8;">Ind. Oficina (%)</label>
-                                <input type="number" id="cot-indirectos-oficina" value="5" min="0" max="100" step="0.1"
-                                       onchange="app.calcularTotalConConceptos()"
-                                       style="width:100%;padding:8px;border:2px solid #FF9800;border-radius:8px;font-weight:700;font-size:14px;">
+                                <input type="number" id="cot-indirectos-oficina" value="5" min="0" max="100" step="0.1" onchange="app.calcularTotalConConceptos()" style="width:100%;padding:8px;border:2px solid #FF9800;border-radius:8px;font-weight:700;font-size:14px;">
                             </div>
                             <div>
                                 <label style="font-size:11px;opacity:0.8;">Ind. Campo (%)</label>
-                                <input type="number" id="cot-indirectos-campo" value="15" min="0" max="100" step="0.1"
-                                       onchange="app.calcularTotalConConceptos()"
-                                       style="width:100%;padding:8px;border:2px solid #FF9800;border-radius:8px;font-weight:700;font-size:14px;">
+                                <input type="number" id="cot-indirectos-campo" value="15" min="0" max="100" step="0.1" onchange="app.calcularTotalConConceptos()" style="width:100%;padding:8px;border:2px solid #FF9800;border-radius:8px;font-weight:700;font-size:14px;">
                             </div>
                             <div>
                                 <label style="font-size:11px;opacity:0.8;">Financiamiento (%)</label>
-                                <input type="number" id="cot-financiamiento" value="0.85" min="0" max="100" step="0.01"
-                                       onchange="app.calcularTotalConConceptos()"
-                                       style="width:100%;padding:8px;border:2px solid #FF9800;border-radius:8px;font-weight:700;font-size:14px;">
+                                <input type="number" id="cot-financiamiento" value="0.85" min="0" max="100" step="0.01" onchange="app.calcularTotalConConceptos()" style="width:100%;padding:8px;border:2px solid #FF9800;border-radius:8px;font-weight:700;font-size:14px;">
                             </div>
                         </div>
-                        
-                        <!-- Total Sobrecostos -->
                         <div style="margin-top:15px;padding-top:15px;border-top:2px solid rgba(255,255,255,0.2);">
                             <div style="display:flex;justify-content:space-between;align-items:center;">
                                 <div style="font-size:13px;opacity:0.8;">📈 TOTAL SOBRECOSTOS</div>
@@ -347,21 +336,17 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Utilidad en Costo -->
                     <div style="background:rgba(76,175,80,0.2);padding:15px;border-radius:10px;margin-bottom:15px;">
-                        <div style="font-size:13px;opacity:0.8;">💵 UTILIDAD EN COSTO</div>
-
-                            <div>
-                                <label style="font-size:11px;opacity:0.8;">Utilidad (%)</label>
-                                <input type="number" id="cot-utilidad" value="10" min="0" max="100" step="0.1"
-                                       onchange="app.calcularTotalConConceptos()"
-                                       style="width:100%;padding:8px;border:2px solid #4CAF50;border-radius:8px;font-weight:700;font-size:14px;">
-                            </div>
-                        
-                        <div style="font-size:24px;font-weight:700;color:#4CAF50;" id="resumen-utilidad-costo">$0.00</div>
+                        <div style="font-size:13px;opacity:0.8;margin-bottom:10px;">💵 UTILIDAD</div>
+                        <div>
+                            <label style="font-size:11px;opacity:0.8;">Utilidad (%)</label>
+                            <input type="number" id="cot-utilidad" value="10" min="0" max="100" step="0.1" onchange="app.calcularTotalConConceptos()" style="width:100%;padding:8px;border:2px solid #4CAF50;border-radius:8px;font-weight:700;font-size:14px;">
+                        </div>
+                        <div style="font-size:24px;font-weight:700;color:#4CAF50;margin-top:10px;" id="resumen-utilidad-costo">$0.00</div>
                     </div>
-                    
+
                     <!-- Tiempo de Ejecución -->
                     <div style="background:rgba(33,150,243,0.2);padding:15px;border-radius:10px;margin-bottom:15px;">
                         <div style="font-size:13px;opacity:0.8;margin-bottom:10px;">⏱️ TIEMPO DE EJECUCIÓN ESTIMADO</div>
@@ -380,7 +365,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Totales -->
                     <div style="border-top:2px solid rgba(255,255,255,0.3);padding-top:20px;">
                         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:20px;">
@@ -398,7 +383,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Alerta de Margen -->
                     <div id="smartmargin-warning" style="display:none;margin-top:15px;padding:15px;background:rgba(255,152,0,0.2);border-radius:10px;border-left:4px solid #FF9800;">
                         <strong>⚠️ SmartMargin Alertas:</strong><br>
@@ -406,50 +391,40 @@
                     </div>
                 </div>
 
-                <!-- IMPACTO DE FACTORES DE AJUSTE (NUEVA SECCIÓN) -->
+                <!-- IMPACTO DE FACTORES DE AJUSTE -->
                 <div id="seccion-impacto-factores" style="display:none;margin-top:25px;padding:25px;background:linear-gradient(135deg,#FFF3E0,#FFE0B2);border-radius:15px;border-left:5px solid #FF9800;">
                     <h4 style="color:#E65100;margin:0 0 20px 0;display:flex;align-items:center;gap:10px;">
                         <span>⚠️ Impacto de Factores de Ajuste</span>
-                        <button onclick="app.abrirFactoresAjuste()" 
-                                style="background:#FF9800;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;font-size:12px;margin-left:auto;">
-                            ✏️ Editar Factores
-                        </button>
+                        <button onclick="app.abrirFactoresAjuste()" style="background:#FF9800;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;font-size:12px;margin-left:auto;">✏️ Editar Factores</button>
                     </h4>
-                    
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-bottom:20px;">
                         <div style="background:white;padding:15px;border-radius:10px;">
                             <div style="font-size:12px;color:#666;margin-bottom:5px;">📅 Tiempo Original</div>
                             <div style="font-size:24px;font-weight:700;color:#1a1a1a;" id="impacto-tiempo-original">0 días</div>
                             <div style="font-size:11px;color:#999;margin-top:5px;" id="impacto-semanas-original">0 semanas</div>
                         </div>
-                        
                         <div style="background:white;padding:15px;border-radius:10px;">
                             <div style="font-size:12px;color:#666;margin-bottom:5px;">📅 Tiempo Ajustado</div>
                             <div style="font-size:24px;font-weight:700;color:#f44336;" id="impacto-tiempo-ajustado">0 días</div>
                             <div style="font-size:11px;color:#999;margin-top:5px;" id="impacto-semanas-ajustado">0 semanas</div>
                         </div>
-                        
                         <div style="background:white;padding:15px;border-radius:10px;">
                             <div style="font-size:12px;color:#666;margin-bottom:5px;">📈 Días Incrementados</div>
                             <div style="font-size:24px;font-weight:700;color:#FF9800;" id="impacto-dias-incremento">+0 días</div>
                             <div style="font-size:11px;color:#999;margin-top:5px;" id="impacto-porcentaje-tiempo">+0%</div>
                         </div>
-                        
                         <div style="background:white;padding:15px;border-radius:10px;">
                             <div style="font-size:12px;color:#666;margin-bottom:5px;">🔢 Factor Total</div>
                             <div style="font-size:24px;font-weight:700;color:#1a1a1a;" id="impacto-factor-total">1.00x</div>
                             <div style="font-size:11px;color:#999;margin-top:5px;" id="impacto-desglose-factores"></div>
                         </div>
                     </div>
-                    
                     <div style="background:white;padding:15px;border-radius:10px;">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                             <div style="font-size:14px;font-weight:600;color:#1a1a1a;">💰 Costo Estimado por Tiempo Extendido</div>
                             <div style="font-size:20px;font-weight:700;color:#f44336;" id="impacto-costo-tiempo">$0.00</div>
                         </div>
-                        <div style="font-size:12px;color:#666;">
-                            Incluye: supervisión, equipos de tiempo completo, instalaciones temporales, etc.
-                        </div>
+                        <div style="font-size:12px;color:#666;">Incluye: supervisión, equipos de tiempo completo, instalaciones temporales, etc.</div>
                         <div style="margin-top:10px;padding-top:10px;border-top:2px dashed #ddd;">
                             <div style="display:flex;justify-content:space-between;align-items:center;">
                                 <div style="font-size:13px;font-weight:600;color:#1a1a1a;">📊 Costo Total con Factores</div>
@@ -458,46 +433,34 @@
                         </div>
                     </div>
                 </div>
-                    
-                    <!-- Desglose de Factores Aplicados -->
-                    <div style="margin-top:15px;background:white;padding:15px;border-radius:10px;">
-                        <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:10px;">📋 Factores Aplicados:</div>
-                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;" id="impacto-desglose-factores">
-                            <!-- Se llena dinámicamente -->
-                        </div>
-                    </div>
-                </div>
-                        
-                <!-- Botones de Acción (CORREGIDO - MISMA FILA) -->
 
-                        <!-- Botón para abrir factores (ANTES de Guardar Cotización) -->
+                <!-- Botón para abrir factores -->
                 <div style="margin-top:15px;padding:15px;background:#FFF3E0;border-radius:10px;border-left:4px solid #FF9800;">
                     <div style="display:flex;justify-content:space-between;align-items:center;">
                         <div>
                             <div style="font-weight:600;color:#E65100;margin-bottom:5px;">⚠️ Factores de Ajuste</div>
                             <div style="font-size:13px;color:#666;">Altura, clima, dificultad y seguridad afectan los rendimientos</div>
                         </div>
-                        <button class="btn" onclick="app.abrirFactoresAjuste()" 
-                                style="background:#FF9800;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;">
-                            📊 Aplicar Factores
-                        </button>
+                        <button class="btn" onclick="app.abrirFactoresAjuste()" style="background:#FF9800;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;">📊 Aplicar Factores</button>
                     </div>
                 </div>
-                        
+
+                <!-- Botones de Acción -->
                 <div style="display:flex;gap:15px;margin-top:25px;flex-wrap:wrap;">
                     <button class="btn btn-primary" onclick="app.guardarCotizacion()" style="flex:1;min-width:200px;padding:16px;">💾 Guardar Cotización</button>
                     <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="flex:1;min-width:200px;padding:16px;">↩️ Volver</button>
                 </div>
             </div>
         </section>
+
         <!-- CATÁLOGOS SCREEN -->
         <section id="catalogos-screen" class="screen">
             <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                    <h2 style="margin:0;">📚 Catálogo de Conceptos</h2>
+                    <h2 style="margin:0;color:#1a1a1a;">📚 Catálogo de Conceptos</h2>
                     <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="padding:10px 20px;">↩️ Volver</button>
                 </div>
-        
+
                 <!-- SECCIÓN DE CONCEPTOS SELECCIONADOS (VISIBLE EN CATÁLOGO) -->
                 <div style="background:#E8F5E9;padding:20px;border-radius:15px;margin-bottom:25px;border:2px solid #4CAF50;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
@@ -508,100 +471,37 @@
                         <div style="text-align:center;color:#999;padding:20px;">No hay conceptos seleccionados aún</div>
                     </div>
                     <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;">
-                        <button class="btn" onclick="app.mostrarPantalla('nueva-cotizacion-screen')" 
-                                style="flex:1;padding:12px;background:#2196F3;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;">💰 Ir a Cotizar</button>
-                        <button class="btn" onclick="app.limpiarConceptosSeleccionados()" 
-                                style="padding:12px 20px;background:#f44336;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;">🗑️ Limpiar</button>
+                        <button class="btn" onclick="app.mostrarPantalla('nueva-cotizacion-screen')" style="flex:1;padding:12px;background:#2196F3;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;">💰 Ir a Cotizar</button>
+                        <button class="btn" onclick="app.limpiarConceptosSeleccionados()" style="padding:12px 20px;background:#f44336;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;">🗑️ Limpiar</button>
                     </div>
                 </div>
-        
+
                 <!-- Filtros por Categoría -->
                 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
-                    <button class="btn btn-primary" onclick="app.filtrarCatalogo('todos')" 
-                            style="padding:8px 16px;background:#1a1a1a;color:#ffffff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">📋 Todos</button>
-                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Eléctrico')" 
-                            style="padding:8px 16px;background:#6c757d;color:#ffffff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">⚡ Eléctrico</button>
-                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Mecánico')" 
-                            style="padding:8px 16px;background:#6c757d;color:#ffffff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🔧 Mecánico</button>
-                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('HVAC')" 
-                            style="padding:8px 16px;background:#6c757d;color:#ffffff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">❄️ HVAC</button>
-                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Provisionales')" 
-                            style="padding:8px 16px;background:#6c757d;color:#ffffff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🚧 Provisionales</button>
+                    <button class="btn btn-primary" onclick="app.filtrarCatalogo('todos')" style="padding:8px 16px;background:#1a1a1a;color:#ffffff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">📋 Todos</button>
+                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Eléctrico')" style="padding:8px 16px;background:#6c757d;color:#ffffff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">⚡ Eléctrico</button>
+                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Mecánico')" style="padding:8px 16px;background:#6c757d;color:#ffffff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🔧 Mecánico</button>
+                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('HVAC')" style="padding:8px 16px;background:#6c757d;color:#ffffff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">❄️ HVAC</button>
+                    <button class="btn btn-secondary" onclick="app.filtrarCatalogo('Provisionales')" style="padding:8px 16px;background:#6c757d;color:#ffffff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🚧 Provisionales</button>
                 </div>
-        
+
                 <!-- Buscador -->
                 <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:20px;">
-                    <input type="text" id="buscar-catalogo" placeholder="🔍 Buscar por código o descripción..." 
-                           style="width:100%;padding:14px;border:2px solid #ddd;border-radius:10px;font-size:14px;color:#333;"
-                           onkeyup="app.buscarEnCatalogo()">
-                    <button class="btn" onclick="app.buscarEnCatalogo()" 
-                            style="padding:14px 25px;background:#1a1a1a;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;">🔍 Buscar</button>
+                    <input type="text" id="buscar-catalogo" placeholder="🔍 Buscar por código o descripción..." style="width:100%;padding:14px;border:2px solid #ddd;border-radius:10px;font-size:14px;color:#333;" onkeyup="app.buscarEnCatalogo()">
+                    <button class="btn" onclick="app.buscarEnCatalogo()" style="padding:14px 25px;background:#1a1a1a;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;">🔍 Buscar</button>
                 </div>
-                <!-- Botón Volver -->
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                    <h2 style="margin:0;color:#1a1a1a;">📚 Catálogo de Conceptos</h2>
-                    <button class="btn" onclick="app.mostrarPantalla('dashboard-screen')" 
-                            style="padding:10px 20px;background:#1a1a1a;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;">↩️ Volver</button>
-                </div>        
+
                 <div id="lista-catalogo" style="max-height:600px;overflow-y:auto;"></div>
             </div>
         </section>
 
-                    
-        <!-- PROGRAMACIÓN SCREEN -->
-        <section id="programacion-screen" class="screen">
-            <div class="card">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                    <h2 style="margin:0;color:#1a1a1a;">📅 Programación de Obra</h2>
-                    <button class="btn" onclick="app.mostrarPantalla('dashboard-screen')" 
-                            style="padding:10px 20px;background:#1a1a1a;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;">↩️ Volver</button>
-                </div>
-                
-                <div style="background:#E3F2FD;padding:20px;border-radius:15px;margin-bottom:25px;">
-                    <h4 style="color:#1565C0;margin:0 0 15px 0;">⏱️ Tiempo de Ejecución</h4>
-                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;">
-                        <div style="text-align:center;background:white;padding:20px;border-radius:10px;">
-                            <div style="font-size:13px;color:#666;">Jornadas Totales</div>
-                            <div style="font-size:32px;font-weight:700;color:#1a1a1a;" id="prog-jornadas">0</div>
-                        </div>
-                        <div style="text-align:center;background:white;padding:20px;border-radius:10px;">
-                            <div style="font-size:13px;color:#666;">Días Hábiles</div>
-                            <div style="font-size:32px;font-weight:700;color:#2196F3;" id="prog-dias">0</div>
-                        </div>
-                        <div style="text-align:center;background:white;padding:20px;border-radius:10px;">
-                            <div style="font-size:13px;color:#666;">Semanas</div>
-                            <div style="font-size:32px;font-weight:700;color:#FF9800;" id="prog-semanas">0</div>
-                        </div>
-                        <div style="text-align:center;background:white;padding:20px;border-radius:10px;">
-                            <div style="font-size:13px;color:#666;">Meses</div>
-                            <div style="font-size:32px;font-weight:700;color:#4CAF50;" id="prog-meses">0</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="background:#FFF3E0;padding:20px;border-radius:15px;margin-bottom:25px;">
-                    <h4 style="color:#E65100;margin:0 0 15px 0;">📦 Tiempos de Suministro</h4>
-                    <div id="programa-suministros" style="max-height:300px;overflow-y:auto;">
-                        <div style="text-align:center;color:#999;padding:20px;">Agrega conceptos para ver tiempos de suministro</div>
-                    </div>
-                </div>
-                
-                <div style="background:#E8F5E9;padding:20px;border-radius:15px;">
-                    <h4 style="color:#2E7D32;margin:0 0 15px 0;">📊 Cronograma Estimado</h4>
-                    <div id="programa-cronograma" style="max-height:300px;overflow-y:auto;">
-                        <div style="text-align:center;color:#999;padding:20px;">El cronograma se genera automáticamente</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
         <!-- IMPORTAR SCREEN -->
         <section id="importar-screen" class="screen">
             <div class="card">
-                <h2>📥 Importar Datos desde Excel</h2>
-                <div style="background: #E3F2FD; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
-                    <h4 style="color: #1565C0; margin: 0 0 15px 0;">📋 Instrucciones</h4>
-                    <ol style="color: #555; padding-left: 20px; line-height: 1.8;">
+                <h2 style="margin-bottom:20px;">📥 Importar Datos desde Excel</h2>
+                <div style="background:#E3F2FD;padding:25px;border-radius:15px;margin-bottom:25px;">
+                    <h4 style="color:#1565C0;margin:0 0 15px 0;">📋 Instrucciones</h4>
+                    <ol style="color:#555;padding-left:20px;line-height:1.8;">
                         <li>Selecciona tu archivo Excel de APU</li>
                         <li>El sistema detectará automáticamente conceptos y subpartidas</li>
                         <li>Se importarán todos los registros a la base de datos</li>
@@ -609,23 +509,23 @@
                     </ol>
                 </div>
                 <div class="form-group">
-                    <label style="font-size: 14px; color: #666; display: block; margin-bottom: 10px;">Archivo Excel</label>
-                    <input type="file" id="excel-file" accept=".xlsx,.xls" style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px;">
+                    <label style="font-size:14px;color:#666;display:block;margin-bottom:10px;">Archivo Excel</label>
+                    <input type="file" id="excel-file" accept=".xlsx,.xls" style="width:100%;padding:14px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                 </div>
-                <div id="import-progress" style="display: none; background: #f5f7fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <div id="import-progress" style="display:none;background:#f5f7fa;padding:20px;border-radius:10px;margin:20px 0;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
                         <span>Progreso:</span>
                         <span id="progress-percent">0%</span>
                     </div>
-                    <div style="background: #ddd; height: 10px; border-radius: 5px; overflow: hidden;">
-                        <div id="progress-bar" style="background: #4CAF50; height: 100%; width: 0%; transition: width 0.3s;"></div>
+                    <div style="background:#ddd;height:10px;border-radius:5px;overflow:hidden;">
+                        <div id="progress-bar" style="background:#4CAF50;height:100%;width:0%;transition:width 0.3s;"></div>
                     </div>
-                    <div id="progress-log" style="margin-top: 15px; color: #666; font-size: 13px; max-height: 150px; overflow-y: auto;"></div>
+                    <div id="progress-log" style="margin-top:15px;color:#666;font-size:13px;max-height:150px;overflow-y:auto;"></div>
                 </div>
-                <div id="import-result" style="display: none; background: #E8F5E9; padding: 20px; border-radius: 10px; margin: 20px 0;"></div>
-                <div style="display: flex; gap: 15px; margin-top: 25px;">
-                    <button class="btn btn-primary" onclick="importadorSmartCot.iniciarImportacion()" style="flex: 1; padding: 16px;">🚀 Iniciar Importación</button>
-                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="flex: 1; padding: 16px;">↩️ Volver</button>
+                <div id="import-result" style="display:none;background:#E8F5E9;padding:20px;border-radius:10px;margin:20px 0;"></div>
+                <div style="display:flex;gap:15px;margin-top:25px;">
+                    <button class="btn btn-primary" onclick="importadorSmartCot.iniciarImportacion()" style="flex:1;padding:16px;">🚀 Iniciar Importación</button>
+                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="flex:1;padding:16px;">↩️ Volver</button>
                 </div>
             </div>
         </section>
@@ -633,74 +533,55 @@
         <!-- CONFIGURACIÓN SCREEN -->
         <section id="configuracion-screen" class="screen">
             <div class="card">
-                <h2>⚙️ Configuración</h2>
-                
-                <div style="margin-bottom: 30px;">
-                    <h4 style="margin-bottom: 15px; color: #1a1a1a;">🏢 Datos de la Empresa</h4>
-                    <div style="display: grid; gap: 15px;">
-                        <input type="text" id="config-empresa" placeholder="Nombre de la empresa" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                            <input type="number" id="config-iva" placeholder="IVA %" value="16" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px;">
-                            <input type="number" id="config-utilidad" placeholder="Utilidad %" value="15" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px;">
+                <h2 style="margin-bottom:20px;">⚙️ Configuración</h2>
+                <div style="margin-bottom:30px;">
+                    <h4 style="margin-bottom:15px;color:#1a1a1a;">🏢 Datos de la Empresa</h4>
+                    <div style="display:grid;gap:15px;">
+                        <input type="text" id="config-empresa" placeholder="Nombre de la empresa" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                            <input type="number" id="config-iva" placeholder="IVA %" value="16" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                            <input type="number" id="config-utilidad" placeholder="Utilidad %" value="15" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                         </div>
                     </div>
-                    <button class="btn btn-primary" onclick="app.guardarConfiguracion()" style="margin-top: 15px; padding: 14px 30px;">💾 Guardar Configuración</button>
+                    <button class="btn btn-primary" onclick="app.guardarConfiguracion()" style="margin-top:15px;padding:14px 30px;">💾 Guardar Configuración</button>
                 </div>
-
                 <div>
-                    <h4 style="margin-bottom: 15px; color: #1a1a1a;">💾 Respaldo de Datos</h4>
-                    <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Exporta tus datos para evitar perderlos.</p>
-                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                        <button class="btn btn-primary" onclick="app.exportarDatos()" style="padding: 14px 30px;">📤 Exportar Datos</button>
-                        <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()" style="padding: 14px 30px;">📥 Importar Datos</button>
-                        <input type="file" id="import-file" accept=".json" style="display: none;" onchange="app.importarDatos(event)">
+                    <h4 style="margin-bottom:15px;color:#1a1a1a;">💾 Respaldo de Datos</h4>
+                    <p style="color:#666;font-size:14px;margin-bottom:15px;">Exporta tus datos para evitar perderlos.</p>
+                    <div style="display:flex;gap:15px;flex-wrap:wrap;">
+                        <button class="btn btn-primary" onclick="app.exportarDatos()" style="padding:14px 30px;">📤 Exportar Datos</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()" style="padding:14px 30px;">📥 Importar Datos</button>
+                        <input type="file" id="import-file" accept=".json" style="display:none;" onchange="app.importarDatos(event)">
                     </div>
                 </div>
-
-                <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="margin-top: 25px; padding: 14px 30px;">↩️ Volver al Dashboard</button>
+                <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="margin-top:25px;padding:14px 30px;">↩️ Volver al Dashboard</button>
             </div>
         </section>
+
         <!-- CURVA S SCREEN -->
         <section id="curva-s-screen" class="screen">
             <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
                     <h2 style="margin:0;color:#1a1a1a;">📈 Curva S - Seguimiento de Obra</h2>
-                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" 
-                            style="padding:10px 20px;background:#6c757d;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
-                        ↩️ Volver
-                    </button>
+                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="padding:10px 20px;background:#6c757d;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;">↩️ Volver</button>
                 </div>
-                
-                <!-- Selector de Cotización -->
                 <div style="background:#E3F2FD;padding:20px;border-radius:15px;margin-bottom:25px;">
                     <h4 style="color:#1565C0;margin:0 0 15px 0;">📋 Seleccionar Cotización</h4>
                     <div style="display:grid;grid-template-columns:1fr auto auto;gap:15px;">
                         <select id="curva-s-cotizacion" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                             <option value="">Cargando cotizaciones...</option>
                         </select>
-                        <button class="btn btn-primary" onclick="curvaS.cargarCotizacion()" 
-                                style="padding:12px 25px;background:#2196F3;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
-                            📊 Cargar
-                        </button>
-                        <button class="btn btn-secondary" onclick="curvaS.exportarReportePDF()" 
-                                style="padding:12px 25px;background:#4CAF50;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
-                            📄 Exportar PDF
-                        </button>
+                        <button class="btn btn-primary" onclick="curvaS.cargarCotizacion()" style="padding:12px 25px;background:#2196F3;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">📊 Cargar</button>
+                        <button class="btn btn-secondary" onclick="curvaS.exportarReportePDF()" style="padding:12px 25px;background:#4CAF50;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">📄 Exportar PDF</button>
                     </div>
                 </div>
-                
-                <!-- Info de la Cotización (CON TODOS LOS CAMPOS) -->
                 <div id="curva-s-info-cotizacion"></div>
-                
-                <!-- Gráfica -->
                 <div style="background:white;padding:25px;border-radius:15px;margin-bottom:25px;box-shadow:0 4px 15px rgba(0,0,0,0.1);">
                     <h4 style="color:#1a1a1a;margin:0 0 20px 0;">📈 Avance Programado vs Ejecutado</h4>
                     <div style="position:relative;height:400px;">
                         <canvas id="curva-s-chart"></canvas>
                     </div>
                 </div>
-                
-                <!-- Variaciones -->
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-bottom:25px;">
                     <div style="background:#E3F2FD;padding:20px;border-radius:15px;">
                         <div style="font-size:12px;color:#666;margin-bottom:5px;">Variación de Tiempo</div>
@@ -711,36 +592,25 @@
                         <div style="font-size:24px;font-weight:700;color:#4CAF50;" id="indice-tiempo">1.00</div>
                     </div>
                 </div>
-                
-                <!-- Captura de Avance Semanal -->
                 <div style="background:#f5f7fa;padding:25px;border-radius:15px;">
                     <h4 style="color:#1a1a1a;margin:0 0 20px 0;">📝 Registrar Avance Semanal</h4>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
                         <div>
                             <label style="font-size:12px;color:#666;display:block;margin-bottom:5px;">Semana</label>
-                            <input type="number" id="avance-semana" min="1" placeholder="Ej: 5" 
-                                   style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                            <input type="number" id="avance-semana" min="1" placeholder="Ej: 5" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                         </div>
                         <div>
                             <label style="font-size:12px;color:#666;display:block;margin-bottom:5px;">Avance Ejecutado (%)</label>
-                            <input type="number" id="avance-porcentaje" min="0" max="100" step="0.1" placeholder="Ej: 45.5" 
-                                   style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                            <input type="number" id="avance-porcentaje" min="0" max="100" step="0.1" placeholder="Ej: 45.5" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                         </div>
                         <div>
                             <label style="font-size:12px;color:#666;display:block;margin-bottom:5px;">Monto Ejecutado ($)</label>
-                            <input type="number" id="avance-monto" min="0" step="0.01" placeholder="Ej: 150000.00" 
-                                   style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                            <input type="number" id="avance-monto" min="0" step="0.01" placeholder="Ej: 150000.00" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                         </div>
                     </div>
                     <div style="display:flex;gap:15px;margin-top:20px;flex-wrap:wrap;">
-                        <button class="btn btn-primary" onclick="curvaS.guardarAvance()" 
-                                style="flex:1;min-width:200px;padding:14px;background:#4CAF50;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
-                            💾 Guardar Avance
-                        </button>
-                        <button class="btn btn-secondary" onclick="curvaS.actualizarGrafica()" 
-                                style="flex:1;min-width:200px;padding:14px;background:#2196F3;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
-                            🔄 Actualizar Gráfica
-                        </button>
+                        <button class="btn btn-primary" onclick="curvaS.guardarAvance()" style="flex:1;min-width:200px;padding:14px;background:#4CAF50;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">💾 Guardar Avance</button>
+                        <button class="btn btn-secondary" onclick="curvaS.actualizarGrafica()" style="flex:1;min-width:200px;padding:14px;background:#2196F3;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">🔄 Actualizar Gráfica</button>
                     </div>
                 </div>
             </div>
@@ -751,26 +621,14 @@
             <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
                     <h2 style="margin:0;color:#1a1a1a;">📋 Historial de Cotizaciones</h2>
-                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" 
-                            style="padding:10px 20px;background:#6c757d;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
-                        ↩️ Volver
-                    </button>
+                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" style="padding:10px 20px;background:#6c757d;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;">↩️ Volver</button>
                 </div>
-                
-                <!-- Buscador -->
                 <div style="background:#E3F2FD;padding:20px;border-radius:15px;margin-bottom:25px;">
                     <div style="display:grid;grid-template-columns:1fr auto;gap:15px;">
-                        <input type="text" id="buscar-cotizacion" placeholder="🔍 Buscar por cliente, descripción o número..." 
-                               style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;"
-                               onkeyup="historialCotizaciones.buscar()">
-                        <button class="btn btn-primary" onclick="historialCotizaciones.cargar()" 
-                                style="padding:12px 25px;background:#2196F3;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
-                            🔄 Actualizar
-                        </button>
+                        <input type="text" id="buscar-cotizacion" placeholder="🔍 Buscar por cliente, descripción o número..." style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;" onkeyup="historialCotizaciones.buscar()">
+                        <button class="btn btn-primary" onclick="historialCotizaciones.cargar()" style="padding:12px 25px;background:#2196F3;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">🔄 Actualizar</button>
                     </div>
                 </div>
-                
-                <!-- Lista de Cotizaciones -->
                 <div style="overflow-x:auto;">
                     <table style="width:100%;border-collapse:collapse;">
                         <thead>
@@ -784,50 +642,101 @@
                             </tr>
                         </thead>
                         <tbody id="historial-cotizaciones-tabla">
-                            <tr>
-                                <td colspan="6" style="padding:40px;text-align:center;color:#999;">Cargando cotizaciones...</td>
-                            </tr>
+                            <tr><td colspan="6" style="padding:40px;text-align:center;color:#999;">Cargando cotizaciones...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </section>
-        
+
     </main>
 
-    <!-- MODAL CLIENTE RÁPIDO (antes de </body>) -->
-    <div id="modal-cliente" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
-        <div style="background:white;padding:30px;border-radius:20px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto;">
+    <!-- MODAL CLIENTE RÁPIDO -->
+    <div id="modal-cliente">
+        <div>
             <h3 style="margin:0 0 20px 0;color:#1a1a1a;">👤 Agregar Cliente Rápido</h3>
             <div class="form-group">
                 <label>Nombre del Cliente *</label>
-                <input type="text" id="modal-cliente-nombre" placeholder="Nombre de la empresa o persona" 
-                       style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                <input type="text" id="modal-cliente-nombre" placeholder="Nombre de la empresa o persona" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
             </div>
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" id="modal-cliente-email" placeholder="cliente@email.com" 
-                       style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                <input type="email" id="modal-cliente-email" placeholder="cliente@email.com" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
             </div>
             <div class="form-group">
                 <label>Teléfono</label>
-                <input type="tel" id="modal-cliente-telefono" placeholder="55-1234-5678" 
-                       style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                <input type="tel" id="modal-cliente-telefono" placeholder="55-1234-5678" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
             </div>
             <div class="form-group">
                 <label>Notas (opcional)</label>
-                <textarea id="modal-cliente-notas" placeholder="Dirección, RFC, comentarios..." 
-                          style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;min-height:80px;"></textarea>
+                <textarea id="modal-cliente-notas" placeholder="Dirección, RFC, comentarios..." style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;min-height:80px;"></textarea>
             </div>
             <div style="display:flex;gap:15px;flex-wrap:wrap;margin-top:25px;">
-                <button onclick="app.guardarClienteRapido()" class="btn btn-primary" 
-                        style="flex:1;padding:14px;background:#4CAF50;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
-                    💾 Guardar y Seleccionar
-                </button>
-                <button onclick="app.cerrarModalCliente()" class="btn btn-secondary" 
-                        style="flex:1;padding:14px;background:#6c757d;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
-                    ❌ Cancelar
-                </button>
+                <button onclick="app.guardarClienteRapido()" class="btn btn-primary" style="flex:1;padding:14px;background:#4CAF50;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">💾 Guardar y Seleccionar</button>
+                <button onclick="app.cerrarModalCliente()" class="btn btn-secondary" style="flex:1;padding:14px;background:#6c757d;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE FACTORES DE AJUSTE -->
+    <div id="modal-factores">
+        <div>
+            <h3 style="margin:0 0 20px 0;color:#1a1a1a;">📊 Factores de Ajuste de Rendimientos</h3>
+            <div style="margin-bottom:20px;">
+                <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">Altura / Elevación</label>
+                <select id="factor-altura" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                    <option value="1">Sin altura (0-3m) - 100%</option>
+                    <option value="1.15">Altura media (3-5m) - 115%</option>
+                    <option value="1.25">Altura alta (5-10m) - 125%</option>
+                    <option value="1.40">Altura muy alta (+10m) - 140%</option>
+                </select>
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">Condiciones Climáticas</label>
+                <select id="factor-clima" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                    <option value="1">Normal - 100%</option>
+                    <option value="1.10">Calor extremo (>35°C) - 110%</option>
+                    <option value="1.10">Frío extremo (<5°C) - 110%</option>
+                    <option value="1.15">Lluvia / Humedad - 115%</option>
+                </select>
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">Dificultad de Acceso</label>
+                <select id="factor-acceso" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                    <option value="1">Acceso libre - 100%</option>
+                    <option value="1.10">Acceso restringido - 110%</option>
+                    <option value="1.20">Espacio confinado - 120%</option>
+                    <option value="1.25">Área operativa - 125%</option>
+                </select>
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">🔒 Nivel de Seguridad Requerido</label>
+                <select id="factor-seguridad" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();" style="width:100%;padding:12px;border:2px solid #FF9800;border-radius:10px;font-size:14px;">
+                    <option value="1">Estándar (Sin permisos especiales) - 100%</option>
+                    <option value="1.05">Permiso de trabajo básico - 105%</option>
+                    <option value="1.10">ATS + Liberación de área - 110%</option>
+                    <option value="1.15">Permiso de altura + Espacio confinado - 115%</option>
+                    <option value="1.20">Área clasificada + Múltiples permisos - 120%</option>
+                    <option value="1.25">Paro de planta + Todos los permisos - 125%</option>
+                </select>
+                <small style="color:#FF9800;font-size:11px;display:block;margin-top:5px;">Incluye: tramitar permisos, ATS, liberación de área, supervisiones, etc.</small>
+            </div>
+            <div style="background:#E3F2FD;padding:15px;border-radius:10px;margin-bottom:20px;">
+                <div style="font-size:13px;color:#1565C0;margin-bottom:10px;">📈 Impacto en Tiempo de Ejecución</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div>
+                        <div style="font-size:11px;color:#666;">Tiempo Original</div>
+                        <div style="font-size:18px;font-weight:700;" id="tiempo-original">0 días</div>
+                    </div>
+                    <div>
+                        <div style="font-size:11px;color:#666;">Tiempo Ajustado</div>
+                        <div style="font-size:18px;font-weight:700;color:#f44336;" id="tiempo-ajustado">0 días</div>
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex;gap:15px;">
+                <button class="btn" onclick="app.guardarFactores()" style="flex:1;background:#4CAF50;color:white;border:none;padding:14px;border-radius:10px;cursor:pointer;font-weight:600;">✅ Aplicar Factores</button>
+                <button class="btn" onclick="document.getElementById('modal-factores').style.display='none'" style="flex:1;background:#f44336;color:white;border:none;padding:14px;border-radius:10px;cursor:pointer;font-weight:600;">❌ Cancelar</button>
             </div>
         </div>
     </div>
@@ -842,7 +751,7 @@
     <script src="unidad-converter.js"></script>
     <script src="apu-generator.js"></script>
     <script src="importador_excel_smartcot.js"></script>
-    <script src="curva-s.js"></script>  <!-- ← ESTE FALTA -->
+    <script src="curva-s.js"></script>
     <script src="historial-cotizaciones.js"></script>
     <script src="app.js"></script>
 
@@ -853,103 +762,5 @@
                 .catch(err => console.log('⚠️ SW error:', err));
         }
     </script>
-
-    <!-- MODAL DE FACTORES DE AJUSTE (ANTES DE </body>) -->
-    <div id="modal-factores" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
-        <div style="background:white;padding:30px;border-radius:20px;max-width:600px;width:90%;max-height:90vh;overflow-y:auto;">
-            <h3 style="margin:0 0 20px 0;color:#1a1a1a;">📊 Factores de Ajuste de Rendimientos</h3>
-            
-            <div style="margin-bottom:20px;">
-                <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">Altura / Elevación</label>
-                <select id="factor-altura" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
-                    <option value="1">Sin altura (0-3m) - 100%</option>
-                    <option value="1.15">Altura media (3-5m) - 115%</option>
-                    <option value="1.25">Altura alta (5-10m) - 125%</option>
-                    <option value="1.40">Altura muy alta (+10m) - 140%</option>
-                </select>
-            </div>
-            
-            <div style="margin-bottom:20px;">
-                <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">Condiciones Climáticas</label>
-                <select id="factor-clima" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
-                    <option value="1">Normal - 100%</option>
-                    <option value="1.10">Calor extremo (>35°C) - 110%</option>
-                    <option value="1.10">Frío extremo (<5°C) - 110%</option>
-                    <option value="1.15">Lluvia / Humedad - 115%</option>
-                </select>
-            </div>
-            
-            <div style="margin-bottom:20px;">
-                <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">Dificultad de Acceso</label>
-                <select id="factor-acceso" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
-                    <option value="1">Acceso libre - 100%</option>
-                    <option value="1.10">Acceso restringido - 110%</option>
-                    <option value="1.20">Espacio confinado - 120%</option>
-                    <option value="1.25">Área operativa - 125%</option>
-                </select>
-            </div>
-            
-            <div style="margin-bottom:20px;">
-                <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">🔒 Nivel de Seguridad Requerido</label>
-                <select id="factor-seguridad" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();" style="width:100%;padding:12px;border:2px solid #FF9800;border-radius:10px;font-size:14px;">
-                    <option value="1">Estándar (Sin permisos especiales) - 100%</option>
-                    <option value="1.05">Permiso de trabajo básico - 105%</option>
-                    <option value="1.10">ATS + Liberación de área - 110%</option>
-                    <option value="1.15">Permiso de altura + Espacio confinado - 115%</option>
-                    <option value="1.20">Área clasificada + Múltiples permisos - 120%</option>
-                    <option value="1.25">Paro de planta + Todos los permisos - 125%</option>
-                </select>
-                <small style="color:#FF9800;font-size:11px;display:block;margin-top:5px;">Incluye: tramitar permisos, ATS, liberación de área, supervisiones, etc.</small>
-            </div>
-            
-            <div style="background:#E3F2FD;padding:15px;border-radius:10px;margin-bottom:20px;">
-                <div style="font-size:13px;color:#1565C0;margin-bottom:10px;">📈 Impacto en Tiempo de Ejecución</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                    <div>
-                        <div style="font-size:11px;color:#666;">Tiempo Original</div>
-                        <div style="font-size:18px;font-weight:700;" id="tiempo-original">0 días</div>
-                    </div>
-                    <div>
-                        <div style="font-size:11px;color:#666;">Tiempo Ajustado</div>
-                        <div style="font-size:18px;font-weight:700;color:#f44336;" id="tiempo-ajustado">0 días</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div style="display:flex;gap:15px;">
-                <button class="btn" onclick="app.guardarFactores()" 
-                        style="flex:1;background:#4CAF50;color:white;border:none;padding:14px;border-radius:10px;cursor:pointer;font-weight:600;">
-                    ✅ Aplicar Factores
-                </button>
-                <button class="btn" onclick="document.getElementById('modal-factores').style.display='none'" 
-                        style="flex:1;background:#f44336;color:white;border:none;padding:14px;border-radius:10px;cursor:pointer;font-weight:600;">
-                    ❌ Cancelar
-                </button>
-            </div>
-        </div>
-    </div>       
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
