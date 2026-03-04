@@ -1116,6 +1116,9 @@ guardarFactores: function() {
     this.notificacion('✅ Factores aplicados: ' + (factorTotal * 100).toFixed(0) + '%', 'exito');
 },
     
+    // ─────────────────────────────────────────────────────────────────
+    // MOSTRAR IMPACTO FACTORES (CORREGIDO)
+    // ─────────────────────────────────────────────────────────────────
     mostrarImpactoFactores: function() {
         const seccion = document.getElementById('seccion-impacto-factores');
         if (!seccion) {
@@ -1606,6 +1609,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
