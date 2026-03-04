@@ -1324,10 +1324,32 @@ window.app = {
             
             if (clientes.length === 0) {
                 if (mensaje) mensaje.style.display = 'block';
-                if (select) select.disabled = true;
+                if (select) {
+                    select.disabled = false; // ← CAMBIO: NO deshabilitar
+                    select.value = '';
+                }
+                
+                // Mostrar mensaje más claro
+                const alertaExistente = document.getElementById('alerta-sin-clientes');
+                if (!alertaExistente) {
+                    const alerta = document.createElement('div');
+                    alerta.className = 'alert alert-warning';
+                    alerta.id = 'alerta-sin-clientes';
+                    alerta.innerHTML = '<strong>⚠️ No hay clientes registrados</strong><br>' +
+                        '<button onclick="app.mostrarModalCliente()" ' +
+                        'style="margin-top:10px;background:#2196F3;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;">' +
+                        '➕ Agregar Cliente Ahora</button>';
+                    
+                    const parent = select?.parentElement;
+                    if (parent) parent.insertBefore(alerta, select);
+                }
+                
             } else {
                 if (mensaje) mensaje.style.display = 'none';
                 if (select) select.disabled = false;
+                
+                const alertaExistente = document.getElementById('alerta-sin-clientes');
+                if (alertaExistente) alertaExistente.remove();
             }
             
         } catch (error) {
@@ -1419,5 +1441,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
