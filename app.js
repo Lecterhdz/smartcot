@@ -180,6 +180,12 @@ window.app = {
                 this.actualizarConceptosSeleccionadosUI();
                 this.calcularTotalConConceptos();
                 break;
+            case 'curva-s-screen':
+                // Inicializar curva S cuando se muestra la pantalla
+                if (window.curvaS) {
+                    curvaS.init();
+                }
+                break;                
             case 'importar-screen':
                 console.log('✅ Pantalla de importar lista');
                 break;
@@ -1503,6 +1509,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
