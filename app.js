@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - APLICACIÓN PRINCIPAL (CORREGIDO)
+// SMARTCOT v2.0 - APLICACIÓN PRINCIPAL (COMPLETO Y CORREGIDO)
 // ─────────────────────────────────────────────────────────────────────
 
 console.log('🏭 SmartCot v2.0 iniciando...');
@@ -1209,12 +1209,10 @@ window.app = {
             console.error('❌ Error verificando clientes:', error);
         }
     },
-
-    // ─────────────────────────────────────────────────────────────────────
-    // MODAL CLIENTE RÁPIDO (FUNCIONES FALTANTES)
-    // ─────────────────────────────────────────────────────────────────────
     
-    // Mostrar modal de cliente
+    // ─────────────────────────────────────────────────────────────────────
+    // MODAL CLIENTE RÁPIDO (FUNCIONES FALTANTES - AGREGADAS)
+    // ─────────────────────────────────────────────────────────────────────
     mostrarModalCliente: function() {
         const modal = document.getElementById('modal-cliente');
         if (modal) {
@@ -1225,22 +1223,19 @@ window.app = {
         }
     },
     
-    // Cerrar modal de cliente
     cerrarModalCliente: function() {
         const modal = document.getElementById('modal-cliente');
         if (modal) {
             modal.style.display = 'none';
         }
         
-        // Limpiar campos
         const campos = ['modal-cliente-nombre', 'modal-cliente-email', 'modal-cliente-telefono', 'modal-cliente-notas'];
-        campos.forEach(id => {
+        campos.forEach(function(id) {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });
     },
     
-    // Guardar cliente rápido
     guardarClienteRapido: async function() {
         try {
             const nombre = document.getElementById('modal-cliente-nombre')?.value.trim();
@@ -1312,6 +1307,63 @@ window.app = {
             
         } catch (error) {
             console.error('❌ Error guardando configuración:', error);
+            this.notificacion('❌ Error: ' + error.message, 'error');
+        }
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // EXPORTAR/IMPORTAR
+    // ─────────────────────────────────────────────────────────────────
+    exportarDatos: async function() {
+        try {
+            console.log('📤 Exportando datos...');
+            
+            if (!window.dbUtils) {
+                throw new Error('dbUtils no está disponible');
+            }
+            
+            await window.dbUtils.exportarTodo();
+            this.notificacion('✅ Respaldo exportado exitosamente', 'exito');
+            
+        } catch (error) {
+            console.error('❌ Error exportando:', error);
+            this.notificacion('❌ Error al exportar: ' + error.message, 'error');
+        }
+    },
+    
+    importarDatos: async function(event) {
+        try {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            console.log('📥 Importando datos...', file.name);
+            
+            const reader = new FileReader();
+            const app = this;
+            
+            reader.onload = async function(e) {
+                try {
+                    if (!window.dbImportar) {
+                        throw new Error('dbImportar no está disponible');
+                    }
+                    
+                    await window.dbImportar(e.target.result);
+                    app.notificacion('✅ Datos importados exitosamente', 'exito');
+                    
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error('❌ Error importando:', error);
+                    app.notificacion('❌ Error al importar: ' + error.message, 'error');
+                }
+            };
+            
+            reader.readAsText(file);
+            
+        } catch (error) {
+            console.error('❌ Error:', error);
             this.notificacion('❌ Error: ' + error.message, 'error');
         }
     },
