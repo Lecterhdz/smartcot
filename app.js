@@ -335,6 +335,7 @@ window.app = {
                     '<div style="color:#999;font-size:12px;margin-top:5px;">Unidad: ' + c.unidad + ' | Rendimiento: ' + c.rendimiento_base + '</div>' +
                     '</div>' +
                     '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" style="background:#4CAF50;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;">➕ Agregar</button>' +
+                    '<button onclick="reportes.generarAPUPDF(\'' + c.id + '\')" style="background:#2196F3;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;margin-left:5px;">📄 APU</button>'                    
                     '</div></div>';
             }).join('');
             
@@ -1786,6 +1787,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
