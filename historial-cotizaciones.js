@@ -273,112 +273,94 @@ window.historialCotizaciones = {
             
             console.log('📋 Duplicando cotización:', cotizacionOriginal);
             
-            // ⚠️ IMPORTANTE: Cargar datos en app.datosCotizacion
+            // ⚠️ IMPORTANTE: Inicializar app.impactoFactores ANTES de navegar
             if (window.app) {
-                // Limpiar datos actuales
-                window.app.datosCotizacion = {
-                    materiales: [],
-                    manoObra: [],
-                    equipos: [],
-                    herramienta: [],
-                    indirectos: [],
-                    conceptosSeleccionados: []
+                // Inicializar impactoFactores con valores por defecto
+                window.app.impactoFactores = {
+                    factorAltura: 1,
+                    factorClima: 1,
+                    factorAcceso: 1,
+                    factorSeguridad: 1,
+                    factorTotal: 1,
+                    tiempoOriginal: 0,
+                    tiempoAjustado: 0,
+                    diasIncremento: 0,
+                    porcentajeIncremento: 0,
+                    costoTiempoExtendido: 0,
+                    aplicado: false
                 };
                 
-                // Cargar conceptos del catálogo
-                if (cotizacionOriginal.conceptosCatalogo && cotizacionOriginal.conceptosCatalogo.length > 0) {
-                    window.app.datosCotizacion.conceptosSeleccionados = JSON.parse(JSON.stringify(cotizacionOriginal.conceptosCatalogo));
-                    console.log('✅ Conceptos cargados:', window.app.datosCotizacion.conceptosSeleccionados.length);
-                }
-                
-                // Cargar materiales adicionales
-                if (cotizacionOriginal.materialesAdicionales && cotizacionOriginal.materialesAdicionales.length > 0) {
-                    window.app.datosCotizacion.materiales = JSON.parse(JSON.stringify(cotizacionOriginal.materialesAdicionales));
-                }
-                
-                // Cargar mano de obra adicional
-                if (cotizacionOriginal.manoObraAdicional && cotizacionOriginal.manoObraAdicional.length > 0) {
-                    window.app.datosCotizacion.manoObra = JSON.parse(JSON.stringify(cotizacionOriginal.manoObraAdicional));
-                }
-                
-                // Cargar equipos adicionales
-                if (cotizacionOriginal.equiposAdicionales && cotizacionOriginal.equiposAdicionales.length > 0) {
-                    window.app.datosCotizacion.equipos = JSON.parse(JSON.stringify(cotizacionOriginal.equiposAdicionales));
-                }
-                
-                // Cargar herramienta adicional
-                if (cotizacionOriginal.herramientaAdicional && cotizacionOriginal.herramientaAdicional.length > 0) {
-                    window.app.datosCotizacion.herramienta = JSON.parse(JSON.stringify(cotizacionOriginal.herramientaAdicional));
-                }
-                
-                // Cargar indirectos adicionales
-                if (cotizacionOriginal.indirectosAdicionales && cotizacionOriginal.indirectosAdicionales.length > 0) {
-                    window.app.datosCotizacion.indirectos = JSON.parse(JSON.stringify(cotizacionOriginal.indirectosAdicionales));
-                }
-                
-                // Cargar tiempo de ejecución
-                if (cotizacionOriginal.tiempoEjecucion) {
-                    window.app.tiempoEjecucion = JSON.parse(JSON.stringify(cotizacionOriginal.tiempoEjecucion));
-                }
-                
-                // Cargar factores de ajuste
+                // Si la cotización original tiene factores, copiarlos
                 if (cotizacionOriginal.factoresAjuste) {
-                    window.app.factoresAjuste = JSON.parse(JSON.stringify(cotizacionOriginal.factoresAjuste));
-                    window.app.impactoFactores = {
-                        factorAltura: cotizacionOriginal.factoresAjuste.altura || 1,
-                        factorClima: cotizacionOriginal.factoresAjuste.clima || 1,
-                        factorAcceso: cotizacionOriginal.factoresAjuste.acceso || 1,
-                        factorSeguridad: cotizacionOriginal.factoresAjuste.seguridad || 1,
-                        factorTotal: cotizacionOriginal.factoresAjuste.total || 1,
-                        aplicado: (cotizacionOriginal.factoresAjuste.total || 1) > 1
-                    };
+                    window.app.factoresAjuste = { ...cotizacionOriginal.factoresAjuste };
+                    window.app.impactoFactores.factorAltura = cotizacionOriginal.factoresAjuste.altura || 1;
+                    window.app.impactoFactores.factorClima = cotizacionOriginal.factoresAjuste.clima || 1;
+                    window.app.impactoFactores.factorAcceso = cotizacionOriginal.factoresAjuste.acceso || 1;
+                    window.app.impactoFactores.factorSeguridad = cotizacionOriginal.factoresAjuste.seguridad || 1;
+                    window.app.impactoFactores.factorTotal = cotizacionOriginal.factoresAjuste.total || 1;
+                    window.app.impactoFactores.aplicado = (cotizacionOriginal.factoresAjuste.total || 1) > 1;
                 }
                 
-                // Cargar porcentajes en los inputs
-                if (cotizacionOriginal.porcentajes) {
-                    setTimeout(function() {
-                        const inpOficina = document.getElementById('cot-indirectos-oficina');
-                        const inpCampo = document.getElementById('cot-indirectos-campo');
-                        const inpFinanciamiento = document.getElementById('cot-financiamiento');
-                        const inpUtilidad = document.getElementById('cot-utilidad');
-                        
-                        if (inpOficina) inpOficina.value = cotizacionOriginal.porcentajes.indirectosOficina || 5;
-                        if (inpCampo) inpCampo.value = cotizacionOriginal.porcentajes.indirectosCampo || 15;
-                        if (inpFinanciamiento) inpFinanciamiento.value = cotizacionOriginal.porcentajes.financiamiento || 0.85;
-                        if (inpUtilidad) inpUtilidad.value = cotizacionOriginal.porcentajes.utilidad || 10;
-                    }, 500);
+                // Copiar tiempo de ejecución
+                if (cotizacionOriginal.tiempoEjecucion) {
+                    window.app.tiempoEjecucion = { ...cotizacionOriginal.tiempoEjecucion };
+                    window.app.impactoFactores.tiempoOriginal = cotizacionOriginal.tiempoEjecucion.diasHabiles || 0;
                 }
                 
-                // Cargar campos de texto
-                setTimeout(function() {
-                    const inpCliente = document.getElementById('cot-cliente');
-                    const inpDescripcion = document.getElementById('cot-descripcion');
-                    const inpUbicacion = document.getElementById('cot-ubicacion');
-                    const inpFechaInicio = document.getElementById('cot-fecha-inicio');
-                    const inpFechaFin = document.getElementById('cot-fecha-fin');
-                    
-                    if (inpCliente) inpCliente.value = cotizacionOriginal.clienteId || '';
-                    if (inpDescripcion) inpDescripcion.value = (cotizacionOriginal.descripcion || '') + ' (Copia)';
-                    if (inpUbicacion) inpUbicacion.value = cotizacionOriginal.ubicacion || '';
-                    if (inpFechaInicio) inpFechaInicio.value = cotizacionOriginal.fechaInicio ? cotizacionOriginal.fechaInicio.split('T')[0] : '';
-                    if (inpFechaFin) inpFechaFin.value = cotizacionOriginal.fechaFinSolicitada ? cotizacionOriginal.fechaFinSolicitada.split('T')[0] : '';
-                }, 500);
+                // Copiar datos de la cotización
+                window.app.datosCotizacion = {
+                    materiales: cotizacionOriginal.materialesAdicionales || [],
+                    manoObra: cotizacionOriginal.manoObraAdicional || [],
+                    equipos: cotizacionOriginal.equiposAdicionales || [],
+                    herramienta: cotizacionOriginal.herramientaAdicional || [],
+                    indirectos: cotizacionOriginal.indirectosAdicionales || [],
+                    conceptosSeleccionados: cotizacionOriginal.conceptosCatalogo || []
+                };
+                
+                console.log('✅ impactoFactores inicializado:', window.app.impactoFactores);
             }
             
             // Navegar a Nueva Cotización
             if (window.app) {
                 window.app.mostrarPantalla('nueva-cotizacion-screen');
                 
-                // ⚠️ IMPORTANTE: Actualizar UI después de navegar
+                // ⚠️ IMPORTANTE: Actualizar UI después de navegar (con delay)
                 setTimeout(function() {
                     if (window.app) {
+                        // Llenar campos de texto
+                        const inpCliente = document.getElementById('cot-cliente');
+                        const inpDescripcion = document.getElementById('cot-descripcion');
+                        const inpUbicacion = document.getElementById('cot-ubicacion');
+                        const inpFechaInicio = document.getElementById('cot-fecha-inicio');
+                        const inpFechaFin = document.getElementById('cot-fecha-fin');
+                        
+                        if (inpCliente) inpCliente.value = cotizacionOriginal.clienteId || '';
+                        if (inpDescripcion) inpDescripcion.value = (cotizacionOriginal.descripcion || '') + ' (Copia)';
+                        if (inpUbicacion) inpUbicacion.value = cotizacionOriginal.ubicacion || '';
+                        if (inpFechaInicio) inpFechaInicio.value = cotizacionOriginal.fechaInicio ? cotizacionOriginal.fechaInicio.split('T')[0] : '';
+                        if (inpFechaFin) inpFechaFin.value = cotizacionOriginal.fechaFinSolicitada ? cotizacionOriginal.fechaFinSolicitada.split('T')[0] : '';
+                        
+                        // Llenar porcentajes
+                        if (cotizacionOriginal.porcentajes) {
+                            const inpOficina = document.getElementById('cot-indirectos-oficina');
+                            const inpCampo = document.getElementById('cot-indirectos-campo');
+                            const inpFinanciamiento = document.getElementById('cot-financiamiento');
+                            const inpUtilidad = document.getElementById('cot-utilidad');
+                            
+                            if (inpOficina) inpOficina.value = cotizacionOriginal.porcentajes.indirectosOficina || 5;
+                            if (inpCampo) inpCampo.value = cotizacionOriginal.porcentajes.indirectosCampo || 15;
+                            if (inpFinanciamiento) inpFinanciamiento.value = cotizacionOriginal.porcentajes.financiamiento || 0.85;
+                            if (inpUtilidad) inpUtilidad.value = cotizacionOriginal.porcentajes.utilidad || 10;
+                        }
+                        
+                        // Actualizar UI
                         window.app.actualizarConceptosSeleccionadosUI();
                         window.app.actualizarContadorGeneral();
                         window.app.calcularTotalConConceptos();
-                        window.app.mostrarImpactoFactores();
+                        
                         console.log('✅ UI actualizada para edición');
                     }
-                }, 1000);
+                }, 500);
             }
             
             alert('✅ Cotización duplicada: #' + id + '\n\nAhora puedes editarla en Nueva Cotización');
