@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - GENERADOR DE REPORTES PDF
+// SMARTCOT v2.0 - GENERADOR DE REPORTES PDF (CORREGIDO UTF-8)
 // ─────────────────────────────────────────────────────────────────────
 
 console.log('📄 reportes.js cargado');
@@ -34,63 +34,56 @@ window.reportes = {
             // ─────────────────────────────────────────────────────────
             // ENCABEZADO
             // ─────────────────────────────────────────────────────────
-            // Logo y nombre de empresa
+            // Fondo del encabezado
+            doc.setFillColor(26, 26, 26);
+            doc.rect(0, 0, 210, 35, 'F');
+            
+            // Nombre de empresa (desde configuración)
             const config = await window.db.configuracion.toArray();
             const configObj = {};
             config.forEach(function(c) { configObj[c.clave] = c.valor; });
-            
             const empresa = configObj.empresa || 'SmartCot';
             
-            // Fondo del encabezado
-            doc.setFillColor(26, 26, 26);
-            doc.rect(0, 0, 210, 40, 'F');
-            
-            // Nombre de empresa
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(22);
-            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(18);
             doc.text(empresa, 15, 20);
             
             doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text('Cotizador Industrial Inteligente', 15, 28);
+            doc.text('Cotizador Industrial Inteligente', 15, 27);
             
             // Número de cotización
             doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text('COTIZACIÓN #' + cotizacion.id, 150, 20);
+            doc.text('COTIZACION #' + cotizacion.id, 150, 20);
             
             doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text('Fecha: ' + new Date(cotizacion.fecha).toLocaleDateString('es-MX'), 150, 28);
+            doc.text('Fecha: ' + new Date(cotizacion.fecha).toLocaleDateString('es-MX'), 150, 27);
             
             // ─────────────────────────────────────────────────────────
-            // INFORMACIÓN DEL CLIENTE Y PROYECTO
+            // INFORMACION DEL CLIENTE Y PROYECTO
             // ─────────────────────────────────────────────────────────
-            let yPos = 55;
+            let yPos = 45;
             
+            // Fondo azul claro
             doc.setFillColor(227, 242, 253);
-            doc.rect(15, yPos - 10, 180, 35, 'F');
+            doc.rect(15, yPos - 5, 180, 30, 'F');
             
             doc.setTextColor(21, 101, 192);
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'bold');
-            doc.text('📋 INFORMACIÓN DEL PROYECTO', 20, yPos);
+            doc.setFontSize(11);
+            doc.text('INFORMACION DEL PROYECTO', 20, yPos);
             
             doc.setTextColor(26, 26, 26);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
             
-            yPos += 8;
+            yPos += 6;
             doc.text('Cliente: ' + (cliente ? cliente.nombre : 'No especificado'), 20, yPos);
-            yPos += 6;
-            doc.text('Descripción: ' + (cotizacion.descripcion || 'Sin descripción'), 20, yPos);
-            yPos += 6;
-            doc.text('Ubicación: ' + (cotizacion.ubicacion || 'No especificada'), 20, yPos);
-            yPos += 6;
+            yPos += 5;
+            doc.text('Descripcion: ' + (cotizacion.descripcion || 'Sin descripcion'), 20, yPos);
+            yPos += 5;
+            doc.text('Ubicacion: ' + (cotizacion.ubicacion || 'No especificada'), 20, yPos);
+            yPos += 5;
             if (cotizacion.fechaInicio) {
                 doc.text('Fecha Inicio: ' + new Date(cotizacion.fechaInicio).toLocaleDateString('es-MX'), 20, yPos);
-                yPos += 6;
+                yPos += 5;
             }
             if (cotizacion.fechaFinSolicitada) {
                 doc.text('Fecha Fin Solicitada: ' + new Date(cotizacion.fechaFinSolicitada).toLocaleDateString('es-MX'), 20, yPos);
@@ -99,25 +92,23 @@ window.reportes = {
             // ─────────────────────────────────────────────────────────
             // CONCEPTOS
             // ─────────────────────────────────────────────────────────
-            yPos += 15;
-            
-            doc.setFillColor(26, 26, 26);
-            doc.rect(15, yPos - 8, 180, 8, 'F');
-            
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
-            doc.text('📦 CONCEPTOS', 20, yPos - 2);
-            
             yPos += 10;
             
-            // Encabezados de tabla
-            doc.setTextColor(26, 26, 26);
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
+            doc.setFillColor(26, 26, 26);
+            doc.rect(15, yPos - 5, 180, 5, 'F');
             
-            const colWidths = [25, 100, 20, 25, 30];
-            const headers = ['Código', 'Descripción', 'Cant.', 'Unitario', 'Importe'];
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(10);
+            doc.text('CONCEPTOS', 20, yPos - 2);
+            
+            yPos += 8;
+            
+            doc.setTextColor(26, 26, 26);
+            doc.setFontSize(8);
+            
+            // Encabezados de tabla
+            const headers = ['Codigo', 'Descripcion', 'Cant.', 'Unitario', 'Importe'];
+            const colWidths = [25, 85, 20, 30, 30];
             let xPos = 20;
             
             headers.forEach(function(header, index) {
@@ -130,46 +121,32 @@ window.reportes = {
             doc.line(15, yPos, 195, yPos);
             yPos += 5;
             
-            // Conceptos
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(8);
+            doc.setFontSize(7);
+            
+            let subtotalConceptos = 0;
             
             if (cotizacion.conceptosCatalogo && cotizacion.conceptosCatalogo.length > 0) {
                 cotizacion.conceptosCatalogo.forEach(function(c) {
-                    const subtotal = (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
+                    const importe = (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
+                    subtotalConceptos += importe;
                     
-                    // Código
                     doc.text(c.codigo || '', 20, yPos);
+                    doc.text((c.descripcion_corta || '').substring(0, 40), 50, yPos);
+                    doc.text((c.cantidad || 1).toString(), 135, yPos);
+                    doc.text(calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0), 155, yPos);
+                    doc.text(calculator.formatoMoneda(importe), 185, yPos, { align: 'right' });
                     
-                    // Descripción (truncada)
-                    const desc = (c.descripcion_corta || 'Sin descripción').substring(0, 50);
-                    doc.text(desc, 50, yPos);
+                    yPos += 4;
                     
-                    // Cantidad
-                    doc.text((c.cantidad || 1).toString(), 155, yPos);
-                    
-                    // Costo Unitario
-                    doc.text(calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0), 175, yPos);
-                    
-                    // Importe
-                    doc.text(calculator.formatoMoneda(subtotal), 200, yPos, { align: 'right' });
-                    
-                    yPos += 5;
-                    
-                    // Verificar si necesita nueva página
-                    if (yPos > 270) {
+                    if (yPos > 260) {
                         doc.addPage();
                         yPos = 20;
                     }
                 });
-            } else {
-                doc.setTextColor(150, 150, 150);
-                doc.text('No hay conceptos en esta cotización', 20, yPos);
-                yPos += 10;
             }
             
             // ─────────────────────────────────────────────────────────
-            // TIEMPO DE EJECUCIÓN
+            // TIEMPO DE EJECUCION
             // ─────────────────────────────────────────────────────────
             yPos += 5;
             doc.setDrawColor(200);
@@ -177,54 +154,46 @@ window.reportes = {
             yPos += 8;
             
             doc.setFillColor(232, 245, 233);
-            doc.rect(15, yPos - 8, 180, 8, 'F');
+            doc.rect(15, yPos - 5, 180, 5, 'F');
             
             doc.setTextColor(46, 125, 50);
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
-            doc.text('⏱️ TIEMPO DE EJECUCIÓN ESTIMADO', 20, yPos - 2);
-            
-            yPos += 10;
-            doc.setTextColor(26, 26, 26);
             doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
+            doc.text('TIEMPO DE EJECUCION ESTIMADO', 20, yPos - 2);
+            
+            yPos += 8;
+            doc.setTextColor(26, 26, 26);
+            doc.setFontSize(8);
             
             if (cotizacion.tiempoEjecucion) {
                 doc.text('Jornadas: ' + (cotizacion.tiempoEjecucion.jornadas || 0), 20, yPos);
-                doc.text('Días Hábiles: ' + (cotizacion.tiempoEjecucion.diasHabiles || 0), 70, yPos);
-                doc.text('Semanas: ' + (cotizacion.tiempoEjecucion.semanas || 0), 130, yPos);
-                doc.text('Meses: ' + (cotizacion.tiempoEjecucion.meses || 0), 180, yPos);
+                doc.text('Dias Habiles: ' + (cotizacion.tiempoEjecucion.diasHabiles || 0), 70, yPos);
+                doc.text('Semanas: ' + (cotizacion.tiempoEjecucion.semanas || 0), 120, yPos);
+                doc.text('Meses: ' + (cotizacion.tiempoEjecucion.meses || 0), 170, yPos);
             }
             
-            yPos += 10;
+            yPos += 8;
             
             // ─────────────────────────────────────────────────────────
             // FACTORES DE AJUSTE (SI APLICAN)
             // ─────────────────────────────────────────────────────────
             if (cotizacion.factoresAjuste && cotizacion.factoresAjuste.total > 1) {
                 doc.setFillColor(255, 243, 224);
-                doc.rect(15, yPos - 8, 180, 8, 'F');
+                doc.rect(15, yPos - 5, 180, 5, 'F');
                 
                 doc.setTextColor(230, 81, 0);
-                doc.setFontSize(11);
-                doc.setFont('helvetica', 'bold');
-                doc.text('⚠️ FACTORES DE AJUSTE APLICADOS', 20, yPos - 2);
-                
-                yPos += 10;
-                doc.setTextColor(26, 26, 26);
                 doc.setFontSize(10);
-                doc.setFont('helvetica', 'normal');
+                doc.text('FACTORES DE AJUSTE APLICADOS', 20, yPos - 2);
+                
+                yPos += 8;
+                doc.setTextColor(26, 26, 26);
+                doc.setFontSize(8);
                 
                 doc.text('Altura: ' + (cotizacion.factoresAjuste.altura || 1) + 'x', 20, yPos);
                 doc.text('Clima: ' + (cotizacion.factoresAjuste.clima || 1) + 'x', 70, yPos);
                 doc.text('Acceso: ' + (cotizacion.factoresAjuste.acceso || 1) + 'x', 120, yPos);
                 doc.text('Seguridad: ' + (cotizacion.factoresAjuste.seguridad || 1) + 'x', 170, yPos);
                 
-                yPos += 6;
-                doc.setFont('helvetica', 'bold');
-                doc.text('Factor Total: ' + (cotizacion.factoresAjuste.total || 1) + 'x', 20, yPos);
-                
-                yPos += 10;
+                yPos += 8;
             }
             
             // ─────────────────────────────────────────────────────────
@@ -236,53 +205,49 @@ window.reportes = {
             yPos += 8;
             
             doc.setFillColor(26, 26, 26);
-            doc.rect(15, yPos - 8, 180, 8, 'F');
+            doc.rect(15, yPos - 5, 180, 5, 'F');
             
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
-            doc.text('💰 RESUMEN FINANCIERO', 20, yPos - 2);
-            
-            yPos += 10;
-            doc.setTextColor(26, 26, 26);
             doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
+            doc.text('RESUMEN FINANCIERO', 20, yPos - 2);
             
-            // Calcular totales si no existen
-            const costoDirecto = cotizacion.costoDirecto || 0;
+            yPos += 8;
+            doc.setTextColor(26, 26, 26);
+            doc.setFontSize(8);
+            
+            const costoDirecto = cotizacion.costoDirecto || subtotalConceptos;
             const totalIndirectos = cotizacion.totalIndirectos || 0;
             const utilidad = cotizacion.utilidad || 0;
             const iva = cotizacion.iva || 0;
             const totalFinal = cotizacion.totalFinal || 0;
             
             doc.text('Costo Directo:', 20, yPos);
-            doc.text(calculator.formatoMoneda(costoDirecto), 195, yPos, { align: 'right' });
-            yPos += 6;
+            doc.text(calculator.formatoMoneda(costoDirecto), 185, yPos, { align: 'right' });
+            yPos += 5;
             
             doc.text('Indirectos:', 20, yPos);
-            doc.text(calculator.formatoMoneda(totalIndirectos), 195, yPos, { align: 'right' });
-            yPos += 6;
+            doc.text(calculator.formatoMoneda(totalIndirectos), 185, yPos, { align: 'right' });
+            yPos += 5;
             
             doc.text('Utilidad:', 20, yPos);
-            doc.text(calculator.formatoMoneda(utilidad), 195, yPos, { align: 'right' });
-            yPos += 6;
+            doc.text(calculator.formatoMoneda(utilidad), 185, yPos, { align: 'right' });
+            yPos += 5;
             
             doc.text('IVA (16%):', 20, yPos);
-            doc.text(calculator.formatoMoneda(iva), 195, yPos, { align: 'right' });
-            yPos += 8;
+            doc.text(calculator.formatoMoneda(iva), 185, yPos, { align: 'right' });
+            yPos += 7;
             
             // TOTAL FINAL
             doc.setFillColor(76, 175, 80);
-            doc.rect(15, yPos - 8, 180, 10, 'F');
+            doc.rect(15, yPos - 5, 180, 6, 'F');
             
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
             doc.text('TOTAL FINAL:', 20, yPos - 1);
-            doc.text(calculator.formatoMoneda(totalFinal), 195, yPos - 1, { align: 'right' });
+            doc.text(calculator.formatoMoneda(totalFinal), 185, yPos - 1, { align: 'right' });
             
             // ─────────────────────────────────────────────────────────
-            // PIE DE PÁGINA
+            // PIE DE PAGINA
             // ─────────────────────────────────────────────────────────
             const pageCount = doc.internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
@@ -290,7 +255,7 @@ window.reportes = {
                 
                 doc.setFontSize(8);
                 doc.setTextColor(150, 150, 150);
-                doc.text('Página ' + i + ' de ' + pageCount, 105, 290, { align: 'center' });
+                doc.text('Pagina ' + i + ' de ' + pageCount, 105, 290, { align: 'center' });
                 
                 doc.text('Generado por SmartCot v2.0 - ' + new Date().toLocaleDateString('es-MX'), 15, 295);
             }
@@ -298,7 +263,7 @@ window.reportes = {
             // ─────────────────────────────────────────────────────────
             // GUARDAR PDF
             // ─────────────────────────────────────────────────────────
-            const nombreArchivo = 'Cotizacion-' + cotizacion.id + '-' + (cliente ? cliente.nombre.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'sin-cliente') + '.pdf';
+            const nombreArchivo = 'Cotizacion-' + cotizacion.id + '.pdf';
             doc.save(nombreArchivo);
             
             console.log('✅ PDF generado:', nombreArchivo);
@@ -311,7 +276,7 @@ window.reportes = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // GENERAR PDF DE APU (ANÁLISIS DE PRECIOS UNITARIOS)
+    // GENERAR PDF DE APU (ANALISIS DE PRECIOS UNITARIOS)
     // ─────────────────────────────────────────────────────────────────
     generarAPUPDF: async function(conceptoId) {
         try {
@@ -336,36 +301,32 @@ window.reportes = {
             // ENCABEZADO
             // ─────────────────────────────────────────────────────────
             doc.setFillColor(26, 26, 26);
-            doc.rect(0, 0, 210, 35, 'F');
+            doc.rect(0, 0, 210, 30, 'F');
             
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(18);
-            doc.setFont('helvetica', 'bold');
-            doc.text('ANÁLISIS DE PRECIOS UNITARIOS', 15, 20);
+            doc.setFontSize(16);
+            doc.text('ANALISIS DE PRECIOS UNITARIOS', 105, 18, { align: 'center' });
             
             doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text('SmartCot v2.0 - Cotizador Industrial', 15, 28);
+            doc.text('SmartCot v2.0 - Cotizador Industrial', 105, 25, { align: 'center' });
             
             // ─────────────────────────────────────────────────────────
-            // INFORMACIÓN DEL CONCEPTO
+            // INFORMACION DEL CONCEPTO
             // ─────────────────────────────────────────────────────────
-            let yPos = 50;
+            let yPos = 40;
             
             doc.setTextColor(26, 26, 26);
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
             doc.text('Concepto: ' + concepto.codigo, 15, yPos);
             
-            yPos += 8;
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text('Descripción: ' + (concepto.descripcion_corta || 'Sin descripción'), 15, yPos);
-            
             yPos += 6;
+            doc.setFontSize(9);
+            doc.text('Descripcion: ' + (concepto.descripcion_corta || 'Sin descripcion'), 15, yPos);
+            
+            yPos += 5;
             doc.text('Unidad: ' + (concepto.unidad || 'N/A'), 15, yPos);
             
-            yPos += 6;
+            yPos += 5;
             doc.text('Rendimiento: ' + (concepto.rendimiento_base || 0), 15, yPos);
             
             // ─────────────────────────────────────────────────────────
@@ -374,23 +335,21 @@ window.reportes = {
             yPos += 10;
             
             doc.setFillColor(33, 150, 243);
-            doc.rect(15, yPos - 6, 180, 6, 'F');
+            doc.rect(15, yPos - 4, 180, 4, 'F');
             
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text('📦 MATERIALES', 20, yPos - 2);
-            
-            yPos += 8;
-            doc.setTextColor(26, 26, 26);
             doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
+            doc.text('MATERIALES', 20, yPos - 1);
+            
+            yPos += 6;
+            doc.setTextColor(26, 26, 26);
+            doc.setFontSize(8);
             
             const materiales = concepto.recursos?.materiales || [];
             if (materiales.length > 0) {
-                let xPos = 20;
-                const colWidths = [80, 25, 30, 30, 25];
                 const headers = ['Material', 'Cantidad', 'Unidad', 'Precio Unit.', 'Importe'];
+                const colWidths = [70, 25, 25, 30, 30];
+                let xPos = 20;
                 
                 headers.forEach(function(header, index) {
                     doc.text(header, xPos, yPos);
@@ -400,23 +359,23 @@ window.reportes = {
                 yPos += 2;
                 doc.setDrawColor(200);
                 doc.line(15, yPos, 195, yPos);
-                yPos += 5;
+                yPos += 4;
                 
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(8);
+                doc.setFontSize(7);
                 
                 let totalMateriales = 0;
                 materiales.forEach(function(m) {
-                    doc.text(m.nombre || m.material_codigo || 'Sin nombre', 20, yPos);
-                    doc.text((m.cantidad || 0).toString(), 105, yPos);
-                    doc.text(m.unidad || '', 135, yPos);
-                    doc.text(calculator.formatoMoneda(m.precio_unitario || 0), 170, yPos);
-                    doc.text(calculator.formatoMoneda(m.importe || 0), 195, yPos, { align: 'right' });
-                    
                     totalMateriales += (m.importe || 0);
-                    yPos += 5;
                     
-                    if (yPos > 270) {
+                    doc.text((m.nombre || m.material_codigo || 'Sin nombre').substring(0, 30), 20, yPos);
+                    doc.text((m.cantidad || 0).toString(), 95, yPos);
+                    doc.text(m.unidad || '', 125, yPos);
+                    doc.text(calculator.formatoMoneda(m.precio_unitario || 0), 155, yPos);
+                    doc.text(calculator.formatoMoneda(m.importe || 0), 185, yPos, { align: 'right' });
+                    
+                    yPos += 4;
+                    
+                    if (yPos > 260) {
                         doc.addPage();
                         yPos = 20;
                     }
@@ -425,11 +384,11 @@ window.reportes = {
                 yPos += 2;
                 doc.setDrawColor(200);
                 doc.line(15, yPos, 195, yPos);
-                yPos += 5;
+                yPos += 4;
                 
-                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(8);
                 doc.text('Subtotal Materiales:', 150, yPos);
-                doc.text(calculator.formatoMoneda(totalMateriales), 195, yPos, { align: 'right' });
+                doc.text(calculator.formatoMoneda(totalMateriales), 185, yPos, { align: 'right' });
             } else {
                 doc.setTextColor(150, 150, 150);
                 doc.text('No hay materiales', 20, yPos);
@@ -438,26 +397,24 @@ window.reportes = {
             // ─────────────────────────────────────────────────────────
             // MANO DE OBRA
             // ─────────────────────────────────────────────────────────
-            yPos += 10;
+            yPos += 8;
             
             doc.setFillColor(76, 175, 80);
-            doc.rect(15, yPos - 6, 180, 6, 'F');
+            doc.rect(15, yPos - 4, 180, 4, 'F');
             
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text('👷 MANO DE OBRA', 20, yPos - 2);
-            
-            yPos += 8;
-            doc.setTextColor(26, 26, 26);
             doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
+            doc.text('MANO DE OBRA', 20, yPos - 1);
+            
+            yPos += 6;
+            doc.setTextColor(26, 26, 26);
+            doc.setFontSize(8);
             
             const manoObra = concepto.recursos?.mano_obra || [];
             if (manoObra.length > 0) {
-                let xPos = 20;
-                const colWidths = [80, 30, 40, 40];
                 const headers = ['Puesto', 'Horas/Jornada', 'Salario/Hora', 'Importe'];
+                const colWidths = [80, 35, 35, 30];
+                let xPos = 20;
                 
                 headers.forEach(function(header, index) {
                     doc.text(header, xPos, yPos);
@@ -467,22 +424,22 @@ window.reportes = {
                 yPos += 2;
                 doc.setDrawColor(200);
                 doc.line(15, yPos, 195, yPos);
-                yPos += 5;
+                yPos += 4;
                 
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(8);
+                doc.setFontSize(7);
                 
                 let totalManoObra = 0;
                 manoObra.forEach(function(mo) {
-                    doc.text(mo.puesto || 'Sin nombre', 20, yPos);
-                    doc.text((mo.horas_jornada || 0).toFixed(4), 105, yPos);
-                    doc.text(calculator.formatoMoneda(mo.salario_hora || 0), 140, yPos);
-                    doc.text(calculator.formatoMoneda(mo.importe || 0), 195, yPos, { align: 'right' });
-                    
                     totalManoObra += (mo.importe || 0);
-                    yPos += 5;
                     
-                    if (yPos > 270) {
+                    doc.text((mo.puesto || 'Sin nombre').substring(0, 35), 20, yPos);
+                    doc.text((mo.horas_jornada || 0).toFixed(4), 105, yPos);
+                    doc.text(calculator.formatoMoneda(mo.salario_hora || 0), 145, yPos);
+                    doc.text(calculator.formatoMoneda(mo.importe || 0), 185, yPos, { align: 'right' });
+                    
+                    yPos += 4;
+                    
+                    if (yPos > 260) {
                         doc.addPage();
                         yPos = 20;
                     }
@@ -491,11 +448,11 @@ window.reportes = {
                 yPos += 2;
                 doc.setDrawColor(200);
                 doc.line(15, yPos, 195, yPos);
-                yPos += 5;
+                yPos += 4;
                 
-                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(8);
                 doc.text('Subtotal Mano de Obra:', 150, yPos);
-                doc.text(calculator.formatoMoneda(totalManoObra), 195, yPos, { align: 'right' });
+                doc.text(calculator.formatoMoneda(totalManoObra), 185, yPos, { align: 'right' });
             } else {
                 doc.setTextColor(150, 150, 150);
                 doc.text('No hay mano de obra', 20, yPos);
@@ -504,26 +461,24 @@ window.reportes = {
             // ─────────────────────────────────────────────────────────
             // EQUIPOS
             // ─────────────────────────────────────────────────────────
-            yPos += 10;
+            yPos += 8;
             
             doc.setFillColor(255, 152, 0);
-            doc.rect(15, yPos - 6, 180, 6, 'F');
+            doc.rect(15, yPos - 4, 180, 4, 'F');
             
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text('🏗️ EQUIPOS', 20, yPos - 2);
-            
-            yPos += 8;
-            doc.setTextColor(26, 26, 26);
             doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
+            doc.text('EQUIPOS', 20, yPos - 1);
+            
+            yPos += 6;
+            doc.setTextColor(26, 26, 26);
+            doc.setFontSize(8);
             
             const equipos = concepto.recursos?.equipos || [];
             if (equipos.length > 0) {
-                let xPos = 20;
-                const colWidths = [80, 30, 40, 40];
                 const headers = ['Equipo', 'Horas', 'Costo Unit.', 'Importe'];
+                const colWidths = [80, 30, 35, 35];
+                let xPos = 20;
                 
                 headers.forEach(function(header, index) {
                     doc.text(header, xPos, yPos);
@@ -533,22 +488,22 @@ window.reportes = {
                 yPos += 2;
                 doc.setDrawColor(200);
                 doc.line(15, yPos, 195, yPos);
-                yPos += 5;
+                yPos += 4;
                 
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(8);
+                doc.setFontSize(7);
                 
                 let totalEquipos = 0;
                 equipos.forEach(function(e) {
-                    doc.text(e.nombre || e.equipo_codigo || 'Sin nombre', 20, yPos);
-                    doc.text((e.horas || 0).toString(), 105, yPos);
-                    doc.text(calculator.formatoMoneda(e.costo_unitario || 0), 140, yPos);
-                    doc.text(calculator.formatoMoneda(e.importe || 0), 195, yPos, { align: 'right' });
-                    
                     totalEquipos += (e.importe || 0);
-                    yPos += 5;
                     
-                    if (yPos > 270) {
+                    doc.text((e.nombre || e.equipo_codigo || 'Sin nombre').substring(0, 35), 20, yPos);
+                    doc.text((e.horas || 0).toString(), 105, yPos);
+                    doc.text(calculator.formatoMoneda(e.costo_unitario || 0), 145, yPos);
+                    doc.text(calculator.formatoMoneda(e.importe || 0), 185, yPos, { align: 'right' });
+                    
+                    yPos += 4;
+                    
+                    if (yPos > 260) {
                         doc.addPage();
                         yPos = 20;
                     }
@@ -557,11 +512,11 @@ window.reportes = {
                 yPos += 2;
                 doc.setDrawColor(200);
                 doc.line(15, yPos, 195, yPos);
-                yPos += 5;
+                yPos += 4;
                 
-                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(8);
                 doc.text('Subtotal Equipos:', 150, yPos);
-                doc.text(calculator.formatoMoneda(totalEquipos), 195, yPos, { align: 'right' });
+                doc.text(calculator.formatoMoneda(totalEquipos), 185, yPos, { align: 'right' });
             } else {
                 doc.setTextColor(150, 150, 150);
                 doc.text('No hay equipos', 20, yPos);
@@ -570,21 +525,20 @@ window.reportes = {
             // ─────────────────────────────────────────────────────────
             // COSTO DIRECTO TOTAL
             // ─────────────────────────────────────────────────────────
-            yPos += 10;
+            yPos += 8;
             
             doc.setFillColor(26, 26, 26);
-            doc.rect(15, yPos - 8, 180, 10, 'F');
+            doc.rect(15, yPos - 5, 180, 6, 'F');
             
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
             doc.text('COSTO DIRECTO TOTAL:', 20, yPos - 1);
             
             const costoDirecto = concepto.costos_base?.costo_directo_total || 0;
-            doc.text(calculator.formatoMoneda(costoDirecto), 195, yPos - 1, { align: 'right' });
+            doc.text(calculator.formatoMoneda(costoDirecto), 185, yPos - 1, { align: 'right' });
             
             // ─────────────────────────────────────────────────────────
-            // PIE DE PÁGINA
+            // PIE DE PAGINA
             // ─────────────────────────────────────────────────────────
             const pageCount = doc.internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
@@ -592,7 +546,7 @@ window.reportes = {
                 
                 doc.setFontSize(8);
                 doc.setTextColor(150, 150, 150);
-                doc.text('Página ' + i + ' de ' + pageCount, 105, 290, { align: 'center' });
+                doc.text('Pagina ' + i + ' de ' + pageCount, 105, 290, { align: 'center' });
                 
                 doc.text('Generado por SmartCot v2.0 - ' + new Date().toLocaleDateString('es-MX'), 15, 295);
             }
@@ -627,31 +581,22 @@ window.reportes = {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Obtener cotización
-            const cotizacion = await window.db.cotizaciones.get(parseInt(cotizacionId));
-            if (!cotizacion) {
-                alert('❌ Cotización no encontrada');
-                return;
-            }
-            
             // Encabezado
             doc.setFillColor(26, 26, 26);
-            doc.rect(0, 0, 210, 35, 'F');
+            doc.rect(0, 0, 210, 30, 'F');
             
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(18);
-            doc.setFont('helvetica', 'bold');
-            doc.text('CURVA S - SEGUIMIENTO DE OBRA', 15, 20);
+            doc.setFontSize(16);
+            doc.text('CURVA S - SEGUIMIENTO DE OBRA', 105, 18, { align: 'center' });
             
             doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text('SmartCot v2.0', 15, 28);
+            doc.text('SmartCot v2.0', 105, 25, { align: 'center' });
             
             // Información
-            let yPos = 50;
+            let yPos = 40;
             doc.setTextColor(26, 26, 26);
             doc.setFontSize(10);
-            doc.text('Cotización #' + cotizacion.id, 15, yPos);
+            doc.text('Cotizacion #' + cotizacionId, 15, yPos);
             yPos += 6;
             doc.text('Fecha: ' + new Date().toLocaleDateString('es-MX'), 15, yPos);
             
@@ -669,7 +614,7 @@ window.reportes = {
                 doc.setPage(i);
                 doc.setFontSize(8);
                 doc.setTextColor(150, 150, 150);
-                doc.text('Página ' + i + ' de ' + pageCount, 105, 290, { align: 'center' });
+                doc.text('Pagina ' + i + ' de ' + pageCount, 105, 290, { align: 'center' });
             }
             
             // Guardar
