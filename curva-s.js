@@ -519,14 +519,14 @@ window.curvaS = {
     // ─────────────────────────────────────────────────────────────────
     // EXPORTAR REPORTE PDF
     // ─────────────────────────────────────────────────────────────────
-exportarReportePDF: async function() {
-    // Usar el nuevo módulo de reportes
-    if (window.reportes) {
-        await reportes.exportarCurvaSPDF(this.datos.cotizacionId);
-    } else {
-        alert('⚠️ Módulo de reportes no cargado');
+    exportarReportePDF: async function() {
+        // Usar el nuevo módulo de reportes
+        if (window.reportes) {
+            await reportes.exportarCurvaSPDF(this.datos.cotizacionId);
+        } else {
+            alert('⚠️ Módulo de reportes no cargado');
+        }
     }
-}
 };
 
 console.log('✅ curva-s.js listo');
