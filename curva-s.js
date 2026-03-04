@@ -81,6 +81,16 @@ window.curvaS = {
     cargarCotizacion: async function() {
         try {
             const cotizacionId = document.getElementById('curva-s-cotizacion')?.value;
+            const cotizacion = await window.db.cotizaciones.get(parseInt(cotizacionId));
+            
+            // Calcular fechas
+            const fechaInicio = cotizacion.fechaInicio ? new Date(cotizacion.fechaInicio) : new Date();
+            const semanasTotales = Math.ceil(cotizacion.tiempoEjecucion?.semanas || 0) || 1;
+            const fechaFin = new Date(fechaInicio);
+            fechaFin.setDate(fechaFin.getDate() + (semanasTotales * 7));
+            
+            // Generar curva programada CON FECHAS
+            this.generarCurvaProgramada(semanasTotales, cotizacion.totalFinal, fechaInicio, fechaFin);
             
             if (!cotizacionId) {
                 alert('⚠️ Selecciona una cotización');
@@ -198,15 +208,22 @@ window.curvaS = {
     // ─────────────────────────────────────────────────────────────────
     // GENERAR CURVA PROGRAMADA (S-CURVE TÍPICA)
     // ─────────────────────────────────────────────────────────────────
-    generarCurvaProgramada: function(semanasTotales, montoTotal) {
+    generarCurvaProgramada: function(semanasTotales, montoTotal, fechaInicio, fechaFin) {
         this.datos.semanas = [];
         this.datos.avanceProgramado = [];
         this.datos.montoProgramado = [];
+        this.datos.fechas = [];
         
         let acumulado = 0;
+        const fechaActual = new Date(fechaInicio);
         
         for (let i = 1; i <= semanasTotales; i++) {
-            this.datos.semanas.push('Sem ' + i);
+            // Calcular fecha de cada semana
+            const fechaSemana = new Date(fechaActual);
+            fechaSemana.setDate(fechaActual.getDate() + ((i - 1) * 7));
+            
+            this.datos.semanas.push('Sem ' + i + ' (' + fechaSemana.toLocaleDateString('es-MX') + ')');
+            this.datos.fechas.push(fechaSemana);
             
             // S-Curve típica: lento al inicio, rápido en medio, lento al final
             const progreso = i / semanasTotales;
