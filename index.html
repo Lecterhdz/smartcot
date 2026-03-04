@@ -739,6 +739,54 @@
                 </div>
             </div>
         </section>
+
+        <!-- HISTORIAL COTIZACIONES SCREEN -->
+        <section id="historial-cotizaciones-screen" class="screen">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                    <h2 style="margin:0;color:#1a1a1a;">📋 Historial de Cotizaciones</h2>
+                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" 
+                            style="padding:10px 20px;background:#6c757d;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
+                        ↩️ Volver
+                    </button>
+                </div>
+                
+                <!-- Buscador -->
+                <div style="background:#E3F2FD;padding:20px;border-radius:15px;margin-bottom:25px;">
+                    <div style="display:grid;grid-template-columns:1fr auto;gap:15px;">
+                        <input type="text" id="buscar-cotizacion" placeholder="🔍 Buscar por cliente, descripción o número..." 
+                               style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;"
+                               onkeyup="historialCotizaciones.buscar()">
+                        <button class="btn btn-primary" onclick="historialCotizaciones.cargar()" 
+                                style="padding:12px 25px;background:#2196F3;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
+                            🔄 Actualizar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Lista de Cotizaciones -->
+                <div style="overflow-x:auto;">
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#1a1a1a;color:white;">
+                                <th style="padding:15px;text-align:left;"># Cotización</th>
+                                <th style="padding:15px;text-align:left;">Cliente</th>
+                                <th style="padding:15px;text-align:left;">Descripción</th>
+                                <th style="padding:15px;text-align:left;">Fecha</th>
+                                <th style="padding:15px;text-align:right;">Total</th>
+                                <th style="padding:15px;text-align:center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historial-cotizaciones-tabla">
+                            <tr>
+                                <td colspan="6" style="padding:40px;text-align:center;color:#999;">Cargando cotizaciones...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        
     </main>
 
     <!-- MODAL CLIENTE RÁPIDO (antes de </body>) -->
@@ -877,6 +925,7 @@
     <script src="curva-s.js"></script>              
 </body>
 </html>
+
 
 
 
