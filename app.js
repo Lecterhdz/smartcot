@@ -63,7 +63,17 @@ window.app = {
             await this.esperarDB();
             this.estado.dbLista = true;
             console.log('✅ Base de datos lista');
+
+            // ⚠️ VERIFICAR SI HAY CONCEPTOS EN BD
+            const conceptosCount = await window.db.conceptos.count();
+            console.log('📊 Conceptos en BD:', conceptosCount);
             
+            if (conceptosCount === 0) {
+                console.log('📥 No hay conceptos en BD, cargando catálogo base...');
+                await this.cargarCatalogoBase();
+            } else {
+                console.log('✅ Ya hay', conceptosCount, 'conceptos en BD');
+            } 
             const licencia = window.licencia.cargar();
             this.estado.licenciaActiva = licencia && !licencia.expirada;
             this.actualizarInfoLicencia(licencia);
@@ -261,7 +271,37 @@ window.app = {
             console.error('❌ Error cargando actividad reciente:', error);
         }
     },
-    
+    // ─────────────────────────────────────────────────────────────────────
+    // CARGAR CATÁLOGO BASE DESDE GITHUB
+    // ─────────────────────────────────────────────────────────────────────
+    cargarCatalogoBase: async function() {
+        try {
+            console.log('📥 Intentando cargar catálogo base...');
+            
+            const response = await fetch('data/catalogo-base.xlsx');
+            if (!response.ok) {
+                console.log('⚠️ No se encontró catálogo base en GitHub');
+                return;
+            }
+            
+            const blob = await response.blob();
+            const file = new File([blob], 'catalogo-base.xlsx', { 
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+            });
+            
+            console.log('📥 Importando catálogo base desde GitHub...');
+            
+            // Usar el mismo importador que para archivos manuales
+            const resultado = await importadorSmartCot.importarArchivo(file);
+            
+            console.log('✅ Catálogo base cargado:', resultado.estadisticas);
+            this.notificacion('📚 Catálogo base cargado: ' + resultado.estadisticas.conceptos + ' conceptos', 'exito');
+            
+        } catch (error) {
+            console.error('❌ Error cargando catálogo base:', error);
+            console.log('⚠️ El catálogo base no se cargó. Importa manualmente desde Configuración.');
+        }
+    },    
     // ─────────────────────────────────────────────────────────────────
     // CATÁLOGO
     // ─────────────────────────────────────────────────────────────────
@@ -1004,61 +1044,77 @@ window.app = {
         
         const tiempoOriginal = this.tiempoEjecucion?.diasHabiles || 0;
         const tiempoAjustado = Math.ceil(tiempoOriginal * factorTotal);
-              
+        
+        // ⚠️ DEFINIR LAS VARIABLES ANTES DE USARLAS
+        const elTiempoOriginal = document.getElementById('tiempo-original');
+        const elTiempoAjustado = document.getElementById('tiempo-ajustado');
+        
         if (elTiempoOriginal) elTiempoOriginal.textContent = tiempoOriginal + ' días';
         if (elTiempoAjustado) elTiempoAjustado.textContent = tiempoAjustado + ' días';
         
-        this.factorAjusteActual = factorTotal;
-        
-        console.log('✅ Factores aplicados:', {
+        // ⚠️ GUARDAR impactoFactores PARA QUE SE MUESTRE DESPUÉS
+        this.impactoFactores = {
+            factorAltura: factorAltura,
+            factorClima: factorClima,
+            factorAcceso: factorAcceso,
+            factorSeguridad: factorSeguridad,
             factorTotal: factorTotal,
             tiempoOriginal: tiempoOriginal,
-            tiempoAjustado: tiempoAjustado
-        });
-    },
-    
-    guardarFactores: function() {
-        const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
-        const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
-        const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
-        const factorSeguridad = parseFloat(document.getElementById('factor-seguridad')?.value) || 1;
-        
-        this.factoresAjuste = {
-            altura: factorAltura,
-            clima: factorClima,
-            acceso: factorAcceso,
-            seguridad: factorSeguridad,
-            total: factorAltura * factorClima * factorAcceso * factorSeguridad
+            tiempoAjustado: tiempoAjustado,
+            diasIncremento: tiempoAjustado - tiempoOriginal,
+            porcentajeIncremento: tiempoOriginal > 0 ? ((factorTotal - 1) * 100) : 0,
+            costoTiempoExtendido: (this.costoIndirectosDiario || 0) * (tiempoAjustado - tiempoOriginal),
+            aplicado: factorTotal > 1
         };
         
-        if (this.tiempoEjecucion) {
-            this.tiempoEjecucion.diasHabilesAjustado = Math.ceil(
-                this.tiempoEjecucion.diasHabiles * (this.factorAjusteActual || 1)
-            );
-            this.tiempoEjecucion.semanasAjustado = (this.tiempoEjecucion.diasHabilesAjustado / 5).toFixed(2);
-            this.tiempoEjecucion.mesesAjustado = (this.tiempoEjecucion.semanasAjustado / 4.33).toFixed(2);
-        }
+        this.factorAjusteActual = factorTotal;
         
-        const modal = document.getElementById('modal-factores');
-        if (modal) modal.style.display = 'none';
-        
-        // ⚠️ IMPORTANTE: Marcar como aplicado y mostrar sección
-        this.impactoFactores.aplicado = factorTotal > 1;
-        this.impactoFactores.factorTotal = this.factorAjusteActual;
-        this.impactoFactores.tiempoOriginal = this.tiempoEjecucion?.diasHabiles || 0;
-        this.impactoFactores.tiempoAjustado = Math.ceil((this.tiempoEjecucion?.diasHabiles || 0) * this.factorAjusteActual);
-        this.impactoFactores.diasIncremento = this.impactoFactores.tiempoAjustado - this.impactoFactores.tiempoOriginal;
-        this.impactoFactores.porcentajeIncremento = ((this.factorAjusteActual - 1) * 100);
-        this.impactoFactores.costoTiempoExtendido = this.costoIndirectosDiario * this.impactoFactores.diasIncremento;
-        
-        // Mostrar sección de impacto permanentemente
-        this.mostrarImpactoFactores();
-        
-        // Recalcular totales (ESTO ACTUALIZA LOS COSTOS)
-        this.calcularTotalConConceptos();
-        
-        this.notificacion('✅ Factores aplicados: ' + ((this.factorAjusteActual || 1) * 100).toFixed(0) + '%', 'exito');
+        console.log('✅ Factores aplicados:', this.impactoFactores);
     },
+    
+// ─────────────────────────────────────────────────────────────────
+// GUARDAR FACTORES (CORREGIDO)
+// ─────────────────────────────────────────────────────────────────
+guardarFactores: function() {
+    const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
+    const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
+    const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
+    const factorSeguridad = parseFloat(document.getElementById('factor-seguridad')?.value) || 1;
+    const factorTotal = factorAltura * factorClima * factorAcceso * factorSeguridad;
+    
+    this.factoresAjuste = {
+        altura: factorAltura,
+        clima: factorClima,
+        acceso: factorAcceso,
+        seguridad: factorSeguridad,
+        total: factorTotal
+    };
+    
+    // Recalcular tiempo con factores
+    if (this.tiempoEjecucion) {
+        this.tiempoEjecucion.diasHabilesAjustado = Math.ceil(
+            this.tiempoEjecucion.diasHabiles * factorTotal
+        );
+        this.tiempoEjecucion.semanasAjustado = (this.tiempoEjecucion.diasHabilesAjustado / 5).toFixed(2);
+        this.tiempoEjecucion.mesesAjustado = (this.tiempoEjecucion.semanasAjustado / 4.33).toFixed(2);
+    }
+    
+    // Cerrar modal
+    const modal = document.getElementById('modal-factores');
+    if (modal) modal.style.display = 'none';
+    
+    // ⚠️ ACTUALIZAR impactoFactores
+    this.impactoFactores.aplicado = factorTotal > 1;
+    this.impactoFactores.factorTotal = factorTotal;
+    
+    // Mostrar sección de impacto permanentemente
+    this.mostrarImpactoFactores();
+    
+    // Recalcular totales (ESTO ACTUALIZA LOS COSTOS)
+    this.calcularTotalConConceptos();
+    
+    this.notificacion('✅ Factores aplicados: ' + (factorTotal * 100).toFixed(0) + '%', 'exito');
+},
     
     mostrarImpactoFactores: function() {
         const seccion = document.getElementById('seccion-impacto-factores');
@@ -1550,6 +1606,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
