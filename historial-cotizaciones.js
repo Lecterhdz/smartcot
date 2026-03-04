@@ -241,7 +241,7 @@ window.historialCotizaciones = {
                             📋 Duplicar para Editar
                         </button>
                         <button onclick="reportes.generarCotizacionPDF(${cotizacion.id})" 
-                                style="flex:1;background:#f44336;color:white;border:none;padding:14px;border-radius:10px;cursor:pointer;font-weight:600;">
+                                style="flex:1;background:#4CAF50;color:white;border:none;padding:14px;border-radius:10px;cursor:pointer;font-weight:600;">
                             📄 Exportar PDF
                         </button>
                     </div>
