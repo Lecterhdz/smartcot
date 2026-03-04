@@ -1350,6 +1350,71 @@ guardarFactores: function() {
         
         this.inicializarFormularios();
     },
+
+    // ─────────────────────────────────────────────────────────────────
+    // CARGAR DATOS DE COTIZACIÓN (PARA EDITAR)
+    // ─────────────────────────────────────────────────────────────────
+    cargarDatosCotizacion: function(cotizacion) {
+        console.log('📋 Cargando datos de cotización:', cotizacion);
+        
+        // Limpiar datos actuales
+        this.datosCotizacion = {
+            materiales: [],
+            manoObra: [],
+            equipos: [],
+            herramienta: [],
+            indirectos: [],
+            conceptosSeleccionados: []
+        };
+        
+        // Cargar conceptos
+        if (cotizacion.conceptosCatalogo && cotizacion.conceptosCatalogo.length > 0) {
+            this.datosCotizacion.conceptosSeleccionados = JSON.parse(JSON.stringify(cotizacion.conceptosCatalogo));
+        }
+        
+        // Cargar adicionales
+        if (cotizacion.materialesAdicionales) {
+            this.datosCotizacion.materiales = JSON.parse(JSON.stringify(cotizacion.materialesAdicionales));
+        }
+        if (cotizacion.manoObraAdicional) {
+            this.datosCotizacion.manoObra = JSON.parse(JSON.stringify(cotizacion.manoObraAdicional));
+        }
+        if (cotizacion.equiposAdicionales) {
+            this.datosCotizacion.equipos = JSON.parse(JSON.stringify(cotizacion.equiposAdicionales));
+        }
+        if (cotizacion.herramientaAdicional) {
+            this.datosCotizacion.herramienta = JSON.parse(JSON.stringify(cotizacion.herramientaAdicional));
+        }
+        if (cotizacion.indirectosAdicionales) {
+            this.datosCotizacion.indirectos = JSON.parse(JSON.stringify(cotizacion.indirectosAdicionales));
+        }
+        
+        // Cargar tiempo
+        if (cotizacion.tiempoEjecucion) {
+            this.tiempoEjecucion = JSON.parse(JSON.stringify(cotizacion.tiempoEjecucion));
+        }
+        
+        // Cargar factores
+        if (cotizacion.factoresAjuste) {
+            this.factoresAjuste = JSON.parse(JSON.stringify(cotizacion.factoresAjuste));
+            this.impactoFactores = {
+                factorAltura: cotizacion.factoresAjuste.altura || 1,
+                factorClima: cotizacion.factoresAjuste.clima || 1,
+                factorAcceso: cotizacion.factoresAjuste.acceso || 1,
+                factorSeguridad: cotizacion.factoresAjuste.seguridad || 1,
+                factorTotal: cotizacion.factoresAjuste.total || 1,
+                aplicado: (cotizacion.factoresAjuste.total || 1) > 1
+            };
+        }
+        
+        // Actualizar UI
+        this.actualizarConceptosSeleccionadosUI();
+        this.actualizarContadorGeneral();
+        this.calcularTotalConConceptos();
+        this.mostrarImpactoFactores();
+        
+        console.log('✅ Datos cargados correctamente');
+    },    
     
     // ─────────────────────────────────────────────────────────────────
     // CLIENTES
@@ -1609,6 +1674,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
