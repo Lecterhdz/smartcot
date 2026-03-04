@@ -63,6 +63,25 @@ window.app = {
             await this.esperarDB();
             this.estado.dbLista = true;
             console.log('✅ Base de datos lista');
+
+            // VERIFICAR SI HAY CONCEPTOS EN BD
+            const conceptosCount = await window.db.conceptos.count();
+            console.log('📊 Conceptos en BD:', conceptosCount);
+            
+            if (conceptosCount === 0) {
+                console.log('📥 No hay conceptos en BD, cargando catálogo base...');
+                await this.cargarCatalogoBase();
+                
+                // Verificar si se cargó
+                const nuevosConceptos = await window.db.conceptos.count();
+                console.log('📊 Conceptos después de cargar:', nuevosConceptos);
+                
+                if (nuevosConceptos === 0) {
+                    console.log('⚠️ El catálogo base no se cargó. Importa manualmente.');
+                }
+            } else {
+                console.log('✅ Ya hay', conceptosCount, 'conceptos en BD');
+            }
             
             const licencia = window.licencia.cargar();
             this.estado.licenciaActiva = licencia && !licencia.expirada;
@@ -619,344 +638,49 @@ window.app = {
         this.actualizarConceptosSeleccionadosUI();
         this.notificacion('Concepto eliminado', 'advertencia');
     },
-// ─────────────────────────────────────────────────────────────────
-// CATÁLOGO
-// ─────────────────────────────────────────────────────────────────
-cargarCatalogoCompleto: async function() {
-    try {
-        if (!window.db) {
-            console.error('❌ DB no disponible');
-            return;
-        }
-        
-        const container = document.getElementById('lista-catalogo');
-        if (!container) {
-            console.error('❌ Container lista-catalogo no encontrado');
-            return;
-        }
-        
-        const conceptos = await window.db.conceptos.limit(50).toArray();
-        
-        if (conceptos.length === 0) {
-            container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><h3>Sin conceptos</h3><p>Importa conceptos desde Excel para comenzar</p><button onclick="app.mostrarPantalla(\'importar-screen\')" style="margin-top:15px;background:#2196F3;color:white;border:none;padding:12px 25px;border-radius:10px;cursor:pointer;font-weight:600;">📥 Importar Ahora</button></div>';
-            return;
-        }
-        
-        const app = this;
-        container.innerHTML = conceptos.map(function(c) {
-            return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin-bottom:10px;background:white;">' +
-                '<div style="display:flex;justify-content:space-between;align-items:start;">' +
-                '<div>' +
-                '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + c.codigo + '</div>' +
-                '<div style="color:#666;font-size:14px;">' + c.descripcion_corta + '</div>' +
-                '<div style="color:#999;font-size:12px;margin-top:5px;">Unidad: ' + c.unidad + ' | Rendimiento: ' + c.rendimiento_base + '</div>' +
-                '</div>' +
-                '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" style="background:#4CAF50;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;">➕ Agregar</button>' +
-                '</div></div>';
-        }).join('');
-        
-    } catch (error) {
-        console.error('❌ Error cargando catálogo:', error);
-        const container = document.getElementById('lista-catalogo');
-        if (container) {
-            container.innerHTML = '<div style="padding:20px;text-align:center;color:#f44336;">Error cargando catálogo: ' + error.message + '</div>';
-        }
-    }
-},
 
-filtrarCatalogo: async function(categoria) {
-    try {
-        const container = document.getElementById('lista-catalogo');
-        if (!container) return;
-        
-        document.querySelectorAll('#catalogos-screen .btn').forEach(function(btn) {
-            btn.classList.remove('btn-primary');
-            btn.classList.add('btn-secondary');
-        });
-        if (event && event.target) {
-            event.target.classList.remove('btn-secondary');
-            event.target.classList.add('btn-primary');
+
+    // ─────────────────────────────────────────────────────────────────────
+    // CARGAR CATÁLOGO BASE DESDE GITHUB (CORREGIDO)
+    // ─────────────────────────────────────────────────────────────────────
+    cargarCatalogoBase: async function() {
+        try {
+            console.log('📥 Intentando cargar catálogo base...');
+            
+            // URL correcta para GitHub Pages
+            const baseUrl = window.location.hostname === 'localhost' 
+                ? '/smartcot/data/catalogo-base.xlsx'
+                : '/smartcot/data/catalogo-base.xlsx';
+            
+            console.log('🔗 URL:', baseUrl);
+            
+            const response = await fetch(baseUrl);
+            
+            if (!response.ok) {
+                console.log('⚠️ No se encontró catálogo base en:', baseUrl);
+                console.log('Status:', response.status);
+                return;
+            }
+            
+            const blob = await response.blob();
+            const file = new File([blob], 'catalogo-base.xlsx', { 
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+            });
+            
+            console.log('📥 Importando catálogo base desde GitHub...');
+            
+            // Usar el mismo importador que para archivos manuales
+            const resultado = await importadorSmartCot.importarArchivo(file);
+            
+            console.log('✅ Catálogo base cargado:', resultado.estadisticas);
+            this.notificacion('📚 Catálogo base cargado: ' + resultado.estadisticas.conceptos + ' conceptos', 'exito');
+            
+        } catch (error) {
+            console.error('❌ Error cargando catálogo base:', error);
+            console.log('⚠️ El catálogo base no se cargó. Puedes importar manualmente desde Configuración.');
         }
+    },
         
-        let conceptos;
-        if (categoria === 'todos') {
-            conceptos = await window.db.conceptos.limit(50).toArray();
-        } else {
-            conceptos = await window.db.conceptos.where('categoria').equals(categoria).limit(50).toArray();
-        }
-        
-        if (conceptos.length === 0) {
-            container.innerHTML = '<div style="padding:40px;text-align:center;color:#999;">No hay conceptos en esta categoría</div>';
-            return;
-        }
-        
-        const app = this;
-        container.innerHTML = conceptos.map(function(c) {
-            return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin-bottom:10px;background:white;">' +
-                '<div style="display:flex;justify-content:space-between;align-items:start;">' +
-                '<div>' +
-                '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + c.codigo + '</div>' +
-                '<div style="color:#666;font-size:14px;">' + (c.descripcion_corta || '') + '</div>' +
-                '<div style="color:#999;font-size:12px;margin-top:5px;">' +
-                '<span style="background:#E3F2FD;padding:2px 8px;border-radius:4px;font-size:11px;">' + (c.categoria || 'General') + '</span>' +
-                '<span style="margin-left:10px;">Unidad: ' + (c.unidad || 'N/A') + '</span>' +
-                '<span style="margin-left:10px;">Rendimiento: ' + (c.rendimiento_base || 0) + '</span>' +
-                '</div>' +
-                '</div>' +
-                '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" ' +
-                'style="background:#4CAF50;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;">➕ Agregar</button>' +
-                '</div></div>';
-        }).join('');
-        
-        this.actualizarContadorCatalogo();
-        
-    } catch (error) {
-        console.error('❌ Error filtrando catálogo:', error);
-    }
-},
-
-buscarEnCatalogo: async function() {
-    try {
-        const termino = document.getElementById('buscar-catalogo')?.value.trim();
-        const container = document.getElementById('lista-catalogo');
-        if (!container) return;
-        
-        if (!termino || termino.length < 2) {
-            await this.filtrarCatalogo('todos');
-            return;
-        }
-        
-        const conceptos = await window.db.conceptos
-            .filter(function(c) {
-                return (c.codigo || '').toLowerCase().includes(termino.toLowerCase()) ||
-                    (c.descripcion_corta || '').toLowerCase().includes(termino.toLowerCase());
-            })
-            .limit(50)
-            .toArray();
-        
-        if (conceptos.length === 0) {
-            container.innerHTML = '<div style="padding:40px;text-align:center;color:#999;">No se encontraron conceptos</div>';
-            return;
-        }
-        
-        const app = this;
-        container.innerHTML = conceptos.map(function(c) {
-            return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin-bottom:10px;background:white;">' +
-                '<div style="display:flex;justify-content:space-between;align-items:start;">' +
-                '<div>' +
-                '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + c.codigo + '</div>' +
-                '<div style="color:#666;font-size:14px;">' + (c.descripcion_corta || '') + '</div>' +
-                '<div style="color:#999;font-size:12px;margin-top:5px;">Unidad: ' + (c.unidad || 'N/A') + ' | Rendimiento: ' + (c.rendimiento_base || 0) + '</div>' +
-                '</div>' +
-                '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" ' +
-                'style="background:#4CAF50;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;">➕ Agregar</button>' +
-                '</div></div>';
-        }).join('');
-        
-        this.actualizarContadorCatalogo();
-        
-    } catch (error) {
-        console.error('❌ Error buscando en catálogo:', error);
-    }
-},
-
-actualizarContadorCatalogo: function() {
-    const countLabel = document.getElementById('conceptos-count-catalogo');
-    const container = document.getElementById('conceptos-seleccionados-catalogo');
-    
-    if (countLabel) {
-        countLabel.textContent = this.datosCotizacion.conceptosSeleccionados.length;
-    }
-    
-    if (container) {
-        this.actualizarConceptosSeleccionadosUI();
-    }
-},
-
-actualizarContadorGeneral: function() {
-    const count = this.datosCotizacion.conceptosSeleccionados.length;
-    
-    const countNuevaCot = document.getElementById('conceptos-count');
-    if (countNuevaCot) {
-        countNuevaCot.textContent = count;
-    }
-    
-    const countCatalogo = document.getElementById('conceptos-count-catalogo');
-    if (countCatalogo) {
-        countCatalogo.textContent = count;
-    }
-},
-
-limpiarConceptosSeleccionados: function() {
-    if (confirm('¿Eliminar todos los conceptos seleccionados?')) {
-        this.datosCotizacion.conceptosSeleccionados = [];
-        this.actualizarConceptosSeleccionadosUI();
-        this.actualizarContadorCatalogo();
-        this.notificacion('🗑️ Conceptos eliminados', 'advertencia');
-    }
-},
-
-agregarConceptoACotizacion: async function(conceptoId) {
-    try {
-        console.log('📋 Agregando concepto:', conceptoId);
-        
-        const concepto = await window.db.conceptos.get(conceptoId);
-        
-        if (!concepto) {
-            this.notificacion('Concepto no encontrado', 'error');
-            return;
-        }
-        
-        const existe = this.datosCotizacion.conceptosSeleccionados.find(function(c) {
-            return c.id === conceptoId;
-        });
-        
-        if (existe) {
-            this.notificacion('⚠️ Este concepto ya está en la cotización', 'advertencia');
-            return;
-        }
-        
-        concepto.cantidad = 1;
-        this.datosCotizacion.conceptosSeleccionados.push(concepto);
-        
-        console.log('✅ Concepto agregado:', concepto.codigo);
-        console.log('📊 Total conceptos:', this.datosCotizacion.conceptosSeleccionados.length);
-        
-        this.actualizarConceptosSeleccionadosUI();
-        this.actualizarContadorGeneral();
-        this.calcularTotalConConceptos();
-        
-        this.notificacion('✅ Concepto ' + concepto.codigo + ' agregado (' +
-            this.datosCotizacion.conceptosSeleccionados.length + ' total)', 'exito');
-        
-    } catch (error) {
-        console.error('❌ Error agregando concepto:', error);
-        this.notificacion('Error al agregar concepto: ' + error.message, 'error');
-    }
-},
-
-actualizarConceptosSeleccionadosUI: function() {
-    const container = document.getElementById('conceptos-seleccionados');
-    const containerCatalogo = document.getElementById('conceptos-seleccionados-catalogo');
-    
-    this.actualizarContadorGeneral();
-    
-    if (!container && !containerCatalogo) return;
-    
-    if (this.datosCotizacion.conceptosSeleccionados.length === 0) {
-        const emptyHTML = '<div style="padding:40px;text-align:center;color:#999;">' +
-            '<div style="font-size:48px;margin-bottom:10px;">📭</div>' +
-            '<div>No hay conceptos seleccionados</div>' +
-            '<div style="font-size:13px;margin-top:5px;">Ve a Catálogos y agrega conceptos para comenzar</div>' +
-            '</div>';
-        if (container) container.innerHTML = emptyHTML;
-        if (containerCatalogo) containerCatalogo.innerHTML = emptyHTML;
-        return;
-    }
-    
-    const app = this;
-    const conceptosHTML = this.datosCotizacion.conceptosSeleccionados.map(function(c, index) {
-        const subtotal = (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
-        
-        const materiales = c.recursos?.materiales || [];
-        const manoObra = c.recursos?.mano_obra || [];
-        const equipos = c.recursos?.equipos || [];
-        const herramienta = c.recursos?.herramienta || [];
-        
-        const totalMateriales = materiales.reduce(function(sum, m) { return sum + (m.importe || 0); }, 0);
-        const totalManoObra = manoObra.reduce(function(sum, mo) { return sum + (mo.importe || 0); }, 0);
-        const totalEquipos = equipos.reduce(function(sum, e) { return sum + (e.importe || 0); }, 0);
-        const totalHerramienta = herramienta.reduce(function(sum, h) { return sum + (h.importe || 0); }, 0);
-        
-        return '<div style="padding:20px;border:2px solid #ddd;border-radius:15px;margin:15px 0;background:white;">' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">' +
-            '<div style="flex:1;">' +
-            '<div style="font-weight:700;color:#1a1a1a;font-size:16px;">' + c.codigo + '</div>' +
-            '<div style="color:#666;font-size:13px;">' + (c.descripcion_corta || '').substring(0, 60) + '...</div>' +
-            '</div>' +
-            '<button onclick="app.eliminarConceptoDeCotizacion(' + index + ')" ' +
-            'style="background:#f44336;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;">🗑️</button>' +
-            '</div>' +
-            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:15px;">' +
-            '<div>' +
-            '<label style="font-size:12px;color:#666;">Cantidad</label>' +
-            '<input type="number" value="' + (c.cantidad || 1) + '" min="1" step="1" ' +
-            'onchange="app.actualizarCantidadConcepto(' + index + ', this.value)" ' +
-            'style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">' +
-            '</div>' +
-            '<div>' +
-            '<label style="font-size:12px;color:#666;">Unidad</label>' +
-            '<div style="padding:8px;background:#f5f7fa;border-radius:6px;font-weight:600;">' + c.unidad + '</div>' +
-            '</div>' +
-            '<div>' +
-            '<label style="font-size:12px;color:#666;">Costo Unitario</label>' +
-            '<div style="padding:8px;background:#E8F5E9;border-radius:6px;font-weight:700;color:#2E7D32;">' + calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0) + '</div>' +
-            '</div>' +
-            '<div>' +
-            '<label style="font-size:12px;color:#666;">Subtotal</label>' +
-            '<div style="padding:8px;background:#1a1a1a;color:white;border-radius:6px;font-weight:700;">' + calculator.formatoMoneda(subtotal) + '</div>' +
-            '</div>' +
-            '</div>' +
-            '<div style="background:#f5f7fa;padding:15px;border-radius:10px;margin-top:15px;">' +
-            '<div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;border-bottom:2px solid #ddd;padding-bottom:5px;">📦 MATERIALES (' + materiales.length + ') - ' + calculator.formatoMoneda(totalMateriales) + '</div>' +
-            (materiales.length > 0 ? materiales.map(function(m) {
-                return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ddd;font-size:12px;">' +
-                    '<span style="color:#666;">' + (m.nombre || m.material_codigo || 'Sin nombre') + '</span>' +
-                    '<span style="font-weight:600;">' + m.cantidad + ' ' + m.unidad + ' × ' + calculator.formatoMoneda(m.precio_unitario || 0) + ' = <span style="color:#1a1a1a;">' + calculator.formatoMoneda(m.importe || 0) + '</span></span>' +
-                    '</div>';
-            }).join('') : '<div style="color:#999;padding:10px;text-align:center;">Sin materiales</div>') +
-            '</div>' +
-            '<div style="background:#f5f7fa;padding:15px;border-radius:10px;margin-top:10px;">' +
-            '<div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;border-bottom:2px solid #ddd;padding-bottom:5px;">👷 MANO DE OBRA (' + manoObra.length + ') - ' + calculator.formatoMoneda(totalManoObra) + '</div>' +
-            (manoObra.length > 0 ? manoObra.map(function(mo) {
-                return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #ddd;font-size:13px;">' +
-                    '<span style="color:#666;">' + (mo.puesto || 'Sin nombre') + '</span>' +
-                    '<span style="font-weight:600;">' + mo.horas_jornada + ' JOR × ' +
-                    calculator.formatoMoneda(mo.salario_hora * 8) + '/JOR = ' +
-                    '<span style="color:#1a1a1a;">' + calculator.formatoMoneda(mo.importe || 0) + '</span></span>' +
-                    '</div>';
-            }).join('') : '<div style="color:#999;padding:10px;text-align:center;">Sin mano de obra</div>') +
-            '</div>' +
-            '<div style="background:#f5f7fa;padding:15px;border-radius:10px;margin-top:10px;">' +
-            '<div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;border-bottom:2px solid #ddd;padding-bottom:5px;">🏗️ EQUIPOS (' + equipos.length + ') - ' + calculator.formatoMoneda(totalEquipos) + '</div>' +
-            (equipos.length > 0 ? equipos.map(function(e) {
-                return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ddd;font-size:12px;">' +
-                    '<span style="color:#666;">' + (e.nombre || e.equipo_codigo || 'Sin nombre') + '</span>' +
-                    '<span style="font-weight:600;">' + e.horas + ' ' + e.unidad + ' × ' + calculator.formatoMoneda(e.costo_unitario || 0) + ' = <span style="color:#1a1a1a;">' + calculator.formatoMoneda(e.importe || 0) + '</span></span>' +
-                    '</div>';
-            }).join('') : '<div style="color:#999;padding:10px;text-align:center;">Sin equipos</div>') +
-            '</div>' +
-            '<div style="background:#f5f7fa;padding:15px;border-radius:10px;margin-top:10px;">' +
-            '<div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;border-bottom:2px solid #ddd;padding-bottom:5px;">🔧 HERRAMIENTA (' + herramienta.length + ') - ' + calculator.formatoMoneda(totalHerramienta) + '</div>' +
-            (herramienta.length > 0 ? herramienta.map(function(h) {
-                return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #ddd;font-size:13px;">' +
-                    '<span style="color:#666;">' + (h.nombre || 'Sin nombre') + '</span>' +
-                    '<span style="font-weight:600;">' + h.porcentaje + '% = ' +
-                    '<span style="color:#1a1a1a;">' + calculator.formatoMoneda(h.importe || 0) + '</span></span>' +
-                    '</div>';
-            }).join('') : '<div style="color:#999;padding:10px;text-align:center;">Sin herramienta</div>') +
-            '</div>' +
-            '</div>';
-    }).join('');
-    
-    if (container) container.innerHTML = conceptosHTML;
-    if (containerCatalogo) containerCatalogo.innerHTML = conceptosHTML;
-},
-
-actualizarCantidadConcepto: function(index, cantidad) {
-    if (this.datosCotizacion.conceptosSeleccionados[index]) {
-        this.datosCotizacion.conceptosSeleccionados[index].cantidad = parseFloat(cantidad) || 1;
-        this.calcularTotalConConceptos();
-        this.actualizarConceptosSeleccionadosUI();
-    }
-},
-
-eliminarConceptoDeCotizacion: function(index) {
-    this.datosCotizacion.conceptosSeleccionados.splice(index, 1);
-    this.calcularTotalConConceptos();
-    this.actualizarConceptosSeleccionadosUI();
-    this.notificacion('Concepto eliminado', 'advertencia');
-},
 // ─────────────────────────────────────────────────────────────────
 // MATERIALES
 // ─────────────────────────────────────────────────────────────────
@@ -1769,4 +1493,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
