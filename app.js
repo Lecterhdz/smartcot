@@ -1396,6 +1396,181 @@ verificarClientesDisponibles: async function() {
     }
 },
 
+// ─────────────────────────────────────────────────────────────────
+// FACTORES DE AJUSTE (FUNCIONES FALTANTES)
+// ─────────────────────────────────────────────────────────────────
+abrirFactoresAjuste: function() {
+    const modal = document.getElementById('modal-factores');
+    if (modal) {
+        modal.style.display = 'flex';
+        this.aplicarFactores();
+    } else {
+        console.error('❌ Modal de factores no encontrado');
+    }
+},
+
+aplicarFactores: function() {
+    const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
+    const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
+    const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
+    const factorSeguridad = parseFloat(document.getElementById('factor-seguridad')?.value) || 1;
+    
+    const factorTotal = factorAltura * factorClima * factorAcceso * factorSeguridad;
+    
+    const tiempoOriginal = this.tiempoEjecucion?.diasHabiles || 0;
+    const tiempoAjustado = Math.ceil(tiempoOriginal * factorTotal);
+    
+    const elTiempoOriginal = document.getElementById('tiempo-original');
+    const elTiempoAjustado = document.getElementById('tiempo-ajustado');
+    
+    if (elTiempoOriginal) elTiempoOriginal.textContent = tiempoOriginal + ' días';
+    if (elTiempoAjustado) elTiempoAjustado.textContent = tiempoAjustado + ' días';
+    
+    this.factorAjusteActual = factorTotal;
+},
+
+guardarFactores: function() {
+    const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
+    const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
+    const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
+    const factorSeguridad = parseFloat(document.getElementById('factor-seguridad')?.value) || 1;
+    
+    this.factoresAjuste = {
+        altura: factorAltura,
+        clima: factorClima,
+        acceso: factorAcceso,
+        seguridad: factorSeguridad,
+        total: factorAltura * factorClima * factorAcceso * factorSeguridad
+    };
+    
+    if (this.tiempoEjecucion) {
+        this.tiempoEjecucion.diasHabilesAjustado = Math.ceil(
+            this.tiempoEjecucion.diasHabiles * (this.factorAjusteActual || 1)
+        );
+        this.tiempoEjecucion.semanasAjustado = (this.tiempoEjecucion.diasHabilesAjustado / 5).toFixed(2);
+        this.tiempoEjecucion.mesesAjustado = (this.tiempoEjecucion.semanasAjustado / 4.33).toFixed(2);
+    }
+    
+    const modal = document.getElementById('modal-factores');
+    if (modal) modal.style.display = 'none';
+    
+    this.mostrarImpactoFactores();
+    this.calcularTotalConConceptos();
+    
+    this.notificacion('✅ Factores aplicados: ' + ((this.factorAjusteActual || 1) * 100).toFixed(0) + '%', 'exito');
+},
+
+mostrarImpactoFactores: function() {
+    const seccion = document.getElementById('seccion-impacto-factores');
+    if (!seccion) return;
+    
+    // Mostrar sección solo si hay factores aplicados
+    if (this.impactoFactores && this.impactoFactores.factorTotal > 1) {
+        seccion.style.display = 'block';
+        
+        const elTiempoOriginal = document.getElementById('impacto-tiempo-original');
+        const elTiempoAjustado = document.getElementById('impacto-tiempo-ajustado');
+        const elDiasIncremento = document.getElementById('impacto-dias-incremento');
+        const elPorcentajeTiempo = document.getElementById('impacto-porcentaje-tiempo');
+        const elFactorTotal = document.getElementById('impacto-factor-total');
+        const elCostoTiempo = document.getElementById('impacto-costo-tiempo');
+        const elCostoTotal = document.getElementById('impacto-costo-total');
+        const elSemanasOriginal = document.getElementById('impacto-semanas-original');
+        const elSemanasAjustado = document.getElementById('impacto-semanas-ajustado');
+        const elDesglose = document.getElementById('impacto-desglose-factores');
+        
+        if (elTiempoOriginal) elTiempoOriginal.textContent = this.impactoFactores.tiempoOriginal + ' días';
+        if (elTiempoAjustado) elTiempoAjustado.textContent = this.impactoFactores.tiempoAjustado + ' días';
+        if (elDiasIncremento) elDiasIncremento.textContent = '+' + this.impactoFactores.diasIncremento + ' días';
+        if (elPorcentajeTiempo) elPorcentajeTiempo.textContent = '+' + this.impactoFactores.porcentajeIncremento.toFixed(1) + '%';
+        if (elFactorTotal) elFactorTotal.textContent = this.impactoFactores.factorTotal.toFixed(2) + 'x';
+        if (elCostoTiempo) elCostoTiempo.textContent = calculator.formatoMoneda(this.impactoFactores.costoTiempoExtendido);
+        
+        if (elSemanasOriginal) {
+            const semanasOrig = (this.impactoFactores.tiempoOriginal / 5).toFixed(2);
+            elSemanasOriginal.textContent = semanasOrig + ' semanas';
+        }
+        if (elSemanasAjustado) {
+            const semanasAjust = (this.impactoFactores.tiempoAjustado / 5).toFixed(2);
+            elSemanasAjustado.textContent = semanasAjust + ' semanas';
+        }
+        
+        // Desglose de factores
+        if (elDesglose) {
+            elDesglose.innerHTML =
+                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                '<div style="font-size:11px;color:#666;">🏔️ Altura</div>' +
+                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + this.impactoFactores.factorAltura.toFixed(2) + 'x</div>' +
+                '</div>' +
+                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                '<div style="font-size:11px;color:#666;">🌤️ Clima</div>' +
+                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + this.impactoFactores.factorClima.toFixed(2) + 'x</div>' +
+                '</div>' +
+                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                '<div style="font-size:11px;color:#666;">🚪 Acceso</div>' +
+                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + this.impactoFactores.factorAcceso.toFixed(2) + 'x</div>' +
+                '</div>' +
+                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                '<div style="font-size:11px;color:#666;">🔒 Seguridad</div>' +
+                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + this.impactoFactores.factorSeguridad.toFixed(2) + 'x</div>' +
+                '</div>';
+        }
+        
+        // Actualizar tiempo de ejecución ajustado
+        this.tiempoEjecucion.diasHabilesAjustado = this.impactoFactores.tiempoAjustado;
+        this.tiempoEjecucion.semanasAjustado = (this.impactoFactores.tiempoAjustado / 5).toFixed(2);
+        this.tiempoEjecucion.mesesAjustado = (this.tiempoEjecucion.semanasAjustado / 4.33).toFixed(2);
+        
+    } else {
+        seccion.style.display = 'none';
+    }
+},
+
+calcularCostoTiempoExtendido: function() {
+    const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
+    const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
+    const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
+    const factorSeguridad = parseFloat(document.getElementById('factor-seguridad')?.value) || 1;
+    
+    const factorTotal = factorAltura * factorClima * factorAcceso * factorSeguridad;
+    
+    const tiempoOriginal = this.tiempoEjecucion?.diasHabiles || 0;
+    const tiempoAjustado = Math.ceil(tiempoOriginal * factorTotal);
+    const diasIncremento = tiempoAjustado - tiempoOriginal;
+    
+    // Calcular costo indirectos diario
+    const costoIndirectosDiario = this.costoIndirectosDiario || 0;
+    const costoTiempoExtendido = costoIndirectosDiario * diasIncremento;
+    
+    // Actualizar UI del modal
+    const elCostoTiempo = document.getElementById('impacto-costo-tiempo');
+    if (elCostoTiempo) {
+        elCostoTiempo.textContent = calculator.formatoMoneda(costoTiempoExtendido);
+    }
+    
+    // Actualizar desglose de factores
+    const elDesglose = document.getElementById('impacto-desglose-factores');
+    if (elDesglose) {
+        elDesglose.innerHTML =
+            '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+            '<div style="font-size:11px;color:#666;">🏔️ Altura</div>' +
+            '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorAltura.toFixed(2) + 'x</div>' +
+            '</div>' +
+            '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+            '<div style="font-size:11px;color:#666;">🌤️ Clima</div>' +
+            '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorClima.toFixed(2) + 'x</div>' +
+            '</div>' +
+            '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+            '<div style="font-size:11px;color:#666;">🚪 Acceso</div>' +
+            '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorAcceso.toFixed(2) + 'x</div>' +
+            '</div>' +
+            '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+            '<div style="font-size:11px;color:#666;">🔒 Seguridad</div>' +
+            '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorSeguridad.toFixed(2) + 'x</div>' +
+            '</div>';
+    }
+},
+    
 // ─────────────────────────────────────────────────────────────────────
 // MODAL CLIENTE RÁPIDO
 // ─────────────────────────────────────────────────────────────────────
@@ -1594,3 +1769,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
