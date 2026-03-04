@@ -989,8 +989,6 @@ window.app = {
     },
     
     guardarFactores: function() {
-        this.aplicarFactores();
-        
         const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
         const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
         const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
@@ -1001,27 +999,29 @@ window.app = {
             clima: factorClima,
             acceso: factorAcceso,
             seguridad: factorSeguridad,
-            total: this.factorAjusteActual || 1
+            total: factorAltura * factorClima * factorAcceso * factorSeguridad
         };
         
+        // Recalcular tiempo con factores
         if (this.tiempoEjecucion) {
             this.tiempoEjecucion.diasHabilesAjustado = Math.ceil(
-                this.tiempoEjecucion.diasHabiles * (this.factorAjusteActual || 1)
+                this.tiempoEjecucion.diasHabiles * this.factoresAjuste.total
             );
             this.tiempoEjecucion.semanasAjustado = (this.tiempoEjecucion.diasHabilesAjustado / 5).toFixed(2);
             this.tiempoEjecucion.mesesAjustado = (this.tiempoEjecucion.semanasAjustado / 4.33).toFixed(2);
         }
         
+        // Cerrar modal
         const modal = document.getElementById('modal-factores');
         if (modal) modal.style.display = 'none';
         
         // Mostrar sección de impacto permanentemente
         this.mostrarImpactoFactores();
         
-        // Recalcular totales
+        // Recalcular totales (ESTO ACTUALIZA LOS COSTOS)
         this.calcularTotalConConceptos();
         
-        this.notificacion('✅ Factores aplicados: ' + ((this.factorAjusteActual || 1) * 100).toFixed(0) + '%', 'exito');
+        this.notificacion('✅ Factores aplicados: ' + (this.factoresAjuste.total * 100).toFixed(0) + '%', 'exito');
     },
     
     mostrarImpactoFactores: function() {
@@ -1332,3 +1332,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
