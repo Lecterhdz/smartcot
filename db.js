@@ -22,6 +22,9 @@ const db = new Dexie('SmartCotDB');
 // DEFINIR ESQUEMA DE BASE DE DATOS (VERSIÓN 3)
 // ─────────────────────────────────────────────────────────────────────
 db.version(3).stores({
+    // Curva S
+    avanceObra: '++id, cotizacionId, semana, fecha',
+    
     // Conceptos (APU completos)
     conceptos: '++id, codigo, categoria, subcategoria, unidad, activo, [categoria+subcategoria]',
     
@@ -236,3 +239,4 @@ document.addEventListener('db-ready', function(e) {
 });
 
 console.log('✅ db.js listo - SmartCotDB inicializada');
+
