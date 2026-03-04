@@ -682,7 +682,7 @@
             
             <div style="margin-bottom:20px;">
                 <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">Altura / Elevación</label>
-                <select id="factor-altura" onchange="app.aplicarFactores()" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                <select id="factor-altura" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                     <option value="1">Sin altura (0-3m) - 100%</option>
                     <option value="1.15">Altura media (3-5m) - 115%</option>
                     <option value="1.25">Altura alta (5-10m) - 125%</option>
@@ -692,7 +692,7 @@
             
             <div style="margin-bottom:20px;">
                 <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">Condiciones Climáticas</label>
-                <select id="factor-clima" onchange="app.aplicarFactores()" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                <select id="factor-clima" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                     <option value="1">Normal - 100%</option>
                     <option value="1.10">Calor extremo (>35°C) - 110%</option>
                     <option value="1.10">Frío extremo (<5°C) - 110%</option>
@@ -702,7 +702,7 @@
             
             <div style="margin-bottom:20px;">
                 <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">Dificultad de Acceso</label>
-                <select id="factor-acceso" onchange="app.aplicarFactores()" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                <select id="factor-acceso" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                     <option value="1">Acceso libre - 100%</option>
                     <option value="1.10">Acceso restringido - 110%</option>
                     <option value="1.20">Espacio confinado - 120%</option>
@@ -712,7 +712,7 @@
             
             <div style="margin-bottom:20px;">
                 <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">🔒 Nivel de Seguridad Requerido</label>
-                <select id="factor-seguridad" onchange="app.aplicarFactores()" style="width:100%;padding:12px;border:2px solid #FF9800;border-radius:10px;font-size:14px;">
+                <select id="factor-seguridad" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();" style="width:100%;padding:12px;border:2px solid #FF9800;border-radius:10px;font-size:14px;">
                     <option value="1">Estándar (Sin permisos especiales) - 100%</option>
                     <option value="1.05">Permiso de trabajo básico - 105%</option>
                     <option value="1.10">ATS + Liberación de área - 110%</option>
@@ -752,6 +752,7 @@
                     
 </body>
 </html>
+
 
 
 
