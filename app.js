@@ -1171,6 +1171,8 @@ window.app = {
             const clienteId = document.getElementById('cot-cliente')?.value;
             const descripcion = document.getElementById('cot-descripcion')?.value;
             const ubicacion = document.getElementById('cot-ubicacion')?.value;
+            const fechaInicio = document.getElementById('cot-fecha-inicio')?.value;
+            const fechaFinSolicitada = document.getElementById('cot-fecha-fin')?.value;
             
             const indirectosOficinaPorcentaje = parseFloat(document.getElementById('cot-indirectos-oficina')?.value) || 5;
             const indirectosCampoPorcentaje = parseFloat(document.getElementById('cot-indirectos-campo')?.value) || 15;
@@ -1193,6 +1195,8 @@ window.app = {
                 clienteId: clienteId,
                 descripcion: descripcion,
                 ubicacion: ubicacion || '',
+                fechaInicio: fechaInicio || new Date().toISOString(),
+                fechaFinSolicitada: fechaFinSolicitada || null,
                 conceptosCatalogo: this.datosCotizacion.conceptosSeleccionados,
                 materialesAdicionales: this.datosCotizacion.materiales,
                 manoObraAdicional: this.datosCotizacion.manoObra,
@@ -1521,3 +1525,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
