@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - CURVA S (PROGRAMADO VS EJECUTADO)
+// SMARTCOT v2.0 - CURVA S (PROGRAMADO VS EJECUTADO) - CORREGIDO
 // ─────────────────────────────────────────────────────────────────────
 
 console.log('📈 curva-s.js cargado');
@@ -22,6 +22,7 @@ window.curvaS = {
     // ─────────────────────────────────────────────────────────────────
     init: async function() {
         try {
+            console.log('📈 Inicializando Curva S...');
             await this.cargarCotizacionesEnDropdown();
         } catch (error) {
             console.error('❌ Error inicializando Curva S:', error);
@@ -51,7 +52,6 @@ window.curvaS = {
                 return;
             }
             
-            // Obtener clientes para mostrar nombres
             const clientes = await window.db.clientes.toArray();
             
             select.innerHTML = '<option value="">Seleccionar cotización...</option>' +
@@ -100,20 +100,27 @@ window.curvaS = {
             const semanasTotales = Math.ceil(cotizacion.tiempoEjecucion?.semanas || 0) || 1;
             const montoTotal = cotizacion.totalFinal || 0;
             
+            // Calcular fechas
+            const fechaInicio = cotizacion.fechaInicio ? new Date(cotizacion.fechaInicio) : new Date();
+            const fechaFin = new Date(fechaInicio);
+            fechaFin.setDate(fechaFin.getDate() + (semanasTotales * 7));
+            
             // Generar curva programada
             this.generarCurvaProgramada(semanasTotales, montoTotal);
             
-            // Cargar avance ejecutado si existe
+            // Cargar avance ejecutado
             await this.cargarAvanceEjecutado();
             
-            // Generar gráfica
-            this.generarGrafica('curva-s-chart');
+            // Generar gráfica (ESPERAR a que el canvas esté visible)
+            setTimeout(() => {
+                this.generarGrafica('curva-s-chart');
+            }, 300);
             
             // Calcular y mostrar variaciones
             this.calcularVariaciones();
             
             // Mostrar información de la cotización
-            this.mostrarInfoCotizacion(cotizacion);
+            this.mostrarInfoCotizacion(cotizacion, fechaInicio, fechaFin);
             
         } catch (error) {
             console.error('❌ Error cargando cotización:', error);
@@ -122,18 +129,24 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // MOSTRAR INFORMACIÓN DE COTIZACIÓN
+    // MOSTRAR INFORMACIÓN DE COTIZACIÓN (CON FECHAS)
     // ─────────────────────────────────────────────────────────────────
-    mostrarInfoCotizacion: function(cotizacion) {
+    mostrarInfoCotizacion: function(cotizacion, fechaInicio, fechaFin) {
         const infoDiv = document.getElementById('curva-s-info-cotizacion');
         if (!infoDiv) return;
         
+        const semanasTotales = Math.ceil(cotizacion.tiempoEjecucion?.semanas || 0) || 1;
+        
         infoDiv.innerHTML = `
-            <div style="background:#E3F2FD;padding:15px;border-radius:10px;margin-bottom:20px;">
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
+            <div style="background:#E3F2FD;padding:20px;border-radius:15px;margin-bottom:25px;">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;">
                     <div>
                         <div style="font-size:11px;color:#666;">Cotización #</div>
                         <div style="font-size:16px;font-weight:700;color:#1a1a1a;">${cotizacion.id}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:11px;color:#666;">Cliente</div>
+                        <div style="font-size:14px;font-weight:600;color:#1a1a1a;">${cotizacion.clienteId || 'N/A'}</div>
                     </div>
                     <div>
                         <div style="font-size:11px;color:#666;">Total</div>
@@ -141,11 +154,15 @@ window.curvaS = {
                     </div>
                     <div>
                         <div style="font-size:11px;color:#666;">Tiempo Estimado</div>
-                        <div style="font-size:16px;font-weight:700;color:#2196F3;">${cotizacion.tiempoEjecucion?.semanas || 0} semanas</div>
+                        <div style="font-size:16px;font-weight:700;color:#2196F3;">${semanasTotales} semanas</div>
                     </div>
                     <div>
-                        <div style="font-size:11px;color:#666;">Fecha</div>
-                        <div style="font-size:16px;font-weight:700;color:#1a1a1a;">${new Date(cotizacion.fecha).toLocaleDateString('es-MX')}</div>
+                        <div style="font-size:11px;color:#666;">Fecha Inicio</div>
+                        <div style="font-size:16px;font-weight:700;color:#1a1a1a;">${fechaInicio.toLocaleDateString('es-MX')}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:11px;color:#666;">Fecha Fin Estimada</div>
+                        <div style="font-size:16px;font-weight:700;color:#FF9800;">${fechaFin.toLocaleDateString('es-MX')}</div>
                     </div>
                 </div>
             </div>
@@ -178,7 +195,7 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // CARGAR AVANCE EJECUTADO
+    // CARGAR AVANCE EJECUTADO (CORREGIDO)
     // ─────────────────────────────────────────────────────────────────
     cargarAvanceEjecutado: async function() {
         try {
@@ -193,16 +210,19 @@ window.curvaS = {
                 .equals(parseInt(this.datos.cotizacionId))
                 .toArray();
             
-            // Inicializar arrays con ceros
+            console.log('📊 Avance cargado desde DB:', avance);
+            
+            // Inicializar arrays con ceros del tamaño de semanas
             this.datos.avanceEjecutado = new Array(this.datos.semanas.length).fill(0);
             this.datos.montoEjecutado = new Array(this.datos.semanas.length).fill(0);
             
-            // Llenar con datos reales
+            // Llenar con datos reales según la semana
             avance.forEach(function(a) {
-                const semanaIndex = a.semana - 1;
+                const semanaIndex = a.semana - 1; // Las semanas empiezan en 1, los índices en 0
                 if (semanaIndex >= 0 && semanaIndex < this.datos.avanceEjecutado.length) {
                     this.datos.avanceEjecutado[semanaIndex] = a.porcentajeEjecutado || 0;
                     this.datos.montoEjecutado[semanaIndex] = a.montoEjecutado || 0;
+                    console.log('📊 Semana', a.semana, '=> Índice', semanaIndex, '=>', a.porcentajeEjecutado + '%');
                 }
             }.bind(this));
             
@@ -216,70 +236,132 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // GENERAR GRÁFICA (USANDO CHART.JS)
+    // GENERAR GRÁFICA (CORREGIDO - CON ESPERA DE VISIBILIDAD)
     // ─────────────────────────────────────────────────────────────────
     generarGrafica: function(canvasId) {
-        const ctx = document.getElementById(canvasId);
-        if (!ctx) {
-            console.error('❌ Canvas no encontrado');
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) {
+            console.error('❌ Canvas no encontrado:', canvasId);
             return;
         }
+        
+        // Verificar que Chart.js está cargado
+        if (typeof Chart === 'undefined') {
+            console.error('❌ Chart.js no está cargado');
+            return;
+        }
+        
+        console.log('📊 Generando gráfica con datos:', {
+            semanas: this.datos.semanas,
+            programado: this.datos.avanceProgramado,
+            ejecutado: this.datos.avanceEjecutado
+        });
         
         // Destruir gráfica anterior si existe
         if (this.grafica) {
             this.grafica.destroy();
+            this.grafica = null;
         }
         
-        this.grafica = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: this.datos.semanas,
-                datasets: [
-                    {
-                        label: 'Programado (%)',
-                        data: this.datos.avanceProgramado,
-                        borderColor: '#2196F3',
-                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    },
-                    {
-                        label: 'Ejecutado (%)',
-                        data: this.datos.avanceEjecutado,
-                        borderColor: '#4CAF50',
-                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%';
+        // Asegurar que el canvas tenga dimensiones
+        canvas.width = canvas.offsetWidth || 800;
+        canvas.height = canvas.offsetHeight || 400;
+        
+        try {
+            this.grafica = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: this.datos.semanas,
+                    datasets: [
+                        {
+                            label: 'Programado (%)',
+                            data: this.datos.avanceProgramado,
+                            borderColor: '#2196F3',
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        },
+                        {
+                            label: 'Ejecutado (%)',
+                            data: this.datos.avanceEjecutado,
+                            borderColor: '#4CAF50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%';
+                                }
                             }
                         }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                },
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Avance (%)',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Semanas',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+            
+            console.log('✅ Gráfica generada exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error generando gráfica:', error);
+        }
     },
     
     // ─────────────────────────────────────────────────────────────────
@@ -310,7 +392,7 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // GUARDAR AVANCE SEMANAL
+    // GUARDAR AVANCE SEMANAL (CORREGIDO)
     // ─────────────────────────────────────────────────────────────────
     guardarAvance: async function() {
         try {
@@ -328,6 +410,13 @@ window.curvaS = {
                 return;
             }
             
+            console.log('💾 Guardando avance:', {
+                cotizacionId: this.datos.cotizacionId,
+                semana: semana,
+                porcentaje: porcentaje,
+                monto: monto
+            });
+            
             await window.db.avanceObra.put({
                 cotizacionId: parseInt(this.datos.cotizacionId),
                 semana: semana,
@@ -336,9 +425,16 @@ window.curvaS = {
                 fecha: new Date().toISOString()
             });
             
+            console.log('✅ Avance guardado en DB');
+            
+            // Recargar avance ejecutado
             await this.cargarAvanceEjecutado();
-            this.generarGrafica('curva-s-chart');
-            this.calcularVariaciones();
+            
+            // Regenerar gráfica (ESPERAR a que los datos se carguen)
+            setTimeout(() => {
+                this.generarGrafica('curva-s-chart');
+                this.calcularVariaciones();
+            }, 300);
             
             alert('✅ Avance semana ' + semana + ' guardado exitosamente');
             
@@ -351,6 +447,15 @@ window.curvaS = {
             console.error('❌ Error guardando avance:', error);
             alert('❌ Error: ' + error.message);
         }
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // ACTUALIZAR GRÁFICA (NUEVA FUNCIÓN PARA REFRESCAR)
+    // ─────────────────────────────────────────────────────────────────
+    actualizarGrafica: async function() {
+        await this.cargarAvanceEjecutado();
+        this.generarGrafica('curva-s-chart');
+        this.calcularVariaciones();
     }
 };
 
