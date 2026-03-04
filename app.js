@@ -303,7 +303,7 @@ window.app = {
         }
     },    
     // ─────────────────────────────────────────────────────────────────
-    // CATÁLOGO
+    // CATÁLOGO (CORREGIDO - BOTONES PEQUEÑOS)
     // ─────────────────────────────────────────────────────────────────
     cargarCatalogoCompleto: async function() {
         try {
@@ -328,16 +328,16 @@ window.app = {
             const app = this;
             container.innerHTML = conceptos.map(function(c) {
                 return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin-bottom:10px;background:white;">' +
-                    '<div style="display:flex;justify-content:space-between;align-items:start;">' +
-                    '<div>' +
+                    '<div style="display:flex;justify-content:space-between;align-items:start;gap:15px;">' +
+                    '<div style="flex:1;">' +
                     '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + c.codigo + '</div>' +
                     '<div style="color:#666;font-size:14px;">' + c.descripcion_corta + '</div>' +
                     '<div style="color:#999;font-size:12px;margin-top:5px;">Unidad: ' + c.unidad + ' | Rendimiento: ' + c.rendimiento_base + '</div>' +
                     '</div>' +
-                    '<div style="display:flex;gap:5px;flex-wrap:wrap;">' +
-                    '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" style="background:#4CAF50;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;">➕</button>' +
-                    '<button onclick="reportes.generarAPUPDF(\'' + c.id + '\')" style="background:#2196F3;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;">📄</button>' +
-                    '</div>'                    
+                    '<div style="display:flex;gap:5px;flex-shrink:0;">' +
+                    '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" style="background:#4CAF50;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="Agregar">➕</button>' +
+                    '<button onclick="reportes.generarAPUPDF(\'' + c.id + '\')" style="background:#2196F3;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="PDF APU">📄</button>' +
+                    '</div>' +
                     '</div></div>';
             }).join('');
             
@@ -1789,6 +1789,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
