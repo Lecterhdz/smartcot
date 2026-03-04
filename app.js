@@ -994,26 +994,25 @@ window.app = {
             console.error('❌ Modal de factores no encontrado');
         }
     },
-    
+    // ─────────────────────────────────────────────────────────────────────
+    // APLICAR FACTORES (CORREGIDO - LLENA impactoFactores)
+    // ─────────────────────────────────────────────────────────────────────
     aplicarFactores: function() {
         const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
         const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
         const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
         const factorSeguridad = parseFloat(document.getElementById('factor-seguridad')?.value) || 1;
         const factorTotal = factorAltura * factorClima * factorAcceso * factorSeguridad;
+      
         const tiempoOriginal = this.tiempoEjecucion?.diasHabiles || 0;
         const tiempoAjustado = Math.ceil(tiempoOriginal * factorTotal);
         const diasIncremento = tiempoAjustado - tiempoOriginal;
         const porcentajeIncremento = tiempoOriginal > 0 ? ((factorTotal - 1) * 100) : 0;
         
         // Calcular costo por tiempo extendido
-        const costoTiempoExtendido = this.costoIndirectosDiario * diasIncremento;
-        
-        // Actualizar modal
-        const elTiempoOriginal = document.getElementById('tiempo-original');
-        const elTiempoAjustado = document.getElementById('tiempo-ajustado');
-        if (elTiempoOriginal) elTiempoOriginal.textContent = tiempoOriginal + ' días';
-        if (elTiempoAjustado) elTiempoAjustado.textContent = tiempoAjustado + ' días';
+        const costoIndirectosDiario = this.costoIndirectosDiario || 0;
+        const costoTiempoExtendido = costoIndirectosDiario * diasIncremento;
+
         
         // ✅ GUARDAR IMPACTO (ESTO FALTA EN TU CÓDIGO)
         this.impactoFactores = {
@@ -1041,6 +1040,9 @@ window.app = {
         console.log('✅ Impacto calculado:', this.impactoFactores);
     },
     
+    // ─────────────────────────────────────────────────────────────────────
+    // GUARDAR FACTORES (CORREGIDO - Muestra la sección)
+    // ─────────────────────────────────────────────────────────────────────
     guardarFactores: function() {
         const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
         const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
@@ -1056,32 +1058,34 @@ window.app = {
             total: factorTotal
         };
         
+        // Recalcular tiempo con factores
         if (this.tiempoEjecucion) {
             this.tiempoEjecucion.diasHabilesAjustado = Math.ceil(
-                this.tiempoEjecucion.diasHabiles * (this.factorAjusteActual || 1)
+                this.tiempoEjecucion.diasHabiles * factorTotal
             );
             this.tiempoEjecucion.semanasAjustado = (this.tiempoEjecucion.diasHabilesAjustado / 5).toFixed(2);
             this.tiempoEjecucion.mesesAjustado = (this.tiempoEjecucion.semanasAjustado / 4.33).toFixed(2);
         }
         
+        // Cerrar modal
         const modal = document.getElementById('modal-factores');
         if (modal) modal.style.display = 'none';
         
-        // ⚠️ IMPORTANTE: Marcar como aplicado y mostrar sección        
+        // ⚠️ IMPORTANTE: Marcar como aplicado y mostrar sección
         this.impactoFactores.aplicado = factorTotal > 1;
         this.impactoFactores.factorTotal = factorTotal;
-
+        
         // Mostrar sección de impacto permanentemente
         this.mostrarImpactoFactores();
         
         // Recalcular totales (ESTO ACTUALIZA LOS COSTOS)
         this.calcularTotalConConceptos();
         
-        this.notificacion('✅ Factores aplicados: ' + ((this.factorAjusteActual || 1) * 100).toFixed(0) + '%', 'exito');
+        this.notificacion('✅ Factores aplicados: ' + (factorTotal * 100).toFixed(0) + '%', 'exito');
     },
     // ─────────────────────────────────────────────────────────────────────
     // MOSTRAR IMPACTO FACTORES (CORREGIDO - Debug incluido)
-    // ─────────────────────────────────────────────────────────────────────    
+    // ─────────────────────────────────────────────────────────────────────
     mostrarImpactoFactores: function() {
         const seccion = document.getElementById('seccion-impacto-factores');
         if (!seccion) {
@@ -1573,5 +1577,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
