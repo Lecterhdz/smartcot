@@ -47,7 +47,7 @@ window.historialCotizaciones = {
                     '<td style="padding:15px;text-align:center;">' +
                     '<button onclick="historialCotizaciones.ver(' + c.id + ')" style="background:#2196F3;color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;margin:2px;" title="Ver">👁️</button>' +
                     '<button onclick="historialCotizaciones.duplicar(' + c.id + ')" style="background:#FF9800;color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;margin:2px;" title="Duplicar">📋</button>' +
-                    '<button onclick="historialCotizaciones.exportarPDF(' + c.id + ')" style="background:#f44336;color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;margin:2px;" title="Exportar PDF">📄</button>' +
+                    '<button onclick="reportes.generarCotizacionPDF(' + c.id + ')" style="background:#f44336;color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;margin:2px;" title="Exportar PDF">📄</button>' +
                     '<button onclick="historialCotizaciones.eliminar(' + c.id + ')" style="background:#9E9E9E;color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;margin:2px;" title="Eliminar">🗑️</button>' +
                     '</td>' +
                     '</tr>';
