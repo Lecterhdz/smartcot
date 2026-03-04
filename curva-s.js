@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - CURVA S (PROGRAMADO VS EJECUTADO) - CORREGIDO
+// SMARTCOT v2.0 - CURVA S (SEGUIMIENTO DE OBRA)
 // ─────────────────────────────────────────────────────────────────────
 
 console.log('📈 curva-s.js cargado');
@@ -76,7 +76,7 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // CARGAR COTIZACIÓN SELECCIONADA (CORREGIDO - SIN DUPLICADOS)
+    // CARGAR COTIZACIÓN SELECCIONADA
     // ─────────────────────────────────────────────────────────────────
     cargarCotizacion: async function() {
         try {
@@ -143,13 +143,15 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // MOSTRAR INFORMACIÓN DE COTIZACIÓN (CON TODOS LOS CAMPOS)
+    // MOSTRAR INFORMACIÓN DE COTIZACIÓN
     // ─────────────────────────────────────────────────────────────────
     mostrarInfoCotizacion: function(cotizacion, fechaInicio, fechaFinEstimada, fechaFinSolicitada) {
         const infoDiv = document.getElementById('curva-s-info-cotizacion');
         if (!infoDiv) return;
         
         const semanasTotales = Math.ceil(cotizacion.tiempoEjecucion?.semanas || 0) || 1;
+        
+        // Calcular diferencia entre fecha solicitada y estimada
         const diferenciaDias = fechaFinSolicitada ? Math.round((fechaFinSolicitada - fechaFinEstimada) / (1000 * 60 * 60 * 24)) : 0;
         
         infoDiv.innerHTML = `
@@ -228,7 +230,7 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // CARGAR AVANCE EJECUTADO (CORREGIDO)
+    // CARGAR AVANCE EJECUTADO
     // ─────────────────────────────────────────────────────────────────
     cargarAvanceEjecutado: async function() {
         try {
@@ -269,7 +271,7 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // GENERAR GRÁFICA (CORREGIDO - CON ESPERA DE VISIBILIDAD)
+    // GENERAR GRÁFICA
     // ─────────────────────────────────────────────────────────────────
     generarGrafica: function(canvasId) {
         const canvas = document.getElementById(canvasId);
@@ -398,15 +400,30 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // CALCULAR VARIACIONES
+    // CALCULAR VARIACIONES (CORREGIDO - SE ACTUALIZA AUTOMÁTICAMENTE)
     // ─────────────────────────────────────────────────────────────────
     calcularVariaciones: function() {
-        const ultimaSemana = this.datos.avanceProgramado.length - 1;
+        // Encontrar la última semana con avance ejecutado
+        let ultimaSemanaConAvance = -1;
+        for (let i = this.datos.avanceEjecutado.length - 1; i >= 0; i--) {
+            if (this.datos.avanceEjecutado[i] > 0) {
+                ultimaSemanaConAvance = i;
+                break;
+            }
+        }
         
-        const avanceProgramado = this.datos.avanceProgramado[ultimaSemana] || 0;
-        const avanceEjecutado = this.datos.avanceEjecutado[ultimaSemana] || 0;
+        // Si no hay avance, usar la primera semana
+        if (ultimaSemanaConAvance === -1) {
+            ultimaSemanaConAvance = 0;
+        }
         
+        const avanceProgramado = this.datos.avanceProgramado[ultimaSemanaConAvance] || 0;
+        const avanceEjecutado = this.datos.avanceEjecutado[ultimaSemanaConAvance] || 0;
+        
+        // Variación de tiempo (diferencia entre ejecutado y programado)
         const variacionTiempo = avanceEjecutado - avanceProgramado;
+        
+        // Índice de desempeño (SPI = Earned Value / Planned Value)
         const indiceTiempo = avanceProgramado > 0 ? (avanceEjecutado / avanceProgramado) : 0;
         
         // Actualizar UI
@@ -422,10 +439,16 @@ window.curvaS = {
             elIndiceTiempo.textContent = indiceTiempo.toFixed(2);
             elIndiceTiempo.style.color = indiceTiempo >= 1 ? '#4CAF50' : '#f44336';
         }
+        
+        console.log('📊 Variaciones calculadas:', {
+            semana: ultimaSemanaConAvance + 1,
+            variacion: variacionTiempo.toFixed(1) + '%',
+            indice: indiceTiempo.toFixed(2)
+        });
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // GUARDAR AVANCE SEMANAL (CORREGIDO - ACTUALIZA GRÁFICA)
+    // GUARDAR AVANCE SEMANAL (CORREGIDO - ACTUALIZA VARIACIONES)
     // ─────────────────────────────────────────────────────────────────
     guardarAvance: async function() {
         try {
@@ -463,11 +486,11 @@ window.curvaS = {
             // Recargar avance ejecutado
             await this.cargarAvanceEjecutado();
             
-            // Regenerar gráfica (ESPERAR a que los datos se carguen)
-            setTimeout(() => {
-                this.generarGrafica('curva-s-chart');
-                this.calcularVariaciones();
-            }, 300);
+            // Regenerar gráfica
+            this.generarGrafica('curva-s-chart');
+            
+            // ⚠️ IMPORTANTE: Calcular variaciones DESPUÉS de guardar
+            this.calcularVariaciones();
             
             alert('✅ Avance semana ' + semana + ' guardado exitosamente');
             
@@ -483,46 +506,18 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // ACTUALIZAR GRÁFICA (NUEVA FUNCIÓN PARA REFRESCAR)
+    // ACTUALIZAR GRÁFICA (CORREGIDO - ACTUALIZA VARIACIONES)
     // ─────────────────────────────────────────────────────────────────
     actualizarGrafica: async function() {
         console.log('🔄 Actualizando gráfica...');
         await this.cargarAvanceEjecutado();
         this.generarGrafica('curva-s-chart');
+        // ⚠️ IMPORTANTE: Calcular variaciones después de actualizar
         this.calcularVariaciones();
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // EXPORTAR DATOS PARA REPORTE (JSON)
-    // ─────────────────────────────────────────────────────────────────
-    exportarDatosReporte: function() {
-        const reporte = {
-            cotizacionId: this.datos.cotizacionId,
-            cotizacionNumero: this.datos.cotizacionNumero,
-            cliente: this.datos.cliente,
-            fechaExportacion: new Date().toISOString(),
-            semanas: this.datos.semanas,
-            avanceProgramado: this.datos.avanceProgramado,
-            avanceEjecutado: this.datos.avanceEjecutado,
-            montoProgramado: this.datos.montoProgramado,
-            montoEjecutado: this.datos.montoEjecutado
-        };
-        
-        // Descargar como JSON
-        const blob = new Blob([JSON.stringify(reporte, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'curva-s-cotizacion-' + this.datos.cotizacionNumero + '.json';
-        a.click();
-        URL.revokeObjectURL(url);
-        
-        console.log('✅ Datos exportados:', reporte);
-        return reporte;
-    },
-    
-    // ─────────────────────────────────────────────────────────────────
-    // EXPORTAR REPORTE PDF (CORREGIDO - DENTRO DEL OBJETO)
+    // EXPORTAR REPORTE PDF
     // ─────────────────────────────────────────────────────────────────
     exportarReportePDF: async function() {
         try {
