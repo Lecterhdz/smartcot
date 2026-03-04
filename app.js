@@ -64,7 +64,18 @@ window.app = {
             await this.esperarDB();
             this.estado.dbLista = true;
             console.log('✅ Base de datos lista');
+
+            // VERIFICAR SI HAY CONCEPTOS EN BD
+            const conceptosCount = await window.db.conceptos.count();
             
+            if (conceptosCount === 0) {
+                console.log('📥 No hay conceptos en BD, cargando catálogo base...');
+                await this.cargarCatalogoBase();
+            } else {
+                console.log('✅ Ya hay', conceptosCount, 'conceptos en BD');
+            }
+            
+            // Continuar con inicialización normal          
             const licencia = window.licencia.cargar();
             this.estado.licenciaActiva = licencia && !licencia.expirada;
             this.actualizarInfoLicencia(licencia);
@@ -81,6 +92,34 @@ window.app = {
         } catch (error) {
             console.error('❌ Error en inicialización:', error);
             this.notificacion('Error al iniciar SmartCot', 'error');
+        }
+    },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // CARGAR CATÁLOGO BASE DESDE GITHUB
+    // ─────────────────────────────────────────────────────────────────────
+    cargarCatalogoBase: async function() {
+        try {
+            const response = await fetch('data/catalogo-base.xlsx');
+            if (!response.ok) {
+                console.log('⚠️ No se encontró catálogo base en GitHub');
+                return;
+            }
+            
+            const blob = await response.blob();
+            const file = new File([blob], 'catalogo-base.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            
+            console.log('📥 Importando catálogo base desde GitHub...');
+            
+            // Usar el mismo importador que para archivos manuales
+            const resultado = await importadorSmartCot.importarArchivo(file);
+            
+            console.log('✅ Catálogo base cargado:', resultado.estadisticas);
+            this.notificacion('📚 Catálogo base cargado: ' + resultado.estadisticas.conceptos + ' conceptos', 'exito');
+            
+        } catch (error) {
+            console.error('❌ Error cargando catálogo base:', error);
+            // No mostrar error al usuario, solo permitir import manual
         }
     },
     
@@ -1090,6 +1129,54 @@ window.app = {
             seccion.style.display = 'none';
         }
     },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // CALCULAR COSTO DE TIEMPO EXTENDIDO (EN TIEMPO REAL)
+    // ─────────────────────────────────────────────────────────────────────
+    calcularCostoTiempoExtendido: function() {
+        const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
+        const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
+        const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
+        const factorSeguridad = parseFloat(document.getElementById('factor-seguridad')?.value) || 1;
+        
+        const factorTotal = factorAltura * factorClima * factorAcceso * factorSeguridad;
+        
+        const tiempoOriginal = this.tiempoEjecucion?.diasHabiles || 0;
+        const tiempoAjustado = Math.ceil(tiempoOriginal * factorTotal);
+        const diasIncremento = tiempoAjustado - tiempoOriginal;
+        
+        // Calcular costo indirectos diario
+        const costoIndirectosDiario = this.costoIndirectosDiario || 0;
+        const costoTiempoExtendido = costoIndirectosDiario * diasIncremento;
+        
+        // Actualizar UI del modal
+        const elCostoTiempo = document.getElementById('impacto-costo-tiempo');
+        if (elCostoTiempo) {
+            elCostoTiempo.textContent = calculator.formatoMoneda(costoTiempoExtendido);
+        }
+        
+        // Actualizar desglose de factores
+        const elDesglose = document.getElementById('impacto-desglose-factores');
+        if (elDesglose) {
+            elDesglose.innerHTML =
+                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                '<div style="font-size:11px;color:#666;">🏔️ Altura</div>' +
+                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorAltura.toFixed(2) + 'x</div>' +
+                '</div>' +
+                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                '<div style="font-size:11px;color:#666;">🌤️ Clima</div>' +
+                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorClima.toFixed(2) + 'x</div>' +
+                '</div>' +
+                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                '<div style="font-size:11px;color:#666;">🚪 Acceso</div>' +
+                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorAcceso.toFixed(2) + 'x</div>' +
+                '</div>' +
+                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                '<div style="font-size:11px;color:#666;">🔒 Seguridad</div>' +
+                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorSeguridad.toFixed(2) + 'x</div>' +
+                '</div>';
+        }
+    },
     
     // ─────────────────────────────────────────────────────────────────
     // GUARDAR COTIZACIÓN
@@ -1332,4 +1419,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
