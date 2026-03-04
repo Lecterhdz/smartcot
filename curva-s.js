@@ -76,21 +76,11 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // CARGAR COTIZACIÓN SELECCIONADA
+    // CARGAR COTIZACIÓN SELECCIONADA (CORREGIDO - SIN DUPLICADOS)
     // ─────────────────────────────────────────────────────────────────
     cargarCotizacion: async function() {
         try {
             const cotizacionId = document.getElementById('curva-s-cotizacion')?.value;
-            const cotizacion = await window.db.cotizaciones.get(parseInt(cotizacionId));
-            
-            // Calcular fechas
-            const fechaInicio = cotizacion.fechaInicio ? new Date(cotizacion.fechaInicio) : new Date();
-            const semanasTotales = Math.ceil(cotizacion.tiempoEjecucion?.semanas || 0) || 1;
-            const fechaFin = new Date(fechaInicio);
-            fechaFin.setDate(fechaFin.getDate() + (semanasTotales * 7));
-            
-            // Generar curva programada CON FECHAS
-            this.generarCurvaProgramada(semanasTotales, cotizacion.totalFinal, fechaInicio, fechaFin);
             
             if (!cotizacionId) {
                 alert('⚠️ Selecciona una cotización');
@@ -126,8 +116,11 @@ window.curvaS = {
             const fechaFinEstimada = new Date(fechaInicio);
             fechaFinEstimada.setDate(fechaFinEstimada.getDate() + (semanasTotales * 7));
             
-            // Generar curva programada
-            this.generarCurvaProgramada(semanasTotales, montoTotal);
+            // Calcular fecha fin solicitada por cliente (si existe)
+            const fechaFinSolicitada = cotizacion.fechaFinSolicitada ? new Date(cotizacion.fechaFinSolicitada) : null;
+            
+            // Generar curva programada CON FECHAS
+            this.generarCurvaProgramada(semanasTotales, montoTotal, fechaInicio, fechaFinEstimada);
             
             // Cargar avance ejecutado
             await this.cargarAvanceEjecutado();
@@ -141,7 +134,7 @@ window.curvaS = {
             this.calcularVariaciones();
             
             // Mostrar información de la cotización
-            this.mostrarInfoCotizacion(cotizacion, fechaInicio, fechaFinEstimada);
+            this.mostrarInfoCotizacion(cotizacion, fechaInicio, fechaFinEstimada, fechaFinSolicitada);
             
         } catch (error) {
             console.error('❌ Error cargando cotización:', error);
@@ -152,14 +145,11 @@ window.curvaS = {
     // ─────────────────────────────────────────────────────────────────
     // MOSTRAR INFORMACIÓN DE COTIZACIÓN (CON TODOS LOS CAMPOS)
     // ─────────────────────────────────────────────────────────────────
-    mostrarInfoCotizacion: function(cotizacion, fechaInicio, fechaFinEstimada) {
+    mostrarInfoCotizacion: function(cotizacion, fechaInicio, fechaFinEstimada, fechaFinSolicitada) {
         const infoDiv = document.getElementById('curva-s-info-cotizacion');
         if (!infoDiv) return;
         
         const semanasTotales = Math.ceil(cotizacion.tiempoEjecucion?.semanas || 0) || 1;
-        
-        // Calcular fecha fin solicitada por cliente (si existe)
-        const fechaFinSolicitada = cotizacion.fechaFinSolicitada ? new Date(cotizacion.fechaFinSolicitada) : null;
         const diferenciaDias = fechaFinSolicitada ? Math.round((fechaFinSolicitada - fechaFinEstimada) / (1000 * 60 * 60 * 24)) : 0;
         
         infoDiv.innerHTML = `
@@ -503,7 +493,7 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // EXPORTAR DATOS PARA REPORTE
+    // EXPORTAR DATOS PARA REPORTE (JSON)
     // ─────────────────────────────────────────────────────────────────
     exportarDatosReporte: function() {
         const reporte = {
@@ -529,14 +519,18 @@ window.curvaS = {
         
         console.log('✅ Datos exportados:', reporte);
         return reporte;
-    }
-};
-
-    // ─────────────────────────────────────────────────────────────────────
-    // EXPORTAR REPORTE PDF (NUEVA FUNCIÓN)
-    // ─────────────────────────────────────────────────────────────────────
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // EXPORTAR REPORTE PDF (CORREGIDO - DENTRO DEL OBJETO)
+    // ─────────────────────────────────────────────────────────────────
     exportarReportePDF: async function() {
         try {
+            if (typeof window.jspdf === 'undefined') {
+                alert('⚠️ jsPDF no está cargado. Verifica que el script esté incluido.');
+                return;
+            }
+            
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
@@ -585,7 +579,7 @@ window.curvaS = {
             console.error('❌ Error exportando PDF:', error);
             alert('❌ Error: ' + error.message);
         }
-    },
-
+    }
+};
 
 console.log('✅ curva-s.js listo');
