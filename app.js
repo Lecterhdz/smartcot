@@ -853,6 +853,23 @@ window.app = {
     },
     
     calcularTotalConConceptos: function() {
+        // ⚠️ VALIDAR que impactoFactores existe
+        if (!this.impactoFactores) {
+            console.log('⚠️ Inicializando impactoFactores por defecto');
+            this.impactoFactores = {
+                factorAltura: 1,
+                factorClima: 1,
+                factorAcceso: 1,
+                factorSeguridad: 1,
+                factorTotal: 1,
+                tiempoOriginal: 0,
+                tiempoAjustado: 0,
+                diasIncremento: 0,
+                porcentajeIncremento: 0,
+                costoTiempoExtendido: 0,
+                aplicado: false
+            };
+        }   
         let subtotal = 0;
         let totalJOR = 0;
         
@@ -1126,16 +1143,34 @@ guardarFactores: function() {
             return;
         }
         
+        // ⚠️ VALIDAR que impactoFactores existe y tiene valores
+        if (!this.impactoFactores) {
+            console.log('⚠️ impactoFactores no inicializado, usando valores por defecto');
+            this.impactoFactores = {
+                factorAltura: 1,
+                factorClima: 1,
+                factorAcceso: 1,
+                factorSeguridad: 1,
+                factorTotal: 1,
+                tiempoOriginal: 0,
+                tiempoAjustado: 0,
+                diasIncremento: 0,
+                porcentajeIncremento: 0,
+                costoTiempoExtendido: 0,
+                aplicado: false
+            };
+        }
+        
         console.log('📊 Mostrar impacto - impactoFactores:', this.impactoFactores);
         console.log('📊 factorTotal:', this.impactoFactores?.factorTotal);
         console.log('📊 aplicado:', this.impactoFactores?.aplicado);
         
         // Mostrar sección solo si hay factores aplicados (factorTotal > 1)
-        if (this.impactoFactores && this.impactoFactores.factorTotal > 1) {
+        if (this.impactoFactores && (this.impactoFactores.factorTotal || 1) > 1) {
             seccion.style.display = 'block';
             console.log('✅ Sección de impacto MOSTRADA');
             
-            // Llenar datos
+            // Llenar datos (CON VALIDACIONES)
             const elTiempoOriginal = document.getElementById('impacto-tiempo-original');
             const elTiempoAjustado = document.getElementById('impacto-tiempo-ajustado');
             const elDiasIncremento = document.getElementById('impacto-dias-incremento');
@@ -1147,19 +1182,26 @@ guardarFactores: function() {
             const elSemanasAjustado = document.getElementById('impacto-semanas-ajustado');
             const elDesglose = document.getElementById('impacto-desglose-factores');
             
-            if (elTiempoOriginal) elTiempoOriginal.textContent = this.impactoFactores.tiempoOriginal + ' días';
-            if (elTiempoAjustado) elTiempoAjustado.textContent = this.impactoFactores.tiempoAjustado + ' días';
-            if (elDiasIncremento) elDiasIncremento.textContent = '+' + this.impactoFactores.diasIncremento + ' días';
-            if (elPorcentajeTiempo) elPorcentajeTiempo.textContent = '+' + this.impactoFactores.porcentajeIncremento.toFixed(1) + '%';
-            if (elFactorTotal) elFactorTotal.textContent = this.impactoFactores.factorTotal.toFixed(2) + 'x';
-            if (elCostoTiempo) elCostoTiempo.textContent = calculator.formatoMoneda(this.impactoFactores.costoTiempoExtendido);
+            const tiempoOriginal = this.impactoFactores.tiempoOriginal || 0;
+            const tiempoAjustado = this.impactoFactores.tiempoAjustado || 0;
+            const diasIncremento = this.impactoFactores.diasIncremento || 0;
+            const porcentajeIncremento = this.impactoFactores.porcentajeIncremento || 0;
+            const factorTotal = this.impactoFactores.factorTotal || 1;
+            const costoTiempoExtendido = this.impactoFactores.costoTiempoExtendido || 0;
+            
+            if (elTiempoOriginal) elTiempoOriginal.textContent = tiempoOriginal + ' días';
+            if (elTiempoAjustado) elTiempoAjustado.textContent = tiempoAjustado + ' días';
+            if (elDiasIncremento) elDiasIncremento.textContent = '+' + diasIncremento + ' días';
+            if (elPorcentajeTiempo) elPorcentajeTiempo.textContent = '+' + (porcentajeIncremento || 0).toFixed(1) + '%';
+            if (elFactorTotal) elFactorTotal.textContent = factorTotal.toFixed(2) + 'x';
+            if (elCostoTiempo) elCostoTiempo.textContent = calculator.formatoMoneda(costoTiempoExtendido);
             
             if (elSemanasOriginal) {
-                const semanasOrig = (this.impactoFactores.tiempoOriginal / 5).toFixed(2);
+                const semanasOrig = ((tiempoOriginal || 0) / 5).toFixed(2);
                 elSemanasOriginal.textContent = semanasOrig + ' semanas';
             }
             if (elSemanasAjustado) {
-                const semanasAjust = (this.impactoFactores.tiempoAjustado / 5).toFixed(2);
+                const semanasAjust = ((tiempoAjustado || 0) / 5).toFixed(2);
                 elSemanasAjustado.textContent = semanasAjust + ' semanas';
             }
             
@@ -1168,74 +1210,30 @@ guardarFactores: function() {
                 elDesglose.innerHTML =
                     '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
                     '<div style="font-size:11px;color:#666;">🏔️ Altura</div>' +
-                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + this.impactoFactores.factorAltura.toFixed(2) + 'x</div>' +
+                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + (this.impactoFactores.factorAltura || 1).toFixed(2) + 'x</div>' +
                     '</div>' +
                     '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
                     '<div style="font-size:11px;color:#666;">🌤️ Clima</div>' +
-                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + this.impactoFactores.factorClima.toFixed(2) + 'x</div>' +
+                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + (this.impactoFactores.factorClima || 1).toFixed(2) + 'x</div>' +
                     '</div>' +
                     '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
                     '<div style="font-size:11px;color:#666;">🚪 Acceso</div>' +
-                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + this.impactoFactores.factorAcceso.toFixed(2) + 'x</div>' +
+                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + (this.impactoFactores.factorAcceso || 1).toFixed(2) + 'x</div>' +
                     '</div>' +
                     '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
                     '<div style="font-size:11px;color:#666;">🔒 Seguridad</div>' +
-                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + this.impactoFactores.factorSeguridad.toFixed(2) + 'x</div>' +
+                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + (this.impactoFactores.factorSeguridad || 1).toFixed(2) + 'x</div>' +
                     '</div>';
             }
             
             // Actualizar tiempo de ejecución ajustado
-            this.tiempoEjecucion.diasHabilesAjustado = this.impactoFactores.tiempoAjustado;
-            this.tiempoEjecucion.semanasAjustado = (this.impactoFactores.tiempoAjustado / 5).toFixed(2);
-            this.tiempoEjecucion.mesesAjustado = (this.impactoFactores.tiempoAjustado / 4.33).toFixed(2);
+            this.tiempoEjecucion.diasHabilesAjustado = tiempoAjustado;
+            this.tiempoEjecucion.semanasAjustado = ((tiempoAjustado || 0) / 5).toFixed(2);
+            this.tiempoEjecucion.mesesAjustado = (((tiempoAjustado || 0) / 5) / 4.33).toFixed(2);
             
         } else {
             seccion.style.display = 'none';
             console.log('❌ Sección de impacto OCULTA (factorTotal <= 1)');
-        }
-    },
-    
-    calcularCostoTiempoExtendido: function() {
-        const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
-        const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
-        const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
-        const factorSeguridad = parseFloat(document.getElementById('factor-seguridad')?.value) || 1;
-        const factorTotal = factorAltura * factorClima * factorAcceso * factorSeguridad;
-        
-        const tiempoOriginal = this.tiempoEjecucion?.diasHabiles || 0;
-        const tiempoAjustado = Math.ceil(tiempoOriginal * factorTotal);
-        const diasIncremento = tiempoAjustado - tiempoOriginal;
-        
-        // Calcular costo indirectos diario
-        const costoIndirectosDiario = this.costoIndirectosDiario || 0;
-        const costoTiempoExtendido = costoIndirectosDiario * diasIncremento;
-        
-        // Actualizar UI del modal
-        const elCostoTiempo = document.getElementById('impacto-costo-tiempo');
-        if (elCostoTiempo) {
-            elCostoTiempo.textContent = calculator.formatoMoneda(costoTiempoExtendido);
-        }
-        
-        // Actualizar desglose de factores
-        const elDesglose = document.getElementById('impacto-desglose-factores');
-        if (elDesglose) {
-            elDesglose.innerHTML =
-                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
-                '<div style="font-size:11px;color:#666;">🏔️ Altura</div>' +
-                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorAltura.toFixed(2) + 'x</div>' +
-                '</div>' +
-                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
-                '<div style="font-size:11px;color:#666;">🌤️ Clima</div>' +
-                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorClima.toFixed(2) + 'x</div>' +
-                '</div>' +
-                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
-                '<div style="font-size:11px;color:#666;">🚪 Acceso</div>' +
-                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorAcceso.toFixed(2) + 'x</div>' +
-                '</div>' +
-                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
-                '<div style="font-size:11px;color:#666;">🔒 Seguridad</div>' +
-                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorSeguridad.toFixed(2) + 'x</div>' +
-                '</div>';
         }
     },
     
@@ -1674,6 +1672,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
