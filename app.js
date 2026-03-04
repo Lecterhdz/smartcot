@@ -1132,6 +1132,120 @@ guardarFactores: function() {
     
     this.notificacion('✅ Factores aplicados: ' + (factorTotal * 100).toFixed(0) + '%', 'exito');
 },
+
+
+    // ─────────────────────────────────────────────────────────────────────
+    // CALCULAR COSTO TIEMPO EXTENDIDO (FUNCIÓN FALTANTE)
+    // ─────────────────────────────────────────────────────────────────────
+    calcularCostoTiempoExtendido: function() {
+        const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
+        const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
+        const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
+        const factorSeguridad = parseFloat(document.getElementById('factor-seguridad')?.value) || 1;
+        const factorTotal = factorAltura * factorClima * factorAcceso * factorSeguridad;
+        
+        const tiempoOriginal = this.tiempoEjecucion?.diasHabiles || 0;
+        const tiempoAjustado = Math.ceil(tiempoOriginal * factorTotal);
+        const diasIncremento = tiempoAjustado - tiempoOriginal;
+        
+        // Calcular costo indirectos diario
+        const costoIndirectosDiario = this.costoIndirectosDiario || 0;
+        const costoTiempoExtendido = costoIndirectosDiario * diasIncremento;
+        
+        // Actualizar UI del modal
+        const elTiempoOriginal = document.getElementById('tiempo-original');
+        const elTiempoAjustado = document.getElementById('tiempo-ajustado');
+        const elCostoTiempo = document.getElementById('impacto-costo-tiempo');
+        const elDesglose = document.getElementById('impacto-desglose-factores');
+        
+        if (elTiempoOriginal) elTiempoOriginal.textContent = tiempoOriginal + ' días';
+        if (elTiempoAjustado) elTiempoAjustado.textContent = tiempoAjustado + ' días';
+        if (elCostoTiempo) elCostoTiempo.textContent = calculator.formatoMoneda(costoTiempoExtendido);
+        
+        // Actualizar desglose de factores
+        if (elDesglose) {
+            elDesglose.innerHTML =
+                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                '<div style="font-size:11px;color:#666;">🏔️ Altura</div>' +
+                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorAltura.toFixed(2) + 'x</div>' +
+                '</div>' +
+                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                '<div style="font-size:11px;color:#666;">🌤️ Clima</div>' +
+                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorClima.toFixed(2) + 'x</div>' +
+                '</div>' +
+                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                '<div style="font-size:11px;color:#666;">🚪 Acceso</div>' +
+                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorAcceso.toFixed(2) + 'x</div>' +
+                '</div>' +
+                '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                '<div style="font-size:11px;color:#666;">🔒 Seguridad</div>' +
+                '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorSeguridad.toFixed(2) + 'x</div>' +
+                '</div>';
+        }
+        
+        // Guardar en impactoFactores para usar después
+        this.impactoFactores = {
+            factorAltura: factorAltura,
+            factorClima: factorClima,
+            factorAcceso: factorAcceso,
+            factorSeguridad: factorSeguridad,
+            factorTotal: factorTotal,
+            tiempoOriginal: tiempoOriginal,
+            tiempoAjustado: tiempoAjustado,
+            diasIncremento: diasIncremento,
+            porcentajeIncremento: tiempoOriginal > 0 ? ((factorTotal - 1) * 100) : 0,
+            costoTiempoExtendido: costoTiempoExtendido,
+            aplicado: factorTotal > 1
+        };
+        
+        console.log('✅ Costo tiempo extendido calculado:', this.impactoFactores);
+    },
+    
+    // ─────────────────────────────────────────────────────────────────────
+    // APLICAR FACTORES (CORREGIDO - CON TIEMPO AJUSTADO)
+    // ─────────────────────────────────────────────────────────────────────
+    aplicarFactores: function() {
+        const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
+        const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
+        const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
+        const factorSeguridad = parseFloat(document.getElementById('factor-seguridad')?.value) || 1;
+        const factorTotal = factorAltura * factorClima * factorAcceso * factorSeguridad;
+        
+        const tiempoOriginal = this.tiempoEjecucion?.diasHabiles || 0;
+        const tiempoAjustado = Math.ceil(tiempoOriginal * factorTotal);
+        const diasIncremento = tiempoAjustado - tiempoOriginal;
+        const porcentajeIncremento = tiempoOriginal > 0 ? ((factorTotal - 1) * 100) : 0;
+        
+        // Calcular costo por tiempo extendido
+        const costoIndirectosDiario = this.costoIndirectosDiario || 0;
+        const costoTiempoExtendido = costoIndirectosDiario * diasIncremento;
+        
+        // Actualizar modal
+        const elTiempoOriginal = document.getElementById('tiempo-original');
+        const elTiempoAjustado = document.getElementById('tiempo-ajustado');
+        
+        if (elTiempoOriginal) elTiempoOriginal.textContent = tiempoOriginal + ' días';
+        if (elTiempoAjustado) elTiempoAjustado.textContent = tiempoAjustado + ' días';
+        
+        // ⚠️ IMPORTANTE: Guardar impactoFactores ANTES de guardar
+        this.impactoFactores = {
+            factorAltura: factorAltura,
+            factorClima: factorClima,
+            factorAcceso: factorAcceso,
+            factorSeguridad: factorSeguridad,
+            factorTotal: factorTotal,
+            tiempoOriginal: tiempoOriginal,
+            tiempoAjustado: tiempoAjustado,
+            diasIncremento: diasIncremento,
+            porcentajeIncremento: porcentajeIncremento,
+            costoTiempoExtendido: costoTiempoExtendido,
+            aplicado: factorTotal > 1
+        };
+        
+        this.factorAjusteActual = factorTotal;
+        
+        console.log('✅ Factores aplicados:', this.impactoFactores);
+    },
     
     // ─────────────────────────────────────────────────────────────────
     // MOSTRAR IMPACTO FACTORES (CORREGIDO)
@@ -1672,6 +1786,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
