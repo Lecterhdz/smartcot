@@ -6,26 +6,29 @@ console.log('📈 curva-s.js cargado');
 
 window.curvaS = {
     
-    // ─────────────────────────────────────────────────────────────────
-    // DATOS DE LA CURVA S
-    // ─────────────────────────────────────────────────────────────────
     datos: {
         cotizacionId: null,
         semanas: [],
         avanceProgramado: [],
-        avanceEjecutado: [],
-        montoProgramado: [],
-        montoEjecutado: []
+        avanceEjecutado: []
     },
     
+    grafica: null,
+    
     // ─────────────────────────────────────────────────────────────────
-    // INICIALIZAR CURVA S DESDE COTIZACIÓN
+    // CARGAR COTIZACIÓN
     // ─────────────────────────────────────────────────────────────────
-    inicializarDesdeCotizacion: async function(cotizacionId) {
+    cargarCotizacion: async function() {
         try {
-            const cotizacion = await window.db.cotizaciones.get(cotizacionId);
+            const cotizacionId = document.getElementById('curva-s-cotizacion')?.value;
+            if (!cotizacionId) {
+                alert('⚠️ Selecciona una cotización');
+                return;
+            }
+            
+            const cotizacion = await window.db.cotizaciones.get(parseInt(cotizacionId));
             if (!cotizacion) {
-                console.error('❌ Cotización no encontrada');
+                alert('❌ Cotización no encontrada');
                 return;
             }
             
@@ -34,57 +37,43 @@ window.curvaS = {
             // Calcular semanas totales
             const semanasTotales = Math.ceil(cotizacion.tiempoEjecucion?.semanas || 0);
             
-            // Generar curva programada (distribución lineal o S-curve típica)
+            // Generar curva programada
             this.generarCurvaProgramada(semanasTotales, cotizacion.totalFinal);
             
-            // Cargar avance ejecutado si existe
+            // Cargar avance ejecutado (si existe)
             await this.cargarAvanceEjecutado();
             
-            console.log('✅ Curva S inicializada:', this.datos);
+            // Generar gráfica
+            this.generarGrafica('curva-s-chart');
+            
+            // Calcular variaciones
+            this.calcularVariaciones();
+            
+            console.log('✅ Curva S cargada:', this.datos);
             
         } catch (error) {
-            console.error('❌ Error inicializando curva S:', error);
+            console.error('❌ Error cargando curva S:', error);
         }
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // GENERAR CURVA PROGRAMADA (S-CURVE TÍPICA)
+    // GENERAR CURVA PROGRAMADA
     // ─────────────────────────────────────────────────────────────────
     generarCurvaProgramada: function(semanasTotales, montoTotal) {
         this.datos.semanas = [];
         this.datos.avanceProgramado = [];
-        this.datos.montoProgramado = [];
         
         let acumulado = 0;
         
         for (let i = 1; i <= semanasTotales; i++) {
             this.datos.semanas.push('Sem ' + i);
             
-            // S-Curve típica: lento al inicio, rápido en medio, lento al final
-            const porcentajeSemana = this.calcularPorcentajeSCurve(i, semanasTotales);
-            acumulado += porcentajeSemana;
+            // S-Curve típica
+            const progreso = i / semanasTotales;
+            const sCurve = Math.pow(progreso, 2) * (3 - 2 * progreso) * 100;
             
-            this.datos.avanceProgramado.push(Math.min(acumulado, 100));
-            this.datos.montoProgramado.push((Math.min(acumulado, 100) / 100) * montoTotal);
-        }
-    },
-    
-    // ─────────────────────────────────────────────────────────────────
-    // CALCULAR PORCENTAJE S-CURVE (Fórmula de distribución típica)
-    // ─────────────────────────────────────────────────────────────────
-    calcularPorcentajeSCurve: function(semanaActual, semanasTotales) {
-        const progreso = semanaActual / semanasTotales;
-        
-        // Fórmula S-Curve simplificada
-        const sCurve = Math.pow(progreso, 2) * (3 - 2 * progreso) * 100;
-        
-        // Distribuir entre las semanas
-        if (semanaActual === 1) {
-            return sCurve;
-        } else {
-            const progresoAnterior = (semanaActual - 1) / semanasTotales;
-            const sCurveAnterior = Math.pow(progresoAnterior, 2) * (3 - 2 * progresoAnterior) * 100;
-            return sCurve - sCurveAnterior;
+            acumulado = Math.min(sCurve, 100);
+            this.datos.avanceProgramado.push(acumulado);
         }
     },
     
@@ -95,61 +84,24 @@ window.curvaS = {
         try {
             const avance = await window.db.avanceObra
                 .where('cotizacionId')
-                .equals(this.datos.cotizacionId)
+                .equals(parseInt(this.datos.cotizacionId))
                 .toArray();
             
             this.datos.avanceEjecutado = avance.map(a => a.porcentajeEjecutado || 0);
-            this.datos.montoEjecutado = avance.map(a => a.montoEjecutado || 0);
+            
+            // Rellenar con ceros si hay menos semanas
+            while (this.datos.avanceEjecutado.length < this.datos.semanas.length) {
+                this.datos.avanceEjecutado.push(0);
+            }
             
         } catch (error) {
             console.error('❌ Error cargando avance:', error);
             this.datos.avanceEjecutado = new Array(this.datos.semanas.length).fill(0);
-            this.datos.montoEjecutado = new Array(this.datos.semanas.length).fill(0);
         }
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // GUARDAR AVANCE SEMANAL
-    // ─────────────────────────────────────────────────────────────────
-    guardarAvanceSemanal: async function(semana, porcentajeEjecutado, montoEjecutado) {
-        try {
-            await window.db.avanceObra.put({
-                cotizacionId: this.datos.cotizacionId,
-                semana: semana,
-                porcentajeEjecutado: porcentajeEjecutado,
-                montoEjecutado: montoEjecutado,
-                fecha: new Date().toISOString()
-            });
-            
-            await this.cargarAvanceEjecutado();
-            console.log('✅ Avance semana', semana, 'guardado');
-            
-        } catch (error) {
-            console.error('❌ Error guardando avance:', error);
-        }
-    },
-    
-    // ─────────────────────────────────────────────────────────────────
-    // CALCULAR VARIACIONES
-    // ─────────────────────────────────────────────────────────────────
-    calcularVariaciones: function() {
-        const ultimaSemana = this.datos.avanceProgramado.length - 1;
-        
-        const avanceProgramado = this.datos.avanceProgramado[ultimaSemana] || 0;
-        const avanceEjecutado = this.datos.avanceEjecutado[ultimaSemana] || 0;
-        const montoProgramado = this.datos.montoProgramado[ultimaSemana] || 0;
-        const montoEjecutado = this.datos.montoEjecutado[ultimaSemana] || 0;
-        
-        return {
-            variacionTiempo: avanceEjecutado - avanceProgramado,
-            variacionCosto: montoEjecutado - montoProgramado,
-            indiceDesempenoTiempo: avanceProgramado > 0 ? (avanceEjecutado / avanceProgramado) : 0,
-            indiceDesempenoCosto: montoProgramado > 0 ? (montoEjecutado / montoProgramado) : 0
-        };
-    },
-    
-    // ─────────────────────────────────────────────────────────────────
-    // GENERAR GRÁFICA (USANDO CHART.JS)
+    // GENERAR GRÁFICA
     // ─────────────────────────────────────────────────────────────────
     generarGrafica: function(canvasId) {
         const ctx = document.getElementById(canvasId);
@@ -158,7 +110,7 @@ window.curvaS = {
             return;
         }
         
-        // Destruir gráfica anterior si existe
+        // Destruir gráfica anterior
         if (this.grafica) {
             this.grafica.destroy();
         }
@@ -213,6 +165,66 @@ window.curvaS = {
                 }
             }
         });
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // CALCULAR VARIACIONES
+    // ─────────────────────────────────────────────────────────────────
+    calcularVariaciones: function() {
+        const ultimaSemana = this.datos.avanceProgramado.length - 1;
+        
+        const avanceProgramado = this.datos.avanceProgramado[ultimaSemana] || 0;
+        const avanceEjecutado = this.datos.avanceEjecutado[ultimaSemana] || 0;
+        
+        const variacionTiempo = avanceEjecutado - avanceProgramado;
+        const indiceTiempo = avanceProgramado > 0 ? (avanceEjecutado / avanceProgramado) : 0;
+        
+        const elVariacionTiempo = document.getElementById('variacion-tiempo');
+        const elIndiceTiempo = document.getElementById('indice-tiempo');
+        
+        if (elVariacionTiempo) {
+            elVariacionTiempo.textContent = (variacionTiempo >= 0 ? '+' : '') + variacionTiempo.toFixed(1) + '%';
+            elVariacionTiempo.style.color = variacionTiempo >= 0 ? '#4CAF50' : '#f44336';
+        }
+        
+        if (elIndiceTiempo) {
+            elIndiceTiempo.textContent = indiceTiempo.toFixed(2);
+            elIndiceTiempo.style.color = indiceTiempo >= 1 ? '#4CAF50' : '#f44336';
+        }
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // GUARDAR AVANCE SEMANAL
+    // ─────────────────────────────────────────────────────────────────
+    guardarAvance: async function() {
+        try {
+            const semana = parseInt(document.getElementById('avance-semana')?.value);
+            const porcentaje = parseFloat(document.getElementById('avance-porcentaje')?.value);
+            const monto = parseFloat(document.getElementById('avance-monto')?.value);
+            
+            if (!semana || !porcentaje) {
+                alert('⚠️ Completa semana y porcentaje');
+                return;
+            }
+            
+            await window.db.avanceObra.put({
+                cotizacionId: parseInt(this.datos.cotizacionId),
+                semana: semana,
+                porcentajeEjecutado: porcentaje,
+                montoEjecutado: monto || 0,
+                fecha: new Date().toISOString()
+            });
+            
+            await this.cargarAvanceEjecutado();
+            this.generarGrafica('curva-s-chart');
+            this.calcularVariaciones();
+            
+            alert('✅ Avance guardado exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error guardando avance:', error);
+            alert('❌ Error: ' + error.message);
+        }
     }
 };
 
