@@ -73,6 +73,25 @@
         #modal-cliente > div, #modal-factores > div { background: white; padding: 30px; border-radius: 20px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
         #catalogos-screen .btn-secondary { background: linear-gradient(135deg, #f5f7fa, #e8ecef); color: #333; border: 2px solid #ddd; }
         #catalogos-screen .btn-primary { background: linear-gradient(135deg, #1a1a1a, #333333); color: white; }
+        /* CORRECCIÓN LAYOUT DEL CATÁLOGO */
+        #lista-catalogo > div {
+            display: block !important;
+            width: 100% !important;
+            margin-bottom: 10px !important;
+        }
+        
+        #lista-catalogo > div > div {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: flex-start !important;
+            flex-wrap: nowrap !important;
+        }
+        
+        /* Evitar que los elementos se apilen en columna */
+        #lista-catalogo * {
+            word-break: normal !important;
+            white-space: normal !important;
+        }    
     </style>
 </head>
 <body>
@@ -765,4 +784,5 @@
     </script>
 </body>
 </html>
+
 
