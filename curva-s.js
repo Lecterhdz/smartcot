@@ -8,6 +8,8 @@ window.curvaS = {
     
     datos: {
         cotizacionId: null,
+        cotizacionNumero: null,
+        cliente: null,
         semanas: [],
         avanceProgramado: [],
         avanceEjecutado: [],
@@ -62,7 +64,7 @@ window.curvaS = {
                     const total = calculator.formatoMoneda(c.totalFinal || 0);
                     
                     return '<option value="' + c.id + '">' + 
-                        c.id + ' - ' + clienteNombre + ' - ' + total + ' (' + fecha + ')' +
+                        'Cotización #' + c.id + ' - ' + clienteNombre + ' - ' + total + ' (' + fecha + ')' +
                         '</option>';
                 }).join('');
             
@@ -95,6 +97,15 @@ window.curvaS = {
             console.log('✅ Cotización cargada:', cotizacion);
             
             this.datos.cotizacionId = cotizacionId;
+            this.datos.cotizacionNumero = cotizacion.id;
+            
+            // Obtener nombre del cliente
+            if (cotizacion.clienteId) {
+                const cliente = await window.db.clientes.get(parseInt(cotizacion.clienteId));
+                this.datos.cliente = cliente ? cliente.nombre : 'Sin cliente';
+            } else {
+                this.datos.cliente = 'Sin cliente';
+            }
             
             // Calcular semanas totales desde tiempo de ejecución
             const semanasTotales = Math.ceil(cotizacion.tiempoEjecucion?.semanas || 0) || 1;
@@ -102,8 +113,8 @@ window.curvaS = {
             
             // Calcular fechas
             const fechaInicio = cotizacion.fechaInicio ? new Date(cotizacion.fechaInicio) : new Date();
-            const fechaFin = new Date(fechaInicio);
-            fechaFin.setDate(fechaFin.getDate() + (semanasTotales * 7));
+            const fechaFinEstimada = new Date(fechaInicio);
+            fechaFinEstimada.setDate(fechaFinEstimada.getDate() + (semanasTotales * 7));
             
             // Generar curva programada
             this.generarCurvaProgramada(semanasTotales, montoTotal);
@@ -120,7 +131,7 @@ window.curvaS = {
             this.calcularVariaciones();
             
             // Mostrar información de la cotización
-            this.mostrarInfoCotizacion(cotizacion, fechaInicio, fechaFin);
+            this.mostrarInfoCotizacion(cotizacion, fechaInicio, fechaFinEstimada);
             
         } catch (error) {
             console.error('❌ Error cargando cotización:', error);
@@ -129,13 +140,17 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // MOSTRAR INFORMACIÓN DE COTIZACIÓN (CON FECHAS)
+    // MOSTRAR INFORMACIÓN DE COTIZACIÓN (CON TODOS LOS CAMPOS)
     // ─────────────────────────────────────────────────────────────────
-    mostrarInfoCotizacion: function(cotizacion, fechaInicio, fechaFin) {
+    mostrarInfoCotizacion: function(cotizacion, fechaInicio, fechaFinEstimada) {
         const infoDiv = document.getElementById('curva-s-info-cotizacion');
         if (!infoDiv) return;
         
         const semanasTotales = Math.ceil(cotizacion.tiempoEjecucion?.semanas || 0) || 1;
+        
+        // Calcular fecha fin solicitada por cliente (si existe)
+        const fechaFinSolicitada = cotizacion.fechaFinSolicitada ? new Date(cotizacion.fechaFinSolicitada) : null;
+        const diferenciaDias = fechaFinSolicitada ? Math.round((fechaFinSolicitada - fechaFinEstimada) / (1000 * 60 * 60 * 24)) : 0;
         
         infoDiv.innerHTML = `
             <div style="background:#E3F2FD;padding:20px;border-radius:15px;margin-bottom:25px;">
@@ -146,7 +161,7 @@ window.curvaS = {
                     </div>
                     <div>
                         <div style="font-size:11px;color:#666;">Cliente</div>
-                        <div style="font-size:14px;font-weight:600;color:#1a1a1a;">${cotizacion.clienteId || 'N/A'}</div>
+                        <div style="font-size:14px;font-weight:600;color:#1a1a1a;">${this.datos.cliente}</div>
                     </div>
                     <div>
                         <div style="font-size:11px;color:#666;">Total</div>
@@ -162,8 +177,19 @@ window.curvaS = {
                     </div>
                     <div>
                         <div style="font-size:11px;color:#666;">Fecha Fin Estimada</div>
-                        <div style="font-size:16px;font-weight:700;color:#FF9800;">${fechaFin.toLocaleDateString('es-MX')}</div>
+                        <div style="font-size:16px;font-weight:700;color:#FF9800;">${fechaFinEstimada.toLocaleDateString('es-MX')}</div>
                     </div>
+                    ${fechaFinSolicitada ? `
+                    <div>
+                        <div style="font-size:11px;color:#666;">Fecha Fin Solicitada</div>
+                        <div style="font-size:16px;font-weight:700;color:${diferenciaDias >= 0 ? '#4CAF50' : '#f44336'};">
+                            ${fechaFinSolicitada.toLocaleDateString('es-MX')}
+                        </div>
+                        <div style="font-size:11px;color:${diferenciaDias >= 0 ? '#4CAF50' : '#f44336'};">
+                            ${diferenciaDias >= 0 ? '+' + diferenciaDias : diferenciaDias} días vs estimado
+                        </div>
+                    </div>
+                    ` : ''}
                 </div>
             </div>
         `;
@@ -392,7 +418,7 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // GUARDAR AVANCE SEMANAL (CORREGIDO)
+    // GUARDAR AVANCE SEMANAL (CORREGIDO - ACTUALIZA GRÁFICA)
     // ─────────────────────────────────────────────────────────────────
     guardarAvance: async function() {
         try {
@@ -456,6 +482,35 @@ window.curvaS = {
         await this.cargarAvanceEjecutado();
         this.generarGrafica('curva-s-chart');
         this.calcularVariaciones();
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // EXPORTAR DATOS PARA REPORTE
+    // ─────────────────────────────────────────────────────────────────
+    exportarDatosReporte: function() {
+        const reporte = {
+            cotizacionId: this.datos.cotizacionId,
+            cotizacionNumero: this.datos.cotizacionNumero,
+            cliente: this.datos.cliente,
+            fechaExportacion: new Date().toISOString(),
+            semanas: this.datos.semanas,
+            avanceProgramado: this.datos.avanceProgramado,
+            avanceEjecutado: this.datos.avanceEjecutado,
+            montoProgramado: this.datos.montoProgramado,
+            montoEjecutado: this.datos.montoEjecutado
+        };
+        
+        // Descargar como JSON
+        const blob = new Blob([JSON.stringify(reporte, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'curva-s-cotizacion-' + this.datos.cotizacionNumero + '.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        console.log('✅ Datos exportados:', reporte);
+        return reporte;
     }
 };
 
