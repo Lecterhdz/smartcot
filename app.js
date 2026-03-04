@@ -185,7 +185,14 @@ window.app = {
                 if (window.curvaS) {
                     curvaS.init();
                 }
-                break;                
+                break;
+            case 'historial-cotizaciones-screen':
+                if (window.historialCotizaciones) {
+                    setTimeout(() => {
+                        historialCotizaciones.cargar();
+                    }, 300);
+                }
+                break;
             case 'importar-screen':
                 console.log('✅ Pantalla de importar lista');
                 break;
@@ -1580,6 +1587,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
