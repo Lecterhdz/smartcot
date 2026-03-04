@@ -400,7 +400,7 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // CALCULAR VARIACIONES (CORREGIDO - SE ACTUALIZA AUTOMÁTICAMENTE)
+    // CALCULAR VARIACIONES (CORREGIDO)
     // ─────────────────────────────────────────────────────────────────
     calcularVariaciones: function() {
         // Encontrar la última semana con avance ejecutado
@@ -440,8 +440,13 @@ window.curvaS = {
             elIndiceTiempo.style.color = indiceTiempo >= 1 ? '#4CAF50' : '#f44336';
         }
         
+        // Guardar para el reporte PDF
+        this.ultimaVariacion = variacionTiempo;
+        this.ultimoIndice = indiceTiempo;
+        this.ultimaSemana = ultimaSemanaConAvance + 1;
+        
         console.log('📊 Variaciones calculadas:', {
-            semana: ultimaSemanaConAvance + 1,
+            semana: this.ultimaSemana,
             variacion: variacionTiempo.toFixed(1) + '%',
             indice: indiceTiempo.toFixed(2)
         });
@@ -517,14 +522,208 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // EXPORTAR REPORTE PDF
+    // EXPORTAR REPORTE PDF (CORREGIDO - INCLUYE DESVIACIÓN E ÍNDICE)
     // ─────────────────────────────────────────────────────────────────
     exportarReportePDF: async function() {
-        // Usar el nuevo módulo de reportes
-        if (window.reportes) {
-            await reportes.exportarCurvaSPDF(this.datos.cotizacionId);
-        } else {
-            alert('⚠️ Módulo de reportes no cargado');
+        try {
+            if (typeof window.jspdf === 'undefined') {
+                alert('⚠️ jsPDF no está cargado. Verifica que el script esté incluido.');
+                return;
+            }
+            
+            if (!this.datos.cotizacionId) {
+                alert('⚠️ Primero carga una cotización');
+                return;
+            }
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Obtener cotización
+            const cotizacion = await window.db.cotizaciones.get(parseInt(this.datos.cotizacionId));
+            if (!cotizacion) {
+                alert('❌ Cotización no encontrada');
+                return;
+            }
+            
+            // ─────────────────────────────────────────────────────────
+            // ENCABEZADO
+            // ─────────────────────────────────────────────────────────
+            doc.setFillColor(26, 26, 26);
+            doc.rect(0, 0, 210, 30, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text('CURVA S - SEGUIMIENTO DE OBRA', 105, 18, { align: 'center' });
+            
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text('SmartCot v2.0 - Reporte de Avance', 105, 25, { align: 'center' });
+            
+            // ─────────────────────────────────────────────────────────
+            // INFORMACIÓN DE LA COTIZACIÓN
+            // ─────────────────────────────────────────────────────────
+            let yPos = 40;
+            
+            doc.setTextColor(26, 26, 26);
+            doc.setFontSize(10);
+            doc.text('Cotizacion #' + this.datos.cotizacionId, 15, yPos);
+            yPos += 6;
+            doc.text('Cliente: ' + (this.datos.cliente || 'Sin cliente'), 15, yPos);
+            yPos += 6;
+            doc.text('Fecha de Reporte: ' + new Date().toLocaleDateString('es-MX'), 15, yPos);
+            yPos += 6;
+            doc.text('Total Proyecto: ' + calculator.formatoMoneda(cotizacion.totalFinal || 0), 15, yPos);
+            
+            // ─────────────────────────────────────────────────────────
+            // INDICADORES DE DESEMPEÑO (NUEVO)
+            // ─────────────────────────────────────────────────────────
+            yPos += 10;
+            
+            doc.setFillColor(227, 242, 253);
+            doc.rect(15, yPos - 5, 180, 20, 'F');
+            
+            doc.setTextColor(21, 101, 192);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.text('📊 INDICADORES DE DESEMPEÑO', 20, yPos);
+            
+            yPos += 8;
+            doc.setTextColor(26, 26, 26);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            
+            // Calcular variación e índice actuales
+            this.calcularVariaciones();
+            
+            const variacion = this.ultimaVariacion || 0;
+            const indice = this.ultimoIndice || 0;
+            const semana = this.ultimaSemana || 0;
+            
+            doc.text('Semana Actual: ' + semana, 20, yPos);
+            doc.text('Desviacion: ' + (variacion >= 0 ? '+' : '') + variacion.toFixed(1) + '%', 80, yPos);
+            doc.text('Indice Desempeno (SPI): ' + indice.toFixed(2), 150, yPos);
+            
+            // Interpretación del SPI
+            yPos += 6;
+            let interpretacion = '';
+            if (indice >= 1.0) {
+                interpretacion = '✅ Proyecto adelantado o en tiempo';
+                doc.setTextColor(76, 175, 80);
+            } else if (indice >= 0.9) {
+                interpretacion = '⚠️ Proyecto ligeramente atrasado';
+                doc.setTextColor(255, 152, 0);
+            } else {
+                interpretacion = '🚨 Proyecto atrasado - Accion requerida';
+                doc.setTextColor(244, 67, 54);
+            }
+            doc.setFontSize(9);
+            doc.text(interpretacion, 20, yPos);
+            
+            // ─────────────────────────────────────────────────────────
+            // GRÁFICA
+            // ─────────────────────────────────────────────────────────
+            yPos += 15;
+            
+            const canvas = document.getElementById('curva-s-chart');
+            if (canvas) {
+                const imgData = canvas.toDataURL('image/png');
+                doc.addImage(imgData, 'PNG', 15, yPos, 180, 100);
+                yPos += 105;
+            }
+            
+            // ─────────────────────────────────────────────────────────
+            // TABLA DE AVANCE POR SEMANA
+            // ─────────────────────────────────────────────────────────
+            yPos += 5;
+            
+            doc.setFillColor(232, 245, 233);
+            doc.rect(15, yPos - 5, 180, 5, 'F');
+            
+            doc.setTextColor(46, 125, 50);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('📈 AVANCE POR SEMANA', 20, yPos);
+            
+            yPos += 8;
+            doc.setTextColor(26, 26, 26);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            
+            // Encabezados de tabla
+            doc.setFont('helvetica', 'bold');
+            doc.text('Semana', 20, yPos);
+            doc.text('Programado', 60, yPos);
+            doc.text('Ejecutado', 100, yPos);
+            doc.text('Desviacion', 140, yPos);
+            doc.text('Estado', 180, yPos);
+            
+            yPos += 2;
+            doc.setDrawColor(200);
+            doc.line(15, yPos, 195, yPos);
+            yPos += 5;
+            
+            doc.setFont('helvetica', 'normal');
+            
+            // Filas de la tabla
+            this.datos.semanas.forEach(function(semana, index) {
+                const programado = this.datos.avanceProgramado[index] || 0;
+                const ejecutado = this.datos.avanceEjecutado[index] || 0;
+                const desviacion = ejecutado - programado;
+                
+                let estado = '';
+                if (ejecutado === 0 && programado === 0) {
+                    estado = 'Pendiente';
+                } else if (desviacion >= 0) {
+                    estado = 'Adelantado';
+                } else if (desviacion >= -5) {
+                    estado = 'Ligero atraso';
+                } else {
+                    estado = 'Atrasado';
+                }
+                
+                doc.text(semana.replace('Sem ', 'S'), 20, yPos);
+                doc.text(programado.toFixed(1) + '%', 60, yPos);
+                doc.text(ejecutado.toFixed(1) + '%', 100, yPos);
+                doc.text((desviacion >= 0 ? '+' : '') + desviacion.toFixed(1) + '%', 140, yPos);
+                doc.text(estado, 180, yPos);
+                
+                yPos += 5;
+                
+                // Verificar si necesita nueva página
+                if (yPos > 270) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+            }.bind(this));
+            
+            // ─────────────────────────────────────────────────────────
+            // PIE DE PÁGINA
+            // ─────────────────────────────────────────────────────────
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                
+                doc.setFontSize(8);
+                doc.setTextColor(150, 150, 150);
+                doc.text('Pagina ' + i + ' de ' + pageCount, 105, 290, { align: 'center' });
+                
+                doc.text('Generado por SmartCot v2.0 - ' + new Date().toLocaleDateString('es-MX'), 15, 295);
+            }
+            
+            // ─────────────────────────────────────────────────────────
+            // GUARDAR PDF
+            // ─────────────────────────────────────────────────────────
+            const nombreArchivo = 'Curva-S-Cotizacion-' + this.datos.cotizacionId + '-Reporte.pdf';
+            doc.save(nombreArchivo);
+            
+            console.log('✅ Reporte PDF exportado:', nombreArchivo);
+            alert('✅ Reporte exportado exitosamente\n\nIncluye:\n• Gráfica de avance\n• Tabla de desviaciones\n• Índice de desempeño (SPI)\n• Interpretación del estado');
+            
+        } catch (error) {
+            console.error('❌ Error exportando reporte PDF:', error);
+            alert('❌ Error al exportar reporte: ' + error.message);
         }
     }
 };
