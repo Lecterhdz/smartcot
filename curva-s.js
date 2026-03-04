@@ -479,6 +479,7 @@ window.curvaS = {
     // ACTUALIZAR GRÁFICA (NUEVA FUNCIÓN PARA REFRESCAR)
     // ─────────────────────────────────────────────────────────────────
     actualizarGrafica: async function() {
+        console.log('🔄 Actualizando gráfica...');
         await this.cargarAvanceEjecutado();
         this.generarGrafica('curva-s-chart');
         this.calcularVariaciones();
