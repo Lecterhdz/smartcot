@@ -165,35 +165,69 @@ window.licencia = {
         }
     },
     
-    // ─────────────────────────────────────────────────────────────────
-    // VERIFICAR LÍMITES
-    // ─────────────────────────────────────────────────────────────────
-    verificarLimite: function(tipo) {
-        var licencia = this.cargar();
-        
-        if (!licencia || !licencia.activa) {
-            return { 
-                permitido: false, 
-                razon: 'Licencia expirada. Por favor renueva tu licencia.' 
-            };
+// ─────────────────────────────────────────────────────────────────
+// VERIFICAR LÍMITES (CORREGIDO - CON VERIFICACIÓN REAL)
+// ─────────────────────────────────────────────────────────────────
+verificarLimite: async function(tipo) {
+    var licencia = this.cargar();
+    
+    if (!licencia || !licencia.activa) {
+        return { 
+            permitido: false, 
+            razon: 'Licencia expirada. Por favor renueva tu licencia.' 
+        };
+    }
+    
+    var plan = this.PLANES[licencia.tipo] || this.PLANES.DEMO;
+    
+    try {
+        // Verificar que window.db exista
+        if (!window.db) {
+            console.warn('⚠️ DB no disponible, permitiendo por defecto');
+            return { permitido: true };
         }
         
-        var plan = this.PLANES[licencia.tipo] || this.PLANES.DEMO;
-        
         if (tipo === 'conceptos') {
-            return { permitido: true, limite: plan.limites.conceptos };
+            var count = await window.db.conceptos.count();
+            if (count >= plan.limiteConceptos) {
+                return { 
+                    permitido: false, 
+                    razon: 'Límite de conceptos alcanzado (' + count + '/' + plan.limiteConceptos + '). Actualiza a PRO para tener hasta 10,000 conceptos.' 
+                };
+            }
+            return { permitido: true, actual: count, limite: plan.limiteConceptos };
         }
         
         if (tipo === 'cotizaciones') {
-            return { permitido: true, limite: plan.limites.cotizaciones };
+            var count = await window.db.cotizaciones.count();
+            if (count >= plan.limiteCotizaciones) {
+                return { 
+                    permitido: false, 
+                    razon: 'Límite de cotizaciones alcanzado (' + count + '/' + plan.limiteCotizaciones + '). Actualiza a PRO para cotizaciones ilimitadas.' 
+                };
+            }
+            return { permitido: true, actual: count, limite: plan.limiteCotizaciones };
         }
         
         if (tipo === 'clientes') {
-            return { permitido: true, limite: plan.limites.clientes };
+            var count = await window.db.clientes.count();
+            if (count >= plan.limiteClientes) {
+                return { 
+                    permitido: false, 
+                    razon: 'Límite de clientes alcanzado (' + count + '/' + plan.limiteClientes + '). Actualiza a PRO para clientes ilimitados.' 
+                };
+            }
+            return { permitido: true, actual: count, limite: plan.limiteClientes };
         }
         
         return { permitido: true };
-    },
+        
+    } catch (error) {
+        console.error('❌ Error verificando límite:', error);
+        // En caso de error, permitir por defecto para no bloquear al usuario
+        return { permitido: true };
+    }
+},
     
     // ─────────────────────────────────────────────────────────────────
     // CERRAR LICENCIA
