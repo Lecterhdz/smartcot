@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - SISTEMA DE LICENCIAS (CORREGIDO)
+// SMARTCOT v2.0 - SISTEMA DE LICENCIAS (DEFINITIVO)
 // ─────────────────────────────────────────────────────────────────────
 
 console.log('🔑 licencias.js cargado');
@@ -10,32 +10,69 @@ window.licencia = {
     PLANES: {
         DEMO: {
             nombre: 'DEMO',
-            dias: 7,
-            limiteConceptos: 100,
-            limiteCotizaciones: 5,
-            limiteClientes: 10,
-            precio: 0
+            precioMensual: 0,
+            precioAnual: 0,
+            duracion: 7,
+            limites: {
+                conceptos: 50,
+                cotizaciones: 5,
+                clientes: 3
+            },
+            caracteristicas: [
+                '50 conceptos',
+                '5 cotizaciones',
+                '3 clientes',
+                '7 días de uso',
+                'Sin soporte'
+            ]
         },
         PRO: {
             nombre: 'PRO',
-            dias: 365,
-            limiteConceptos: 10000,
-            limiteCotizaciones: 999999,
-            limiteClientes: 999999,
-            precio: 599
+            precioMensual: 79,
+            precioAnual: 599,
+            duracion: 365,
+            limites: {
+                conceptos: 10000,
+                cotizaciones: 999999,
+                clientes: 999999
+            },
+            caracteristicas: [
+                '10,000 conceptos',
+                'Cotizaciones ilimitadas',
+                'Clientes ilimitados',
+                'Reportes PDF',
+                'Curva S básica',
+                'Factores de ajuste',
+                'Soporte por email'
+            ],
+            ahorro: 349 // $79*12 - $599 = $349 de ahorro
         },
         ENTERPRISE: {
             nombre: 'ENTERPRISE',
-            dias: 365,
-            limiteConceptos: 999999,
-            limiteCotizaciones: 999999,
-            limiteClientes: 999999,
-            precio: 999
+            precioMensual: 129,
+            precioAnual: 999,
+            duracion: 365,
+            limites: {
+                conceptos: 999999,
+                cotizaciones: 999999,
+                clientes: 999999
+            },
+            caracteristicas: [
+                'Conceptos ilimitados',
+                'Todo lo de PRO',
+                'Curva S avanzada (EVM)',
+                'Reportes APU',
+                'Marca personalizada',
+                'Plantillas guardadas',
+                'Histórico de precios',
+                'Soporte prioritario 24hrs'
+            ],
+            ahorro: 549 // $129*12 - $999 = $549 de ahorro
         }
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // CARGAR LICENCIA (CORREGIDO - PROPIEDADES COMPATIBLES)
+    // CARGAR LICENCIA
     // ─────────────────────────────────────────────────────────────────
     cargar: function() {
         try {
@@ -55,7 +92,7 @@ window.licencia = {
                 };
                 
                 localStorage.setItem('smartcot_licencia', JSON.stringify(licenciaDemo));
-                console.log('📋 Licencia DEMO creada:', licenciaDemo);
+                console.log('📋 Licencia DEMO creada');
                 return licenciaDemo;
             }
             
@@ -75,7 +112,7 @@ window.licencia = {
                 localStorage.setItem('smartcot_licencia', JSON.stringify(licencia));
             }
             
-            console.log('📋 Licencia cargada:', licencia);
+            console.log('📋 Licencia cargada:', licencia.tipo);
             return licencia;
             
         } catch (error) {
@@ -105,14 +142,14 @@ window.licencia = {
             
             var plan = this.PLANES[planCode];
             var ahora = new Date();
-            var expiracion = new Date(ahora.getTime() + (plan.dias * 24 * 60 * 60 * 1000));
+            var expiracion = new Date(ahora.getTime() + (plan.duracion * 24 * 60 * 60 * 1000));
             
             var licencia = {
                 tipo: planCode,
                 activa: true,
                 expirada: false,
                 expiracion: expiracion.toISOString(),
-                diasRestantes: plan.dias,
+                diasRestantes: plan.duracion,
                 email: email,
                 clave: clave
             };
@@ -144,11 +181,15 @@ window.licencia = {
         var plan = this.PLANES[licencia.tipo] || this.PLANES.DEMO;
         
         if (tipo === 'conceptos') {
-            return { permitido: true };
+            return { permitido: true, limite: plan.limites.conceptos };
         }
         
         if (tipo === 'cotizaciones') {
-            return { permitido: true };
+            return { permitido: true, limite: plan.limites.cotizaciones };
+        }
+        
+        if (tipo === 'clientes') {
+            return { permitido: true, limite: plan.limites.clientes };
         }
         
         return { permitido: true };
@@ -217,19 +258,6 @@ window.licencia = {
                 window.app.notificacion('❌ ' + resultado.razon, 'error');
             }
         }
-    },
-    
-    // ─────────────────────────────────────────────────────────────────
-    // COMPRAR PLAN (para los botones de la pantalla de licencia)
-    // ─────────────────────────────────────────────────────────────────
-    comprarPlan: function(plan) {
-        var info = this.PLANES[plan];
-        var mensaje = 'Para adquirir el plan ' + plan + ':\n\n' +
-            '💰 Precio: $' + info.precio + ' MXN\n' +
-            '📅 Duración: ' + info.dias + ' días\n\n' +
-            'Contacta a lecterhdz@gmail.com para generar tu clave de licencia.\n\n' +
-            'O genera tu clave en: https://lecterhdz.github.io/smartcot/generador-licencias.html';
-        alert(mensaje);
     }
 };
 
