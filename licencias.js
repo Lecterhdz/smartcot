@@ -5,7 +5,8 @@
 console.log('🔑 licencias.js cargado');
 
 window.licencia = {
-    
+
+
     // Planes disponibles
     PLANES: {
         DEMO: {
@@ -16,7 +17,10 @@ window.licencia = {
             limiteCotizaciones: 5,
             limiteClientes: 3,
             curvaS: false,
-            reportesPDF: false
+            reportesPDF: false,
+            importar: false,
+            factoresAjuste: false,
+            historial: true
         },
         PRO: {
             nombre: 'PRO',
@@ -26,7 +30,10 @@ window.licencia = {
             limiteCotizaciones: 999999,
             limiteClientes: 999999,
             curvaS: true,
-            reportesPDF: true
+            reportesPDF: true,
+            importar: true,
+            factoresAjuste: true,
+            historial: true
         },
         ENTERPRISE: {
             nombre: 'ENTERPRISE',
@@ -36,10 +43,13 @@ window.licencia = {
             limiteCotizaciones: 999999,
             limiteClientes: 999999,
             curvaS: true,
-            reportesPDF: true
+            reportesPDF: true,
+            importar: true,
+            factoresAjuste: true,
+            historial: true
         }
     },
-    
+       
     // ─────────────────────────────────────────────────────────────────
     // CARGAR LICENCIA
     // ─────────────────────────────────────────────────────────────────
