@@ -1622,7 +1622,6 @@ window.app = {
             '   • Transferencia bancaria\n' +
             '   • PayPal\n' +
             '   • Tarjeta de crédito/débito';
-        
         alert(mensaje);
     },
     
@@ -1638,7 +1637,7 @@ window.app = {
             elEstado.textContent = info.activa ? 'Activa' : 'Expirada';
             elEstado.style.color = info.activa ? '#4CAF50' : '#f44336';
         }
-    }
+    },
     
     // ─────────────────────────────────────────────────────────────────
     // EXPORTAR/IMPORTAR
@@ -1750,6 +1749,7 @@ window.app = {
     });
     
     console.log('✅ app.js v2.0 listo');
+
 
 
 
