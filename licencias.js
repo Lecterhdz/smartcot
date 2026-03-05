@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - SISTEMA DE LICENCIAS (DEFINITIVO)
+// SMARTCOT v2.0 - SISTEMA DE LICENCIAS (CON LÍMITES REALES)
 // ─────────────────────────────────────────────────────────────────────
 
 console.log('🔑 licencias.js cargado');
@@ -10,64 +10,33 @@ window.licencia = {
     PLANES: {
         DEMO: {
             nombre: 'DEMO',
-            precioMensual: 0,
-            precioAnual: 0,
+            precio: 0,
             duracion: 7,
-            limites: {
-                conceptos: 50,
-                cotizaciones: 5,
-                clientes: 3
-            },
-            caracteristicas: [
-                '50 conceptos',
-                '5 cotizaciones',
-                '3 clientes',
-                '7 días de uso',
-                'Sin soporte'
-            ]
+            limiteConceptos: 50,
+            limiteCotizaciones: 5,
+            limiteClientes: 3,
+            curvaS: false,
+            reportesPDF: false
         },
         PRO: {
             nombre: 'PRO',
-            precioMensual: 79,
-            precioAnual: 599,
+            precio: 599,
             duracion: 365,
-            limites: {
-                conceptos: 10000,
-                cotizaciones: 999999,
-                clientes: 999999
-            },
-            caracteristicas: [
-                '10,000 conceptos',
-                'Cotizaciones ilimitadas',
-                'Clientes ilimitados',
-                'Reportes PDF',
-                'Curva S básica',
-                'Factores de ajuste',
-                'Soporte por email'
-            ],
-            ahorro: 349 // $79*12 - $599 = $349 de ahorro
+            limiteConceptos: 10000,
+            limiteCotizaciones: 999999,
+            limiteClientes: 999999,
+            curvaS: true,
+            reportesPDF: true
         },
         ENTERPRISE: {
             nombre: 'ENTERPRISE',
-            precioMensual: 129,
-            precioAnual: 999,
+            precio: 999,
             duracion: 365,
-            limites: {
-                conceptos: 999999,
-                cotizaciones: 999999,
-                clientes: 999999
-            },
-            caracteristicas: [
-                'Conceptos ilimitados',
-                'Todo lo de PRO',
-                'Curva S avanzada (EVM)',
-                'Reportes APU',
-                'Marca personalizada',
-                'Plantillas guardadas',
-                'Histórico de precios',
-                'Soporte prioritario 24hrs'
-            ],
-            ahorro: 549 // $129*12 - $999 = $549 de ahorro
+            limiteConceptos: 999999,
+            limiteCotizaciones: 999999,
+            limiteClientes: 999999,
+            curvaS: true,
+            reportesPDF: true
         }
     },
     
@@ -122,6 +91,99 @@ window.licencia = {
     },
     
     // ─────────────────────────────────────────────────────────────────
+    // VERIFICAR LÍMITES (CORREGIDO - CON VERIFICACIÓN REAL EN DB)
+    // ─────────────────────────────────────────────────────────────────
+    verificarLimite: async function(tipo) {
+        var licencia = this.cargar();
+        
+        if (!licencia || !licencia.activa) {
+            return { 
+                permitido: false, 
+                razon: 'Licencia expirada. Por favor renueva tu licencia.' 
+            };
+        }
+        
+        var plan = this.PLANES[licencia.tipo] || this.PLANES.DEMO;
+        
+        try {
+            // Verificar que window.db exista
+            if (!window.db) {
+                console.warn('⚠️ DB no disponible, permitiendo por defecto');
+                return { permitido: true };
+            }
+            
+            if (tipo === 'conceptos') {
+                var count = await window.db.conceptos.count();
+                console.log('📊 Conceptos en BD:', count, 'Límite:', plan.limiteConceptos);
+                if (count >= plan.limiteConceptos) {
+                    return { 
+                        permitido: false, 
+                        razon: 'Límite de conceptos alcanzado (' + count + '/' + plan.limiteConceptos + '). Actualiza a PRO para tener hasta 10,000 conceptos.',
+                        actual: count,
+                        limite: plan.limiteConceptos
+                    };
+                }
+                return { permitido: true, actual: count, limite: plan.limiteConceptos };
+            }
+            
+            if (tipo === 'cotizaciones') {
+                var count = await window.db.cotizaciones.count();
+                console.log('📊 Cotizaciones en BD:', count, 'Límite:', plan.limiteCotizaciones);
+                if (count >= plan.limiteCotizaciones) {
+                    return { 
+                        permitido: false, 
+                        razon: 'Límite de cotizaciones alcanzado (' + count + '/' + plan.limiteCotizaciones + '). Actualiza a PRO para cotizaciones ilimitadas.',
+                        actual: count,
+                        limite: plan.limiteCotizaciones
+                    };
+                }
+                return { permitido: true, actual: count, limite: plan.limiteCotizaciones };
+            }
+            
+            if (tipo === 'clientes') {
+                var count = await window.db.clientes.count();
+                console.log('📊 Clientes en BD:', count, 'Límite:', plan.limiteClientes);
+                if (count >= plan.limiteClientes) {
+                    return { 
+                        permitido: false, 
+                        razon: 'Límite de clientes alcanzado (' + count + '/' + plan.limiteClientes + '). Actualiza a PRO para clientes ilimitados.',
+                        actual: count,
+                        limite: plan.limiteClientes
+                    };
+                }
+                return { permitido: true, actual: count, limite: plan.limiteClientes };
+            }
+            
+            if (tipo === 'curvaS') {
+                if (!plan.curvaS) {
+                    return { 
+                        permitido: false, 
+                        razon: 'Curva S no disponible en plan ' + plan.nombre + '. Actualiza a PRO para acceder.'
+                    };
+                }
+                return { permitido: true };
+            }
+            
+            if (tipo === 'reportesPDF') {
+                if (!plan.reportesPDF) {
+                    return { 
+                        permitido: false, 
+                        razon: 'Reportes PDF no disponibles en plan ' + plan.nombre + '. Actualiza a PRO para acceder.'
+                    };
+                }
+                return { permitido: true };
+            }
+            
+            return { permitido: true };
+            
+        } catch (error) {
+            console.error('❌ Error verificando límite:', error);
+            // En caso de error, permitir por defecto para no bloquear al usuario
+            return { permitido: true };
+        }
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
     // VALIDAR CLAVE DE LICENCIA
     // ─────────────────────────────────────────────────────────────────
     validarClave: function(clave, email) {
@@ -164,70 +226,6 @@ window.licencia = {
             return { valido: false, razon: error.message };
         }
     },
-    
-// ─────────────────────────────────────────────────────────────────
-// VERIFICAR LÍMITES (CORREGIDO - CON VERIFICACIÓN REAL)
-// ─────────────────────────────────────────────────────────────────
-verificarLimite: async function(tipo) {
-    var licencia = this.cargar();
-    
-    if (!licencia || !licencia.activa) {
-        return { 
-            permitido: false, 
-            razon: 'Licencia expirada. Por favor renueva tu licencia.' 
-        };
-    }
-    
-    var plan = this.PLANES[licencia.tipo] || this.PLANES.DEMO;
-    
-    try {
-        // Verificar que window.db exista
-        if (!window.db) {
-            console.warn('⚠️ DB no disponible, permitiendo por defecto');
-            return { permitido: true };
-        }
-        
-        if (tipo === 'conceptos') {
-            var count = await window.db.conceptos.count();
-            if (count >= plan.limiteConceptos) {
-                return { 
-                    permitido: false, 
-                    razon: 'Límite de conceptos alcanzado (' + count + '/' + plan.limiteConceptos + '). Actualiza a PRO para tener hasta 10,000 conceptos.' 
-                };
-            }
-            return { permitido: true, actual: count, limite: plan.limiteConceptos };
-        }
-        
-        if (tipo === 'cotizaciones') {
-            var count = await window.db.cotizaciones.count();
-            if (count >= plan.limiteCotizaciones) {
-                return { 
-                    permitido: false, 
-                    razon: 'Límite de cotizaciones alcanzado (' + count + '/' + plan.limiteCotizaciones + '). Actualiza a PRO para cotizaciones ilimitadas.' 
-                };
-            }
-            return { permitido: true, actual: count, limite: plan.limiteCotizaciones };
-        }
-        
-        if (tipo === 'clientes') {
-            var count = await window.db.clientes.count();
-            if (count >= plan.limiteClientes) {
-                return { 
-                    permitido: false, 
-                    razon: 'Límite de clientes alcanzado (' + count + '/' + plan.limiteClientes + '). Actualiza a PRO para clientes ilimitados.' 
-                };
-            }
-            return { permitido: true, actual: count, limite: plan.limiteClientes };
-        }
-        
-        return { permitido: true };
-        
-    } catch (error) {
-        console.error('❌ Error verificando límite:', error);
-        // En caso de error, permitir por defecto para no bloquear al usuario
-        return { permitido: true };
-    }
-},
     
     // ─────────────────────────────────────────────────────────────────
     // CERRAR LICENCIA
