@@ -124,12 +124,28 @@ window.app = {
     // ─────────────────────────────────────────────────────────────────
     mostrarPantalla: function(id) {
         console.log('📄 Navegando a:', id);
+
+        // ⚠️ VERIFICAR RESTRICCIONES POR PLAN
+        if (id === 'importar-screen') {
+            var limite = window.licencia.verificarLimite('importar');
+            if (!limite.permitido) {
+                this.notificacion('❌ ' + limite.razon, 'error');
+                return;
+            }
+        }
         
+        if (id === 'curva-s-screen') {
+            var limite = window.licencia.verificarLimite('curvaS');
+            if (!limite.permitido) {
+                this.notificacion('❌ ' + limite.razon, 'error');
+                return;
+            }
+        }
+
         document.querySelectorAll('.screen').forEach(function(s) {
             s.classList.remove('active');
             s.style.display = 'none';
         });
-        
         const pantalla = document.getElementById(id);
         if (!pantalla) {
             console.error('❌ Pantalla NO encontrada:', id);
@@ -1160,6 +1176,14 @@ window.app = {
     // FACTORES DE AJUSTE
     // ─────────────────────────────────────────────────────────────────
     abrirFactoresAjuste: function() {
+
+        // ⚠️ VERIFICAR SI EL PLAN TIENE ACCESO A FACTORES
+        var limite = window.licencia.verificarLimite('factoresAjuste');
+        if (!limite.permitido) {
+            this.notificacion('❌ ' + limite.razon, 'error');
+            return;
+        }
+        
         const modal = document.getElementById('modal-factores');
         if (modal) {
             modal.style.display = 'flex';
@@ -1813,6 +1837,7 @@ window.app = {
     });
     
     console.log('✅ app.js v2.0 listo');
+
 
 
 
