@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Licencias - SmartCot</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #1a1a1a, #333); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { background: white; padding: 40px; border-radius: 20px; max-width: 500px; width: 90%; }
+        h1 { color: #1a1a1a; margin-bottom: 30px; text-align: center; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px; }
+        button { width: 100%; padding: 14px; background: #4CAF50; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        button:hover { background: #45a049; }
+        .resultado { margin-top: 20px; padding: 20px; background: #E8F5E9; border-radius: 10px; display: none; }
+        .clave { font-family: monospace; font-size: 16px; padding: 10px; background: white; border-radius: 5px; margin: 10px 0; word-break: break-all; }
+        .btn-copiar { background: #2196F3; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔑 Generador de Licencias</h1>
+        
+        <div class="form-group">
+            <label>Email del Cliente</label>
+            <input type="email" id="gen-email" placeholder="cliente@email.com">
+        </div>
+        
+        <div class="form-group">
+            <label>Plan</label>
+            <select id="gen-plan">
+                <option value="DEMO">DEMO (7 días)</option>
+                <option value="PRO">PRO (365 días) - $599</option>
+                <option value="ENTERPRISE">ENTERPRISE (365 días) - $999</option>
+            </select>
+        </div>
+        
+        <button onclick="generarLicencia()">🔑 Generar Licencia</button>
+        
+        <div class="resultado" id="resultado">
+            <h3 style="color: #2E7D32; margin-bottom: 10px;">✅ Licencia Generada</h3>
+            <p style="color: #666; margin-bottom: 10px;">Clave de activación:</p>
+            <div class="clave" id="clave-generada"></div>
+            <button class="btn-copiar" onclick="copiarClave()">📋 Copiar Clave</button>
+        </div>
+    </div>
+    
+    <script src="licencias.js"></script>
+    <script>
+        function generarLicencia() {
+            var email = document.getElementById('gen-email').value.trim();
+            var plan = document.getElementById('gen-plan').value;
+            
+            if (!email) {
+                alert('⚠️ Ingresa un email');
+                return;
+            }
+            
+            var clave = window.licencia.generarClave(plan, email);
+            
+            document.getElementById('clave-generada').textContent = clave;
+            document.getElementById('resultado').style.display = 'block';
+        }
+        
+        function copiarClave() {
+            var clave = document.getElementById('clave-generada').textContent;
+            navigator.clipboard.writeText(clave).then(function() {
+                alert('✅ Clave copiada al portapapeles');
+            });
+        }
+    </script>
+</body>
+</html>
