@@ -60,6 +60,9 @@ window.app = {
     init: async function() {
         try {
             console.log('🏭 SmartCot v2.0 iniciando...');
+
+            // ⚠️ CARGAR CATÁLOGO BASE SI NO HAY CONCEPTOS
+            await this.cargarCatalogoBase();
             
             await this.esperarDB();
             this.estado.dbLista = true;
@@ -156,6 +159,55 @@ window.app = {
             case 'importar-screen':
                 console.log('✅ Pantalla de importar lista');
                 break;
+        }
+    },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // CARGAR CATÁLOGO BASE DESDE GITHUB
+    // ─────────────────────────────────────────────────────────────────────
+    cargarCatalogoBase: async function() {
+        try {
+            console.log('📥 Intentando cargar catálogo base...');
+            
+            // Verificar si ya hay conceptos
+            const conceptosCount = await window.db.conceptos.count();
+            if (conceptosCount > 0) {
+                console.log('✅ Ya hay', conceptosCount, 'conceptos en BD');
+                return;
+            }
+            
+            // URL del catálogo base en GitHub
+            const url = 'data/catalogo-base.xlsx';
+            
+            console.log('🔗 URL:', url);
+            
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                console.log('⚠️ No se encontró catálogo base en:', url);
+                console.log('Status:', response.status);
+                return;
+            }
+            
+            const blob = await response.blob();
+            const file = new File([blob], 'catalogo-base.xlsx', { 
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+            });
+            
+            console.log('📥 Importando catálogo base desde GitHub...');
+            
+            // Usar el mismo importador que para archivos manuales
+            if (window.importadorSmartCot) {
+                const resultado = await importadorSmartCot.importarArchivo(file);
+                console.log('✅ Catálogo base cargado:', resultado.estadisticas);
+                this.notificacion('📚 Catálogo base cargado: ' + resultado.estadisticas.conceptos + ' conceptos', 'exito');
+            } else {
+                console.log('⚠️ importadorSmartCot no disponible');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error cargando catálogo base:', error);
+            console.log('⚠️ El catálogo base no se cargó. Importa manualmente desde Configuración.');
         }
     },
     
@@ -1547,12 +1599,25 @@ window.app = {
     // ─────────────────────────────────────────────────────────────────
     // CERRAR SESIÓN
     // ─────────────────────────────────────────────────────────────────
-    cerrarSesion: function() {
-        if (confirm('¿Cerrar sesión?')) {
+cerrarSesion: function() {
+    if (confirm('¿Cerrar sesión?')) {
+        // Limpiar licencia
+        if (window.licencia) {
             window.licencia.cerrar();
         }
+        
+        // Limpiar sesión
+        localStorage.removeItem('smartcot_usuario');
+        
+        // Redirigir (puedes crear una página de login después)
+        window.location.href = 'index.html';
+        
+        // Recargar después de 500ms
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
     }
-};
+},
 
 // ─────────────────────────────────────────────────────────────────────
 // INICIAR APLICACIÓN
@@ -1562,3 +1627,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
