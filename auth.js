@@ -1,78 +1,90 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - SISTEMA DE LICENCIAS
+// SMARTCOT v2.0 - AUTENTICACIÓN (CON LICENCIAS)
 // ─────────────────────────────────────────────────────────────────────
 
 console.log('🔐 auth.js cargado');
 
-window.licencia = {
-    actual: null,
-
-    // Validar licencia
-    validar: async function(clave) {
-        // Licencias de prueba (en producción, validar contra Firebase)
-        const licenciasValidas = {
-            'SMARTCOT-DEMO-2026': { tipo: 'DEMO', dias: 7, conceptosLimite: 100 },
-            'SMARTCOT-PRO-2026': { tipo: 'PROFESIONAL', dias: 365, conceptosLimite: 9999 },
-            'SMARTCOT-EMP-2026': { tipo: 'EMPRESA', dias: 365, conceptosLimite: 99999 }
-        };
-
-        const licenciaData = licenciasValidas[clave.toUpperCase()];
-        
-        if (!licenciaData) {
-            return { valido: false, error: 'Clave inválida' };
-        }
-
-        const expiracion = new Date();
-        expiracion.setDate(expiracion.getDate() + licenciaData.dias);
-
-        this.actual = {
-            clave: clave,
-            tipo: licenciaData.tipo,
-            expiracion: expiracion.toISOString(),
-            conceptosLimite: licenciaData.conceptosLimite
-        };
-
-        // Guardar en localStorage
-        localStorage.setItem('smartcot_licencia', JSON.stringify(this.actual));
-
-        return { valido: true, ...this.actual };
-    },
-
-    // Cargar licencia guardada
-    cargar: function() {
-        const guardada = localStorage.getItem('smartcot_licencia');
-        if (guardada) {
-            this.actual = JSON.parse(guardada);
+window.auth = {
+    
+    // ─────────────────────────────────────────────────────────────────
+    // INICIAR SESIÓN
+    // ─────────────────────────────────────────────────────────────────
+    iniciarSesion: async function(email, password) {
+        try {
+            console.log('🔐 Intentando iniciar sesión...', email);
             
-            // Verificar expiración
-            if (new Date() > new Date(this.actual.expiracion)) {
-                this.actual = null;
-                localStorage.removeItem('smartcot_licencia');
-                return { expirada: true };
+            // Validar licencia primero
+            const licenciaInfo = window.licencia.obtenerInfo();
+            
+            if (!licenciaInfo.activa) {
+                return { 
+                    exito: false, 
+                    mensaje: 'Licencia expirada. Por favor renueva tu licencia.' 
+                };
             }
+            
+            // Simular autenticación (puedes integrar Firebase aquí)
+            const usuario = {
+                email: email,
+                nombre: email.split('@')[0],
+                plan: licenciaInfo.plan
+            };
+            
+            localStorage.setItem('smartcot_usuario', JSON.stringify(usuario));
+            
+            console.log('✅ Sesión iniciada:', usuario);
+            return { exito: true, usuario: usuario };
+            
+        } catch (error) {
+            console.error('❌ Error iniciando sesión:', error);
+            return { exito: false, mensaje: error.message };
         }
-        return this.actual;
     },
-
-    // Verificar límite de conceptos
-    verificarLimite: async function() {
-        if (!this.actual) return { permitido: false, razon: 'Sin licencia' };
+    
+    // ─────────────────────────────────────────────────────────────────
+    // CERRAR SESIÓN
+    // ─────────────────────────────────────────────────────────────────
+    cerrarSesion: function() {
+        localStorage.removeItem('smartcot_usuario');
+        window.location.reload();
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // VERIFICAR SESIÓN ACTIVA
+    // ─────────────────────────────────────────────────────────────────
+    verificarSesion: function() {
+        const usuario = localStorage.getItem('smartcot_usuario');
+        return usuario ? JSON.parse(usuario) : null;
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // VERIFICAR LICENCIA AL INICIAR
+    // ─────────────────────────────────────────────────────────────────
+    verificarLicencia: function() {
+        const licenciaInfo = window.licencia.obtenerInfo();
         
-        if (this.actual.tipo === 'DEMO') {
-            const conceptos = await window.db?.conceptos?.count() || 0;
-            if (conceptos >= this.actual.conceptosLimite) {
-                return { permitido: false, razon: 'Límite DEMO alcanzado (' + this.actual.conceptosLimite + ' conceptos)' };
-            }
+        if (!licenciaInfo.activa) {
+            return {
+                valida: false,
+                mensaje: `Licencia ${licenciaInfo.plan} expirada el ${licenciaInfo.fechaExpiracion}`,
+                plan: licenciaInfo.plan
+            };
         }
         
-        return { permitido: true };
-    },
-
-    // Cerrar sesión
-    cerrar: function() {
-        this.actual = null;
-        localStorage.removeItem('smartcot_licencia');
-        window.location.href = 'login.html';
+        if (licenciaInfo.diasRestantes <= 7) {
+            return {
+                valida: true,
+                advertencia: true,
+                mensaje: `Tu licencia ${licenciaInfo.plan} expira en ${licenciaInfo.diasRestantes} días`,
+                plan: licenciaInfo.plan
+            };
+        }
+        
+        return {
+            valida: true,
+            plan: licenciaInfo.plan,
+            diasRestantes: licenciaInfo.diasRestantes
+        };
     }
 };
 
