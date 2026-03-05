@@ -195,7 +195,7 @@
             <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
                     <h2 style="margin:0;color:#1a1a1a;">🔑 Licencia</h2>
-                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" 
+                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')"
                             style="padding:10px 20px;background:#6c757d;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
                         ↩️ Volver
                     </button>
@@ -226,15 +226,15 @@
                     <div style="display:grid;gap:15px;">
                         <div>
                             <label style="font-size:13px;color:#666;display:block;margin-bottom:5px;">Email</label>
-                            <input type="email" id="licencia-email" placeholder="tu@email.com" 
+                            <input type="email" id="licencia-email" placeholder="tu@email.com"
                                    style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                         </div>
                         <div>
                             <label style="font-size:13px;color:#666;display:block;margin-bottom:5px;">Clave de Licencia</label>
-                            <input type="text" id="licencia-clave" placeholder="DEMO-XXXXXXXX-XXXX-XXXX" 
+                            <input type="text" id="licencia-clave" placeholder="DEMO-XXXXXXXX-XXXX-XXXX"
                                    style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;font-family:monospace;">
                         </div>
-                        <button class="btn btn-primary" onclick="licencia.activarDesdeUI()" 
+                        <button class="btn btn-primary" onclick="licencia.activarDesdeUI()"
                                 style="padding:14px 30px;background:#4CAF50;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
                             🔓 Activar Licencia
                         </button>
@@ -244,6 +244,13 @@
                 <!-- Planes Disponibles -->
                 <div style="margin-bottom:25px;">
                     <h4 style="color:#1a1a1a;margin:0 0 15px 0;">💎 Planes Disponibles</h4>
+                    
+                    <!-- Badge de ahorro anual -->
+                    <div style="background:linear-gradient(135deg,#4CAF50,#45a049);padding:15px;border-radius:10px;margin-bottom:20px;text-align:center;">
+                        <div style="color:white;font-size:18px;font-weight:700;">🎉 ¡Ahorra hasta 37% con plan anual!</div>
+                        <div style="color:white;font-size:14px;margin-top:5px;">La mejor relación costo-beneficio</div>
+                    </div>
+                    
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
                         <!-- DEMO -->
                         <div style="background:white;border:2px solid #ddd;border-radius:15px;padding:25px;">
@@ -253,51 +260,80 @@
                                 <div style="font-size:13px;color:#666;">7 días</div>
                             </div>
                             <ul style="list-style:none;padding:0;margin:0;">
-                                <li style="padding:8px 0;border-bottom:1px solid #eee;">✓ 100 conceptos máx.</li>
-                                <li style="padding:8px 0;border-bottom:1px solid #eee;">✓ 5 cotizaciones máx.</li>
-                                <li style="padding:8px 0;border-bottom:1px solid #eee;">✓ 10 clientes máx.</li>
+                                <li style="padding:8px 0;border-bottom:1px solid #eee;">✓ 50 conceptos</li>
+                                <li style="padding:8px 0;border-bottom:1px solid #eee;">✓ 5 cotizaciones</li>
+                                <li style="padding:8px 0;border-bottom:1px solid #eee;">✓ 3 clientes</li>
                                 <li style="padding:8px 0;border-bottom:1px solid #eee;">✗ Sin soporte</li>
                             </ul>
+                            <button class="btn" disabled
+                                    style="width:100%;margin-top:20px;padding:14px;background:#ddd;color:#666;border:none;border-radius:10px;cursor:not-allowed;font-weight:600;">
+                                Plan Actual
+                            </button>
                         </div>
                         
                         <!-- PRO -->
-                        <div style="background:linear-gradient(135deg,#2196F3,#1976D2);border-radius:15px;padding:25px;color:white;">
+                        <div style="background:linear-gradient(135deg,#2196F3,#1976D2);border-radius:15px;padding:25px;color:white;position:relative;overflow:hidden;">
+                            <!-- Badge de ahorro -->
+                            <div style="position:absolute;top:10px;right:-30px;background:#4CAF50;color:white;padding:5px 40px;font-size:12px;font-weight:700;transform:rotate(45deg);">
+                                AHORRA $349
+                            </div>
+                            
                             <div style="text-align:center;margin-bottom:20px;">
                                 <div style="font-size:28px;font-weight:700;">PRO</div>
-                                <div style="font-size:32px;font-weight:700;">$599</div>
-                                <div style="font-size:13px;opacity:0.8;">365 días</div>
+                                <div style="font-size:20px;font-weight:600;opacity:0.9;text-decoration:line-through;">$79/mes</div>
+                                <div style="font-size:36px;font-weight:700;">$599</div>
+                                <div style="font-size:13px;opacity:0.9;">/año (ahorra 37%)</div>
                             </div>
                             <ul style="list-style:none;padding:0;margin:0;">
                                 <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ 10,000 conceptos</li>
                                 <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Cotizaciones ilimitadas</li>
                                 <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Clientes ilimitados</li>
-                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Soporte por email</li>
-                                <li style="padding:8px 0;">✓ Reportes PDF</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Reportes PDF</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Curva S básica</li>
+                                <li style="padding:8px 0;">✓ Soporte por email</li>
                             </ul>
-                            <button class="btn" onclick="app.comprarPlan('PRO')" 
+                            <button class="btn" onclick="app.comprarPlan('PRO')"
                                     style="width:100%;margin-top:20px;padding:14px;background:white;color:#1976D2;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
                                 Elegir PRO
                             </button>
                         </div>
                         
                         <!-- ENTERPRISE -->
-                        <div style="background:linear-gradient(135deg,#FF9800,#F57C00);border-radius:15px;padding:25px;color:white;">
+                        <div style="background:linear-gradient(135deg,#FF9800,#F57C00);border-radius:15px;padding:25px;color:white;position:relative;overflow:hidden;">
+                            <!-- Badge de ahorro -->
+                            <div style="position:absolute;top:10px;right:-30px;background:#4CAF50;color:white;padding:5px 40px;font-size:12px;font-weight:700;transform:rotate(45deg);">
+                                AHORRA $549
+                            </div>
+                            
                             <div style="text-align:center;margin-bottom:20px;">
                                 <div style="font-size:28px;font-weight:700;">ENTERPRISE</div>
-                                <div style="font-size:32px;font-weight:700;">$999</div>
-                                <div style="font-size:13px;opacity:0.8;">365 días</div>
+                                <div style="font-size:20px;font-weight:600;opacity:0.9;text-decoration:line-through;">$129/mes</div>
+                                <div style="font-size:36px;font-weight:700;">$999</div>
+                                <div style="font-size:13px;opacity:0.9;">/año (ahorra 35%)</div>
                             </div>
                             <ul style="list-style:none;padding:0;margin:0;">
-                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Todo de PRO</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Todo lo de PRO</li>
                                 <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Conceptos ilimitados</li>
-                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Soporte prioritario</li>
-                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Curva S avanzada</li>
-                                <li style="padding:8px 0;">✓ Reportes APU</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Curva S avanzada (EVM)</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Reportes APU</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Marca personalizada</li>
+                                <li style="padding:8px 0;">✓ Soporte prioritario 24hrs</li>
                             </ul>
-                            <button class="btn" onclick="app.comprarPlan('ENTERPRISE')" 
+                            <button class="btn" onclick="app.comprarPlan('ENTERPRISE')"
                                     style="width:100%;margin-top:20px;padding:14px;background:white;color:#F57C00;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
                                 Elegir ENTERPRISE
                             </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Nota de precios -->
+                    <div style="margin-top:20px;padding:15px;background:#FFF3E0;border-radius:10px;border-left:4px solid #FF9800;">
+                        <div style="font-size:13px;color:#E65100;">
+                            <strong>💡 ¿Por qué elegir el plan anual?</strong><br>
+                            • Ahorras hasta $549 pesos al año<br>
+                            • Un solo pago, sin preocupaciones mensuales<br>
+                            • Acceso completo a todas las actualizaciones<br>
+                            • Ideal para profesionales y empresas
                         </div>
                     </div>
                 </div>
@@ -900,3 +936,4 @@
     </script>
 </body>
 </html>
+
