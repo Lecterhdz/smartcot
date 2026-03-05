@@ -60,26 +60,33 @@ window.app = {
     init: async function() {
         try {
             console.log('🏭 SmartCot v2.0 iniciando...');
-
-            // ⚠️ CARGAR CATÁLOGO BASE SI NO HAY CONCEPTOS
-            await this.cargarCatalogoBase();
-            
+     
+        // 1. PRIMERO esperar a que DB esté lista
             await this.esperarDB();
             this.estado.dbLista = true;
             console.log('✅ Base de datos lista');
             
+        // 2. Cargar licencia
             const licencia = window.licencia.cargar();
             this.estado.licenciaActiva = licencia && !licencia.expirada;
             this.actualizarInfoLicencia(licencia);
 
-            // ⚠️ AGREGA ESTO:
+        // 3. AGREGA ESTO para actualizar UI de licencia
             this.actualizarInfoLicenciaUI();
             
+        // 4. Cargar configuración y estadística
             await this.cargarConfiguracion();
             await this.cargarEstadisticas();
             await this.cargarClientesSelect();
             await this.cargarActividadReciente();
+
+        // 5. ⚠️ MOVER cargarCatalogoBase() AQUÍ (después de que todo esté listo)
+        // Esperar un poco más para asegurar que importadorSmartCot esté listo
+            setTimeout(() => {
+                this.cargarCatalogoBase();
+            }, 1000);
             
+        // 6. Inicializar formularios
             this.inicializarFormularios();
             
             console.log('✅ SmartCot v2.0 listo');
@@ -179,9 +186,21 @@ window.app = {
                 return;
             }
             
+            // ⚠️ VERIFICAR QUE importadorSmartCot EXISTA
+            if (!window.importadorSmartCot) {
+                console.log('⏳ Esperando a que importadorSmartCot esté listo...');
+                // Esperar 2 segundos y reintentar
+                await new Promise(function(resolve) { setTimeout(resolve, 2000); });
+                
+                // Verificar de nuevo
+                if (!window.importadorSmartCot) {
+                    console.log('⚠️ importadorSmartCot no disponible, se cargará manualmente después');
+                    return;
+                }
+            }
+            
             // URL del catálogo base en GitHub
             const url = 'data/catalogo-base.xlsx';
-            
             console.log('🔗 URL:', url);
             
             const response = await fetch(url);
@@ -199,18 +218,19 @@ window.app = {
             
             console.log('📥 Importando catálogo base desde GitHub...');
             
-            // Usar el mismo importador que para archivos manuales
-            if (window.importadorSmartCot) {
-                const resultado = await importadorSmartCot.importarArchivo(file);
-                console.log('✅ Catálogo base cargado:', resultado.estadisticas);
-                this.notificacion('📚 Catálogo base cargado: ' + resultado.estadisticas.conceptos + ' conceptos', 'exito');
+            // ⚠️ VERIFICACIÓN DE SEGURIDAD ANTES DE USAR
+            if (window.importadorSmartCot && typeof window.importadorSmartCot.importarArchivo === 'function') {
+                const resultado = await window.importadorSmartCot.importarArchivo(file);
+                console.log('✅ Catálogo base cargado:', resultado);
+                this.notificacion('📚 Catálogo base cargado: ' + (resultado.conceptos || 0) + ' conceptos', 'exito');
             } else {
-                console.log('⚠️ importadorSmartCot no disponible');
+                console.log('⚠️ importadorSmartCot.importarArchivo no está disponible');
+                this.notificacion('⚠️ Importa conceptos manualmente desde Configuración', 'advertencia');
             }
             
         } catch (error) {
             console.error('❌ Error cargando catálogo base:', error);
-            console.log('⚠️ El catálogo base no se cargó. Importa manualmente desde Configuración.');
+            console.log('⚠️ El catálogo base no se cargó. Importa manualmente desde Importar Datos.');
         }
     },
     
@@ -1657,6 +1677,7 @@ window.app = {
     });
     
     console.log('✅ app.js v2.0 listo');
+
 
 
 
