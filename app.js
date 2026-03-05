@@ -1392,7 +1392,22 @@ guardarFactores: function() {
                 return;
             }
             
+            // ⚠️ IMPORTANTE: Calcular totales ANTES de guardar
             this.calcularTotalConConceptos();
+            
+            // Calcular valores para guardar
+            let subtotal = 0;
+            this.datosCotizacion.conceptosSeleccionados.forEach(function(c) {
+                subtotal += (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
+            });
+            
+            const indirectosOficina = subtotal * (indirectosOficinaPorcentaje / 100);
+            const indirectosCampo = subtotal * (indirectosCampoPorcentaje / 100);
+            const totalIndirectos = indirectosOficina + indirectosCampo;
+            const baseConIndirectos = subtotal + totalIndirectos;
+            const utilidad = baseConIndirectos * (utilidadPorcentaje / 100);
+            const iva = (baseConIndirectos + utilidad) * 0.16;
+            const totalFinal = baseConIndirectos + utilidad + iva;
             
             const cotizacion = {
                 clienteId: clienteId,
@@ -1412,8 +1427,16 @@ guardarFactores: function() {
                     financiamiento: financiamientoPorcentaje,
                     utilidad: utilidadPorcentaje
                 },
-                factoresAjuste: this.factoresAjuste,
+                // ⚠️ VALORES CALCULADOS (PARA EL REPORTE)
+                costoDirecto: subtotal,
+                totalIndirectos: totalIndirectos,
+                utilidad: utilidad,
+                iva: iva,
+                totalFinal: totalFinal,
+                // Factores y tiempo
+                factoresAjuste: this.impactoFactores?.aplicado ? this.factoresAjuste : null,
                 tiempoEjecucion: this.tiempoEjecucion,
+                costoTiempoExtendido: this.impactoFactores?.aplicado ? this.impactoFactores.costoTiempoExtendido : 0,
                 fecha: new Date().toISOString(),
                 estado: 'pendiente'
             };
@@ -1793,6 +1816,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
