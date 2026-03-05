@@ -167,6 +167,56 @@ window.app = {
                 break;
         }
     },
+
+    // ─────────────────────────────────────────────────────────────────
+    // LICENCIAS
+    // ─────────────────────────────────────────────────────────────────
+    activarLicencia: async function() {
+        const email = document.getElementById('licencia-email')?.value.trim();
+        const clave = document.getElementById('licencia-clave')?.value.trim();
+        
+        if (!email || !clave) {
+            this.notificacion('⚠️ Completa email y clave', 'error');
+            return;
+        }
+        
+        const resultado = window.licencia.validarClave(clave, email);
+        
+        if (resultado.valido) {
+            this.notificacion(`✅ Licencia ${resultado.plan} activada exitosamente`, 'exito');
+            await this.cargarEstadisticas();
+            this.mostrarPantalla('dashboard-screen');
+        } else {
+            this.notificacion('❌ ' + resultado.razon, 'error');
+        }
+    },
+    
+    comprarPlan: function(plan) {
+        // Aquí integrarías Stripe/PayPal
+        const info = window.licencia.PLANES[plan];
+        
+        const mensaje = `Para adquirir el plan ${plan}:\n\n` +
+            `💰 Precio: $${info.precio} MXN\n` +
+            `📅 Duración: ${info.dias} días\n\n` +
+            `Contacta a ventas@smartcot.com para generar tu clave de licencia.`;
+        
+        alert(mensaje);
+    },
+    
+    actualizarInfoLicencia: function() {
+        const info = window.licencia.obtenerInfo();
+        
+        const elPlan = document.getElementById('licencia-plan-actual');
+        const elDias = document.getElementById('licencia-dias-restantes');
+        const elEstado = document.getElementById('licencia-estado');
+        
+        if (elPlan) elPlan.textContent = info.plan;
+        if (elDias) elDias.textContent = info.diasRestantes;
+        if (elEstado) {
+            elEstado.textContent = info.activa ? 'Activa' : 'Expirada';
+            elEstado.style.color = info.activa ? '#4CAF50' : '#f44336';
+        }
+    }
     
     // ─────────────────────────────────────────────────────────────────
     // LICENCIA
@@ -1819,6 +1869,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
