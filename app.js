@@ -55,38 +55,35 @@ window.app = {
     factorAjusteActual: 1,
     
     // ─────────────────────────────────────────────────────────────────
-    // INICIALIZACIÓN
+    // INICIALIZACIÓN (CORREGIDO - ORDEN CORRECTO)
 // 1. En init(), debe llamar a licencia.cargar()
     init: async function() {
         try {
             console.log('🏭 SmartCot v2.0 iniciando...');
-     
-        // 1. PRIMERO esperar a que DB esté lista
+            
+            // 1. PRIMERO esperar a que DB esté lista
             await this.esperarDB();
             this.estado.dbLista = true;
             console.log('✅ Base de datos lista');
             
-        // 2. Cargar licencia
+            // 2. Cargar licencia
             const licencia = window.licencia.cargar();
             this.estado.licenciaActiva = licencia && !licencia.expirada;
             this.actualizarInfoLicencia(licencia);
-
-        // 3. AGREGA ESTO para actualizar UI de licencia
             this.actualizarInfoLicenciaUI();
             
-        // 4. Cargar configuración y estadística
-            await this.cargarConfiguracion();
+            // 3. ⚠️ CARGAR CATÁLOGO BASE ANTES DE ESTADÍSTICAS
+            const catalogoCargado = await this.cargarCatalogoBase();
+            console.log('📊 Catálogo cargado:', catalogoCargado);
+            
+            // 4. AHORA SÍ cargar estadísticas (después de que el catálogo se importó)
             await this.cargarEstadisticas();
+            
+            // 5. Resto de la inicialización
+            await this.cargarConfiguracion();
             await this.cargarClientesSelect();
             await this.cargarActividadReciente();
-
-        // 5. ⚠️ MOVER cargarCatalogoBase() AQUÍ (después de que todo esté listo)
-        // Esperar un poco más para asegurar que importadorSmartCot esté listo
-            setTimeout(() => {
-                this.cargarCatalogoBase();
-            }, 1000);
             
-        // 6. Inicializar formularios
             this.inicializarFormularios();
             
             console.log('✅ SmartCot v2.0 listo');
@@ -173,7 +170,7 @@ window.app = {
     },
 
     // ─────────────────────────────────────────────────────────────────────
-    // CARGAR CATÁLOGO BASE DESDE GITHUB (CORREGIDO)
+    // CARGAR CATÁLOGO BASE DESDE GITHUB (CORREGIDO - CON PROMESA)
     // ─────────────────────────────────────────────────────────────────────
     cargarCatalogoBase: async function() {
         try {
@@ -183,7 +180,7 @@ window.app = {
             const conceptosCount = await window.db.conceptos.count();
             if (conceptosCount > 0) {
                 console.log('✅ Ya hay', conceptosCount, 'conceptos en BD');
-                return;
+                return true; // ← Retornar true para indicar que ya hay datos
             }
             
             // URL del catálogo base en GitHub
@@ -191,59 +188,38 @@ window.app = {
             console.log('🔗 URL:', url);
             
             const response = await fetch(url);
-            
             if (!response.ok) {
                 console.log('⚠️ No se encontró catálogo base en:', url);
                 console.log('Status:', response.status);
-                return;
+                return false;
             }
             
             const blob = await response.blob();
-            const file = new File([blob], 'catalogo-base.xlsx', { 
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+            const file = new File([blob], 'catalogo-base.xlsx', {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             });
             
             console.log('📥 Importando catálogo base desde GitHub...');
             
-            // ⚠️ VERIFICAR QUE importadorSmartCot EXISTA
-            if (!window.importadorSmartCot) {
-                console.log('⚠️ importadorSmartCot no disponible, se cargará manualmente después');
-                return;
-            }
-            
-            // ⚠️ VERIFICAR QUE importarArchivo EXISTA
-            if (typeof window.importadorSmartCot.importarArchivo !== 'function') {
-                console.log('⚠️ importarArchivo no es una función');
-                return;
-            }
-            
-            // Importar archivo
-            const resultado = await window.importadorSmartCot.importarArchivo(file);
-            
-            console.log('✅ Resultado de importación:', resultado);
-            
-            // ⚠️ ACCEDER CORRECTAMENTE A LOS DATOS (depende de cómo devuelve importadorSmartCot)
-            var conceptosCargados = 0;
-            
-            if (resultado && resultado.estadisticas) {
-                conceptosCargados = resultado.estadisticas.conceptos || 0;
-            } else if (resultado && resultado.conceptos) {
-                conceptosCargados = resultado.conceptos;
-            } else if (resultado && typeof resultado === 'number') {
-                conceptosCargados = resultado;
-            }
-            
-            console.log('📊 Conceptos cargados:', conceptosCargados);
-            
-            if (conceptosCargados > 0) {
-                this.notificacion('📚 Catálogo base cargado: ' + conceptosCargados + ' conceptos', 'exito');
+            // Usar el mismo importador que para archivos manuales
+            if (window.importadorSmartCot) {
+                const resultado = await window.importadorSmartCot.importarArchivo(file);
+                console.log('✅ Catálogo base cargado:', resultado.estadisticas);
+                this.notificacion('📚 Catálogo base cargado: ' + (resultado.estadisticas?.conceptos || 0) + ' conceptos', 'exito');
+                
+                // ⚠️ IMPORTANTE: Esperar un momento para que IndexedDB termine de guardar
+                await new Promise(function(resolve) { setTimeout(resolve, 2000); });
+                
+                return true; // ← Retornar true para indicar éxito
             } else {
-                console.log('⚠️ No se cargaron conceptos');
+                console.log('⚠️ importadorSmartCot no disponible');
+                return false;
             }
             
         } catch (error) {
             console.error('❌ Error cargando catálogo base:', error);
-            console.log('⚠️ El catálogo base no se cargó. Importa manualmente desde Importar Datos.');
+            console.log('⚠️ El catálogo base no se cargó. Importa manualmente desde Configuración.');
+            return false;
         }
     },
     
@@ -276,6 +252,8 @@ window.app = {
             }
             
             const stats = await window.dbUtils.estadisticas();
+
+            console.log('📊 Estadísticas cargadas:', stats);
             
             this.animarNumero('stat-conceptos', stats.conceptos || 0);
             this.animarNumero('stat-materiales', stats.materiales || 0);
@@ -1690,6 +1668,7 @@ window.app = {
     });
     
     console.log('✅ app.js v2.0 listo');
+
 
 
 
