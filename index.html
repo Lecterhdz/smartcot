@@ -234,7 +234,7 @@
                             <input type="text" id="licencia-clave" placeholder="DEMO-XXXXXXXX-XXXX-XXXX" 
                                    style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;font-family:monospace;">
                         </div>
-                        <button class="btn btn-primary" onclick="app.activarLicencia()" 
+                        <button class="btn btn-primary" onclick="licencia.activarDesdeUI()" 
                                 style="padding:14px 30px;background:#4CAF50;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
                             🔓 Activar Licencia
                         </button>
@@ -272,8 +272,7 @@
                                 <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Cotizaciones ilimitadas</li>
                                 <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Clientes ilimitados</li>
                                 <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Soporte por email</li>
-                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Reportes PDF</li>
-                                <li style="padding:8px 0;">✓ Curva S</li>
+                                <li style="padding:8px 0;">✓ Reportes PDF</li>
                             </ul>
                             <button class="btn" onclick="app.comprarPlan('PRO')" 
                                     style="width:100%;margin-top:20px;padding:14px;background:white;color:#1976D2;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
@@ -290,11 +289,10 @@
                             </div>
                             <ul style="list-style:none;padding:0;margin:0;">
                                 <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Todo de PRO</li>
-                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Multi-usuario (10)</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Conceptos ilimitados</li>
                                 <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Soporte prioritario</li>
-                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ API access</li>
-                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Reportes APU</li>
-                                <li style="padding:8px 0;">✓ Curva S avanzada</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Curva S avanzada</li>
+                                <li style="padding:8px 0;">✓ Reportes APU</li>
                             </ul>
                             <button class="btn" onclick="app.comprarPlan('ENTERPRISE')" 
                                     style="width:100%;margin-top:20px;padding:14px;background:white;color:#F57C00;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
@@ -902,6 +900,7 @@
     </script>
 </body>
 </html>
+
 
 
 
