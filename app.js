@@ -240,6 +240,42 @@ window.app = {
             info.style.color = '#f44336';
         }
     },
+
+    // ─────────────────────────────────────────────────────────────────
+    // ACTUALIZAR INDICADOR DE LÍMITES
+    // ─────────────────────────────────────────────────────────────────
+    actualizarIndicadorLimites: async function() {
+        try {
+            if (!window.db) return;
+            
+            var conceptos = await window.db.conceptos.count();
+            var cotizaciones = await window.db.cotizaciones.count();
+            var clientes = await window.db.clientes.count();
+            
+            var licencia = window.licencia.cargar();
+            var plan = window.licencia.PLANES[licencia?.tipo || 'DEMO'] || window.licencia.PLANES.DEMO;
+            
+            var elConceptos = document.getElementById('uso-conceptos');
+            var elCotizaciones = document.getElementById('uso-cotizaciones');
+            var elClientes = document.getElementById('uso-clientes');
+            
+            if (elConceptos) elConceptos.textContent = conceptos + '/' + plan.limiteConceptos;
+            if (elCotizaciones) elCotizaciones.textContent = cotizaciones + '/' + plan.limiteCotizaciones;
+            if (elClientes) elClientes.textContent = clientes + '/' + plan.limiteClientes;
+            
+            // Cambiar color si está cerca del límite
+            if (elCotizaciones && cotizaciones >= plan.limiteCotizaciones * 0.8) {
+                elCotizaciones.style.color = '#f44336';
+            }
+            if (elClientes && clientes >= plan.limiteClientes * 0.8) {
+                elClientes.style.color = '#f44336';
+            }
+            
+        } catch (error) {
+            console.error('❌ Error actualizando indicador de límites:', error);
+        }
+    },
+
     
     // ─────────────────────────────────────────────────────────────────
     // ESTADÍSTICAS
@@ -1764,6 +1800,7 @@ window.app = {
     });
     
     console.log('✅ app.js v2.0 listo');
+
 
 
 
