@@ -173,7 +173,7 @@ window.app = {
     },
 
     // ─────────────────────────────────────────────────────────────────────
-    // CARGAR CATÁLOGO BASE DESDE GITHUB
+    // CARGAR CATÁLOGO BASE DESDE GITHUB (CORREGIDO)
     // ─────────────────────────────────────────────────────────────────────
     cargarCatalogoBase: async function() {
         try {
@@ -184,19 +184,6 @@ window.app = {
             if (conceptosCount > 0) {
                 console.log('✅ Ya hay', conceptosCount, 'conceptos en BD');
                 return;
-            }
-            
-            // ⚠️ VERIFICAR QUE importadorSmartCot EXISTA
-            if (!window.importadorSmartCot) {
-                console.log('⏳ Esperando a que importadorSmartCot esté listo...');
-                // Esperar 2 segundos y reintentar
-                await new Promise(function(resolve) { setTimeout(resolve, 2000); });
-                
-                // Verificar de nuevo
-                if (!window.importadorSmartCot) {
-                    console.log('⚠️ importadorSmartCot no disponible, se cargará manualmente después');
-                    return;
-                }
             }
             
             // URL del catálogo base en GitHub
@@ -218,14 +205,40 @@ window.app = {
             
             console.log('📥 Importando catálogo base desde GitHub...');
             
-            // ⚠️ VERIFICACIÓN DE SEGURIDAD ANTES DE USAR
-            if (window.importadorSmartCot && typeof window.importadorSmartCot.importarArchivo === 'function') {
-                const resultado = await window.importadorSmartCot.importarArchivo(file);
-                console.log('✅ Catálogo base cargado:', resultado);
-                this.notificacion('📚 Catálogo base cargado: ' + (resultado.conceptos || 0) + ' conceptos', 'exito');
+            // ⚠️ VERIFICAR QUE importadorSmartCot EXISTA
+            if (!window.importadorSmartCot) {
+                console.log('⚠️ importadorSmartCot no disponible, se cargará manualmente después');
+                return;
+            }
+            
+            // ⚠️ VERIFICAR QUE importarArchivo EXISTA
+            if (typeof window.importadorSmartCot.importarArchivo !== 'function') {
+                console.log('⚠️ importarArchivo no es una función');
+                return;
+            }
+            
+            // Importar archivo
+            const resultado = await window.importadorSmartCot.importarArchivo(file);
+            
+            console.log('✅ Resultado de importación:', resultado);
+            
+            // ⚠️ ACCEDER CORRECTAMENTE A LOS DATOS (depende de cómo devuelve importadorSmartCot)
+            var conceptosCargados = 0;
+            
+            if (resultado && resultado.estadisticas) {
+                conceptosCargados = resultado.estadisticas.conceptos || 0;
+            } else if (resultado && resultado.conceptos) {
+                conceptosCargados = resultado.conceptos;
+            } else if (resultado && typeof resultado === 'number') {
+                conceptosCargados = resultado;
+            }
+            
+            console.log('📊 Conceptos cargados:', conceptosCargados);
+            
+            if (conceptosCargados > 0) {
+                this.notificacion('📚 Catálogo base cargado: ' + conceptosCargados + ' conceptos', 'exito');
             } else {
-                console.log('⚠️ importadorSmartCot.importarArchivo no está disponible');
-                this.notificacion('⚠️ Importa conceptos manualmente desde Configuración', 'advertencia');
+                console.log('⚠️ No se cargaron conceptos');
             }
             
         } catch (error) {
@@ -1677,6 +1690,7 @@ window.app = {
     });
     
     console.log('✅ app.js v2.0 listo');
+
 
 
 
