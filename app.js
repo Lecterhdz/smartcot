@@ -1525,19 +1525,16 @@ window.app = {
 // 3. Función comprarPlan (para los botones de la pantalla de licencia)
     comprarPlan: function(plan) {
         var info = window.licencia.PLANES[plan];
-        
         var mensaje = 'Para adquirir el plan ' + plan + ':\n\n' +
             '💰 Precio: $' + info.precio + ' MXN\n' +
             '📅 Duración: ' + info.dias + ' días\n\n' +
             'Contacta a lecterhdz@gmail.com para generar tu clave de licencia.\n\n' +
             'O genera tu clave en: https://lecterhdz.github.io/smartcot/generador-licencias.html';
-        
         alert(mensaje);
     },
     
     actualizarInfoLicenciaUI: function() {
         var info = window.licencia.obtenerInfo();
-        
         var elPlan = document.getElementById('licencia-plan-actual');
         var elDias = document.getElementById('licencia-dias-restantes');
         var elEstado = document.getElementById('licencia-estado');
@@ -1548,7 +1545,7 @@ window.app = {
             elEstado.textContent = info.activa ? 'Activa' : 'Expirada';
             elEstado.style.color = info.activa ? '#4CAF50' : '#f44336';
         }
-    }
+    },
     
     // ─────────────────────────────────────────────────────────────────
     // EXPORTAR/IMPORTAR
@@ -1629,37 +1626,38 @@ window.app = {
         }, 3000);
     },
     
-    // ─────────────────────────────────────────────────────────────────
-    // CERRAR SESIÓN
-// 4. Función cerrarSesion
-cerrarSesion: function() {
-    if (confirm('¿Cerrar sesión?')) {
-        // Limpiar licencia
-        if (window.licencia) {
-            window.licencia.cerrar();
+        // ─────────────────────────────────────────────────────────────────
+        // CERRAR SESIÓN
+    // 4. Función cerrarSesion
+    cerrarSesion: function() {
+        if (confirm('¿Cerrar sesión?')) {
+            // Limpiar licencia
+            if (window.licencia) {
+                window.licencia.cerrar();
+            }
+            
+            // Limpiar sesión
+            localStorage.removeItem('smartcot_usuario');
+            
+            // Redirigir (puedes crear una página de login después)
+            window.location.href = 'index.html';
+            
+            // Recargar después de 500ms
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
         }
-        
-        // Limpiar sesión
-        localStorage.removeItem('smartcot_usuario');
-        
-        // Redirigir (puedes crear una página de login después)
-        window.location.href = 'index.html';
-        
-        // Recargar después de 500ms
-        setTimeout(() => {
-            window.location.reload();
-        }, 500);
-    }
-},
+    },
+    };
+    // ─────────────────────────────────────────────────────────────────────
+    // INICIAR APLICACIÓN
+    // ─────────────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function() {
+        window.app.init();
+    });
+    
+    console.log('✅ app.js v2.0 listo');
 
-// ─────────────────────────────────────────────────────────────────────
-// INICIAR APLICACIÓN
-// ─────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
-    window.app.init();
-});
-
-console.log('✅ app.js v2.0 listo');
 
 
 
