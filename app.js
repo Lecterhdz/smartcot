@@ -56,7 +56,7 @@ window.app = {
     
     // ─────────────────────────────────────────────────────────────────
     // INICIALIZACIÓN
-    // ─────────────────────────────────────────────────────────────────
+// 1. En init(), debe llamar a licencia.cargar()
     init: async function() {
         try {
             console.log('🏭 SmartCot v2.0 iniciando...');
@@ -216,7 +216,7 @@ window.app = {
     
     // ─────────────────────────────────────────────────────────────────
     // LICENCIA
-    // ─────────────────────────────────────────────────────────────────
+// 2. Función actualizarInfoLicencia
     actualizarInfoLicencia: function(licencia) {
         const info = document.getElementById('license-info');
         if (!info) return;
@@ -1522,14 +1522,14 @@ window.app = {
 
     // ─────────────────────────────────────────────────────────────────
     // LICENCIAS
-    // ─────────────────────────────────────────────────────────────────
+// 3. Función comprarPlan (para los botones de la pantalla de licencia)
     comprarPlan: function(plan) {
         var info = window.licencia.PLANES[plan];
         
         var mensaje = 'Para adquirir el plan ' + plan + ':\n\n' +
             '💰 Precio: $' + info.precio + ' MXN\n' +
             '📅 Duración: ' + info.dias + ' días\n\n' +
-            'Contacta a ventas@smartcot.com para generar tu clave de licencia.\n\n' +
+            'Contacta a lecterhdz@gmail.com para generar tu clave de licencia.\n\n' +
             'O genera tu clave en: https://lecterhdz.github.io/smartcot/generador-licencias.html';
         
         alert(mensaje);
@@ -1631,7 +1631,7 @@ window.app = {
     
     // ─────────────────────────────────────────────────────────────────
     // CERRAR SESIÓN
-    // ─────────────────────────────────────────────────────────────────
+// 4. Función cerrarSesion
 cerrarSesion: function() {
     if (confirm('¿Cerrar sesión?')) {
         // Limpiar licencia
@@ -1660,5 +1660,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
