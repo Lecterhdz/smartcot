@@ -6,69 +6,404 @@
     <title>Generador de Licencias - SmartCot</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #1a1a1a, #333); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .container { background: white; padding: 40px; border-radius: 20px; max-width: 500px; width: 90%; }
-        h1 { color: #1a1a1a; margin-bottom: 30px; text-align: center; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
-        input, select { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px; }
-        button { width: 100%; padding: 14px; background: #4CAF50; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; }
-        button:hover { background: #45a049; }
-        .resultado { margin-top: 20px; padding: 20px; background: #E8F5E9; border-radius: 10px; display: none; }
-        .clave { font-family: monospace; font-size: 16px; padding: 10px; background: white; border-radius: 5px; margin: 10px 0; word-break: break-all; }
-        .btn-copiar { background: #2196F3; margin-top: 10px; }
+        body { 
+            font-family: 'Segoe UI', 'Roboto', sans-serif; 
+            background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px;
+        }
+        .container { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 20px; 
+            max-width: 600px; 
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 { 
+            color: #1a1a1a; 
+            margin-bottom: 10px; 
+            text-align: center;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .form-group { 
+            margin-bottom: 25px; 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600; 
+            color: #333;
+            font-size: 14px;
+        }
+        input, select { 
+            width: 100%; 
+            padding: 14px; 
+            border: 2px solid #ddd; 
+            border-radius: 10px; 
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #1a1a1a;
+        }
+        button { 
+            width: 100%; 
+            padding: 16px; 
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-bottom: 10px;
+        }
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+        }
+        .resultado { 
+            margin-top: 25px; 
+            padding: 25px; 
+            background: #E8F5E9; 
+            border-radius: 15px; 
+            display: none;
+            border-left: 5px solid #4CAF50;
+        }
+        .resultado h3 {
+            color: #2E7D32;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .clave { 
+            font-family: 'Courier New', monospace; 
+            font-size: 16px; 
+            padding: 15px; 
+            background: white; 
+            border-radius: 8px; 
+            margin: 15px 0;
+            word-break: break-all;
+            border: 2px dashed #4CAF50;
+            text-align: center;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        .btn-copiar { 
+            background: #2196F3; 
+            margin-top: 10px;
+        }
+        .btn-copiar:hover {
+            background: #1976D2;
+        }
+        .btn-email {
+            background: #FF9800;
+            margin-top: 10px;
+        }
+        .btn-email:hover {
+            background: #F57C00;
+        }
+        .info-plan {
+            background: #FFF3E0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #FF9800;
+        }
+        .info-plan h4 {
+            color: #E65100;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .info-plan ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .info-plan li {
+            padding: 5px 0;
+            color: #555;
+            font-size: 14px;
+        }
+        .info-plan li:before {
+            content: "✓ ";
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .historial {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+        .historial h3 {
+            color: #1a1a1a;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .historial-item {
+            background: #f5f7fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .historial-item .fecha {
+            color: #999;
+            font-size: 12px;
+        }
+        .historial-item .clave-historial {
+            font-family: monospace;
+            background: white;
+            padding: 8px;
+            border-radius: 5px;
+            margin-top: 8px;
+            word-break: break-all;
+        }
+        .btn-volver {
+            background: #6c757d;
+            margin-top: 20px;
+        }
+        .btn-volver:hover {
+            background: #5a6268;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🔑 Generador de Licencias</h1>
+        <p class="subtitle">SmartCot v2.0 - Administración</p>
         
-        <div class="form-group">
-            <label>Email del Cliente</label>
-            <input type="email" id="gen-email" placeholder="cliente@email.com">
+        <!-- Información del Plan -->
+        <div class="info-plan">
+            <h4>📋 Planes Disponibles</h4>
+            <ul>
+                <li><strong>DEMO:</strong> 7 días, 50 conceptos, 5 cotizaciones</li>
+                <li><strong>PRO:</strong> 365 días, 10,000 conceptos, $599 MXN</li>
+                <li><strong>ENTERPRISE:</strong> 365 días, ilimitado, $999 MXN</li>
+            </ul>
         </div>
         
         <div class="form-group">
-            <label>Plan</label>
-            <select id="gen-plan">
-                <option value="DEMO">DEMO (7 días)</option>
-                <option value="PRO">PRO (365 días) - $599</option>
-                <option value="ENTERPRISE">ENTERPRISE (365 días) - $999</option>
+            <label for="gen-email">📧 Email del Cliente *</label>
+            <input type="email" id="gen-email" placeholder="cliente@empresa.com" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="gen-plan">💎 Plan *</label>
+            <select id="gen-plan" required>
+                <option value="">Seleccionar plan...</option>
+                <option value="DEMO">DEMO - Gratis (7 días)</option>
+                <option value="PRO">PRO - $599 MXN (365 días)</option>
+                <option value="ENTERPRISE">ENTERPRISE - $999 MXN (365 días)</option>
             </select>
         </div>
         
+        <div class="form-group">
+            <label for="gen-notas">📝 Notas (opcional)</label>
+            <input type="text" id="gen-notas" placeholder="Nombre del cliente, empresa, etc.">
+        </div>
+        
         <button onclick="generarLicencia()">🔑 Generar Licencia</button>
+        <button class="btn-volver" onclick="window.location.href='index.html'">↩️ Volver a SmartCot</button>
         
         <div class="resultado" id="resultado">
-            <h3 style="color: #2E7D32; margin-bottom: 10px;">✅ Licencia Generada</h3>
-            <p style="color: #666; margin-bottom: 10px;">Clave de activación:</p>
+            <h3>✅ Licencia Generada Exitosamente</h3>
+            <p style="color: #555; margin-bottom: 10px;">Clave de activación:</p>
             <div class="clave" id="clave-generada"></div>
+            <div id="info-licencia" style="margin: 15px 0; color: #555; font-size: 14px;"></div>
             <button class="btn-copiar" onclick="copiarClave()">📋 Copiar Clave</button>
+            <button class="btn-email" onclick="enviarEmail()">📧 Enviar por Email</button>
+        </div>
+        
+        <div class="historial" id="historial-section" style="display: none;">
+            <h3>📜 Historial de Licencias Generadas</h3>
+            <div id="historial-lista"></div>
+            <button onclick="limpiarHistorial()" style="background: #f44336; margin-top: 15px; padding: 12px;">🗑️ Limpiar Historial</button>
         </div>
     </div>
     
-    <script src="licencias.js"></script>
     <script>
+        // Sistema de generación de licencias
+        var licenciasGeneradas = JSON.parse(localStorage.getItem('smartcot_licencias_generadas') || '[]');
+        
+        // Mostrar historial al cargar
+        window.onload = function() {
+            if (licenciasGeneradas.length > 0) {
+                document.getElementById('historial-section').style.display = 'block';
+                mostrarHistorial();
+            }
+        };
+        
         function generarLicencia() {
             var email = document.getElementById('gen-email').value.trim();
             var plan = document.getElementById('gen-plan').value;
+            var notas = document.getElementById('gen-notas').value.trim();
             
             if (!email) {
-                alert('⚠️ Ingresa un email');
+                alert('⚠️ Ingresa un email válido');
                 return;
             }
             
-            var clave = window.licencia.generarClave(plan, email);
+            if (!plan) {
+                alert('⚠️ Selecciona un plan');
+                return;
+            }
             
+            // Validar email
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('⚠️ El email no es válido');
+                return;
+            }
+            
+            // Generar hash del email
+            var emailHash = hashEmail(email);
+            
+            // Generar timestamp
+            var timestamp = Date.now();
+            
+            // Generar random
+            var random = Math.random().toString(36).substring(2, 10).toUpperCase();
+            
+            // Crear clave
+            var clave = plan + '-' + emailHash + '-' + timestamp + '-' + random;
+            
+            // Mostrar resultado
             document.getElementById('clave-generada').textContent = clave;
+            
+            // Información adicional
+            var infoPlan = {
+                'DEMO': { dias: 7, precio: 'Gratis' },
+                'PRO': { dias: 365, precio: '$599 MXN' },
+                'ENTERPRISE': { dias: 365, precio: '$999 MXN' }
+            };
+            
+            var info = infoPlan[plan];
+            document.getElementById('info-licencia').innerHTML = 
+                '<strong>Plan:</strong> ' + plan + '<br>' +
+                '<strong>Duración:</strong> ' + info.dias + ' días<br>' +
+                '<strong>Precio:</strong> ' + info.precio + '<br>' +
+                '<strong>Email:</strong> ' + email +
+                (notas ? '<br><strong>Notas:</strong> ' + notas : '');
+            
             document.getElementById('resultado').style.display = 'block';
+            
+            // Guardar en historial
+            guardarEnHistorial({
+                fecha: new Date().toISOString(),
+                email: email,
+                plan: plan,
+                clave: clave,
+                notas: notas
+            });
+            
+            // Scroll al resultado
+            document.getElementById('resultado').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function hashEmail(email) {
+            var hash = 0;
+            for (var i = 0; i < email.length; i++) {
+                var char = email.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString(36).toUpperCase().substring(0, 8);
         }
         
         function copiarClave() {
             var clave = document.getElementById('clave-generada').textContent;
             navigator.clipboard.writeText(clave).then(function() {
                 alert('✅ Clave copiada al portapapeles');
+            }).catch(function() {
+                // Fallback para navegadores antiguos
+                var textArea = document.createElement('textarea');
+                textArea.value = clave;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('✅ Clave copiada al portapapeles');
             });
+        }
+        
+        function enviarEmail() {
+            var clave = document.getElementById('clave-generada').textContent;
+            var email = document.getElementById('gen-email').value.trim();
+            var plan = document.getElementById('gen-plan').value;
+            
+            var asunto = '🔑 Tu Licencia SmartCot - Plan ' + plan;
+            var cuerpo = '¡Gracias por adquirir SmartCot!\n\n' +
+                'Tu clave de licencia es:\n' +
+                clave + '\n\n' +
+                'Para activarla:\n' +
+                '1. Ve a https://lecterhdz.github.io/smartcot/\n' +
+                '2. Inicia sesión\n' +
+                '3. Ve a la sección "Licencia"\n' +
+                '4. Ingresa tu email y esta clave\n' +
+                '5. Click en "Activar Licencia"\n\n' +
+                'Características del plan ' + plan + ':\n' +
+                '- Duración: ' + (plan === 'DEMO' ? '7 días' : '365 días') + '\n' +
+                '- Soporte: ' + (plan === 'ENTERPRISE' ? 'Prioritario 24hrs' : 'Email') + '\n\n' +
+                '¿Tienes dudas? Responde este email.\n\n' +
+                '¡Gracias por confiar en SmartCot!';
+            
+            window.location.href = 'mailto:' + email + '?subject=' + encodeURIComponent(asunto) + '&body=' + encodeURIComponent(cuerpo);
+        }
+        
+        function guardarEnHistorial(licencia) {
+            licenciasGeneradas.unshift(licencia);
+            // Mantener solo las últimas 50
+            if (licenciasGeneradas.length > 50) {
+                licenciasGeneradas = licenciasGeneradas.slice(0, 50);
+            }
+            localStorage.setItem('smartcot_licencias_generadas', JSON.stringify(licenciasGeneradas));
+            mostrarHistorial();
+            document.getElementById('historial-section').style.display = 'block';
+        }
+        
+        function mostrarHistorial() {
+            var lista = document.getElementById('historial-lista');
+            if (licenciasGeneradas.length === 0) {
+                lista.innerHTML = '<p style="color: #999; text-align: center;">No hay licencias generadas</p>';
+                return;
+            }
+            
+            lista.innerHTML = licenciasGeneradas.map(function(l, index) {
+                var fecha = new Date(l.fecha).toLocaleDateString('es-MX') + ' ' + new Date(l.fecha).toLocaleTimeString('es-MX');
+                return '<div class="historial-item">' +
+                    '<div><strong>' + l.plan + '</strong> - ' + l.email + '</div>' +
+                    '<div class="fecha">' + fecha + (l.notas ? ' - ' + l.notas : '') + '</div>' +
+                    '<div class="clave-historial">' + l.clave + '</div>' +
+                    '<button onclick="copiarDelHistorial(' + index + ')" style="background: #2196F3; padding: 8px; margin-top: 10px; font-size: 13px;">📋 Copiar</button>' +
+                    '</div>';
+            }).join('');
+        }
+        
+        function copiarDelHistorial(index) {
+            var clave = licenciasGeneradas[index].clave;
+            navigator.clipboard.writeText(clave).then(function() {
+                alert('✅ Clave copiada');
+            });
+        }
+        
+        function limpiarHistorial() {
+            if (confirm('¿Estás seguro de limpiar el historial? Esta acción no se puede deshacer.')) {
+                licenciasGeneradas = [];
+                localStorage.removeItem('smartcot_licencias_generadas');
+                document.getElementById('historial-section').style.display = 'none';
+                alert('✅ Historial limpiado');
+            }
         }
     </script>
 </body>
