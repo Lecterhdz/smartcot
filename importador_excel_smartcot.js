@@ -586,6 +586,12 @@ window.importadorSmartCot = {
     },
     
     iniciarImportacion: async function() {
+        // ⚠️ VERIFICAR LÍMITE DE CONCEPTOS
+        var limite = await window.licencia.verificarLimite('conceptos');
+        if (!limite.permitido) {
+            alert('❌ ' + limite.razon);
+            return;
+        }
         const file = document.getElementById('excel-file')?.files[0];
         if (!file) {
             alert('⚠️ Selecciona un archivo Excel');
@@ -665,3 +671,4 @@ window.importadorSmartCot = {
 };
 
 console.log('✅ importador_excel_smartcot.js listo');
+
