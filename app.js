@@ -1573,6 +1573,20 @@ window.app = {
     
     guardarClienteRapido: async function() {
         try {
+
+            // ⚠️ VERIFICAR LÍMITE DE CLIENTES ANTES DE GUARDAR
+            var limiteClientes = await window.licencia.verificarLimite('clientes');
+            if (!limiteClientes.permitido) {
+                this.notificacion('❌ ' + limiteClientes.razon, 'error');
+                
+                // Mostrar mensaje de upgrade
+                setTimeout(() => {
+                    if (confirm('¿Te gustaría conocer los planes PRO y ENTERPRISE?')) {
+                        this.mostrarPantalla('licencia-screen');
+                    }
+                }, 1000);
+                return;
+            }
             const nombre = document.getElementById('modal-cliente-nombre')?.value.trim();
             
             if (!nombre) {
@@ -1589,7 +1603,6 @@ window.app = {
             });
             
             await this.cargarClientesSelect();
-            
             const select = document.getElementById('cot-cliente');
             if (select) select.value = clienteId;
             
@@ -1800,6 +1813,7 @@ window.app = {
     });
     
     console.log('✅ app.js v2.0 listo');
+
 
 
 
