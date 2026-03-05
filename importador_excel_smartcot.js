@@ -586,12 +586,22 @@ window.importadorSmartCot = {
     },
     
     iniciarImportacion: async function() {
-        // ⚠️ VERIFICAR LÍMITE DE CONCEPTOS
-        var limite = await window.licencia.verificarLimite('conceptos');
-        if (!limite.permitido) {
-            alert('❌ ' + limite.razon);
-            return;
-        }
+        try {
+            // ⚠️ VERIFICAR LÍMITE DE CONCEPTOS ANTES DE IMPORTAR
+            var limiteConceptos = await window.licencia.verificarLimite('conceptos');
+            if (!limiteConceptos.permitido) {
+                alert('❌ ' + limiteConceptos.razon);
+                return;
+            }
+            
+            // ⚠️ VERIFICAR SI EL PLAN TIENE ACCESO A IMPORTAR
+            var limiteImportar = window.licencia.verificarLimite('importar');
+            if (!limiteImportar.permitido) {
+                alert('❌ ' + limiteImportar.razon);
+                return;
+            }
+
+        
         const file = document.getElementById('excel-file')?.files[0];
         if (!file) {
             alert('⚠️ Selecciona un archivo Excel');
@@ -614,7 +624,7 @@ window.importadorSmartCot = {
             alert('❌ Error: ' + error.message);
             this.actualizarProgreso(0, '❌ Error');
         }
-    },
+    }},
     
     log: function(mensaje) {
         const logDiv = document.getElementById('progress-log');
@@ -671,4 +681,5 @@ window.importadorSmartCot = {
 };
 
 console.log('✅ importador_excel_smartcot.js listo');
+
 
