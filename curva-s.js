@@ -24,6 +24,15 @@ window.curvaS = {
     // ─────────────────────────────────────────────────────────────────
     init: async function() {
         try {
+            // ⚠️ VERIFICAR SI EL PLAN TIENE ACCESO A CURVA S
+            var limite = await window.licencia.verificarLimite('curvaS');
+            if (!limite.permitido) {
+                alert('❌ ' + limite.razon);
+                if (window.app) {
+                    window.app.mostrarPantalla('dashboard-screen');
+                }
+                return;
+            }  
             console.log('📈 Inicializando Curva S...');
             await this.cargarCotizacionesEnDropdown();
         } catch (error) {
