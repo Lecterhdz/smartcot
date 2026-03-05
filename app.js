@@ -1092,6 +1092,30 @@ window.app = {
             'resumen-subtotal': baseConIndirectos + utilidad,
             'resumen-total': totalConFactores
         };
+
+    // ─────────────────────────────────────────────────────────────────
+    // ACTUALIZAR UI SEGÚN PLAN
+    // ─────────────────────────────────────────────────────────────────
+    actualizarUIPorPlan: async function() {
+        var licencia = window.licencia.cargar();
+        var plan = licencia ? licencia.tipo : 'DEMO';
+        
+        // Ocultar/mostrar elementos según el plan
+        document.querySelectorAll('[data-requiere-plan]').forEach(function(el) {
+            var requierePlan = el.getAttribute('data-requiere-plan');
+            var badge = el.querySelector('.plan-badge');
+            
+            if (plan === 'DEMO' && requierePlan === 'PRO') {
+                el.style.opacity = '0.5';
+                el.style.pointerEvents = 'none';
+                if (badge) badge.style.display = 'block';
+            } else {
+                el.style.opacity = '1';
+                el.style.pointerEvents = 'auto';
+                if (badge) badge.style.display = 'none';
+            }
+        });
+    },
         
         // Actualizar costo total con factores si existe la sección
         const elCostoTotalImpacto = document.getElementById('impacto-costo-total');
@@ -1837,6 +1861,7 @@ window.app = {
     });
     
     console.log('✅ app.js v2.0 listo');
+
 
 
 
