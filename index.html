@@ -145,7 +145,7 @@
             <div class="actions-section">
                 <h2 class="section-title">⚡ Acciones Rápidas</h2>
                 <div class="actions-grid">
-                    <div class="action-card" onclick="curvaS.init(); app.mostrarPantalla('curva-s-screen')">
+                    <div class="action-card" data-requiere-plan="PRO" onclick="curvaS.init(); app.mostrarPantalla('curva-s-screen')">
                         <div class="action-icon">📈</div>
                         <div class="action-title">Curva S</div>
                         <div class="action-desc">Seguimiento de obra programado vs ejecutado</div>
@@ -165,7 +165,7 @@
                         <div class="action-title">Catálogo de Conceptos</div>
                         <div class="action-desc">Buscar y visualizar todos los conceptos disponibles</div>
                     </div>
-                    <div class="action-card" onclick="app.mostrarPantalla('importar-screen')">
+                    <div class="action-card" data-requiere-plan="PRO" onclick="app.mostrarPantalla('importar-screen')">
                         <div class="action-icon">📥</div>
                         <div class="action-title">Importar Datos</div>
                         <div class="action-desc">Importar conceptos desde Excel (APU)</div>
@@ -968,6 +968,7 @@
 </footer>   
 </body>
 </html>
+
 
 
 
