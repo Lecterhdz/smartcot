@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - SISTEMA DE LICENCIAS
+// SMARTCOT v2.0 - SISTEMA DE LICENCIAS (CORREGIDO)
 // ─────────────────────────────────────────────────────────────────────
 
 console.log('🔑 licencias.js cargado');
@@ -35,19 +35,53 @@ window.licencia = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // GENERAR CLAVE DE LICENCIA
+    // CARGAR LICENCIA (CORREGIDO - PROPIEDADES COMPATIBLES)
     // ─────────────────────────────────────────────────────────────────
-    generarClave: function(plan, email) {
-        var timestamp = Date.now();
-        var random = Math.random().toString(36).substring(2, 10).toUpperCase();
-        var planCode = plan.substring(0, 3).toUpperCase();
-        var emailHash = this.hashEmail(email);
-        
-        // Formato: PLAN-EMAIL_HASH-TIMESTAMP-RANDOM
-        var clave = planCode + '-' + emailHash + '-' + timestamp + '-' + random;
-        
-        console.log('🔑 Clave generada:', clave);
-        return clave;
+    cargar: function() {
+        try {
+            var licenciaGuardada = localStorage.getItem('smartcot_licencia');
+            
+            if (!licenciaGuardada) {
+                // Crear licencia DEMO por defecto
+                var ahora = new Date();
+                var expiracion = new Date(ahora.getTime() + (7 * 24 * 60 * 60 * 1000));
+                
+                var licenciaDemo = {
+                    tipo: 'DEMO',
+                    activa: true,
+                    expirada: false,
+                    expiracion: expiracion.toISOString(),
+                    diasRestantes: 7
+                };
+                
+                localStorage.setItem('smartcot_licencia', JSON.stringify(licenciaDemo));
+                console.log('📋 Licencia DEMO creada:', licenciaDemo);
+                return licenciaDemo;
+            }
+            
+            var licencia = JSON.parse(licenciaGuardada);
+            
+            // Verificar si expiró
+            var ahora = new Date();
+            var expiracion = new Date(licencia.expiracion);
+            var diferencia = expiracion - ahora;
+            var diasRestantes = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
+            
+            licencia.expirada = ahora > expiracion;
+            licencia.activa = !licencia.expirada;
+            licencia.diasRestantes = diasRestantes > 0 ? diasRestantes : 0;
+            
+            if (licencia.expirada) {
+                localStorage.setItem('smartcot_licencia', JSON.stringify(licencia));
+            }
+            
+            console.log('📋 Licencia cargada:', licencia);
+            return licencia;
+            
+        } catch (error) {
+            console.error('❌ Error cargando licencia:', error);
+            return null;
+        }
     },
     
     // ─────────────────────────────────────────────────────────────────
@@ -60,92 +94,37 @@ window.licencia = {
             }
             
             var partes = clave.split('-');
-            if (partes.length !== 4) {
+            if (partes.length < 2) {
                 return { valido: false, razon: 'Formato inválido' };
             }
             
-            var planCode = partes[0];
-            var emailHash = partes[1];
-            var timestamp = partes[2];
-            var random = partes[3];
-            
-            // Verificar hash del email
-            var emailHashGenerado = this.hashEmail(email);
-            if (emailHash !== emailHashGenerado) {
-                return { valido: false, razon: 'Email no coincide' };
+            var planCode = partes[0].toUpperCase();
+            if (!this.PLANES[planCode]) {
+                return { valido: false, razon: 'Plan no reconocido' };
             }
             
-            // Determinar plan
-            var plan = 'DEMO';
-            if (planCode === 'PRO') plan = 'PRO';
-            if (planCode === 'ENT') plan = 'ENTERPRISE';
+            var plan = this.PLANES[planCode];
+            var ahora = new Date();
+            var expiracion = new Date(ahora.getTime() + (plan.dias * 24 * 60 * 60 * 1000));
             
-            // Verificar timestamp (no mayor a 1 año)
-            var ahora = Date.now();
-            var diferenciaDias = (ahora - parseInt(timestamp)) / (1000 * 60 * 60 * 24);
-            
-            if (diferenciaDias > 365) {
-                return { valido: false, razon: 'Clave expirada' };
-            }
-            
-            // Guardar licencia
             var licencia = {
-                clave: clave,
-                plan: plan,
+                tipo: planCode,
+                activa: true,
+                expirada: false,
+                expiracion: expiracion.toISOString(),
+                diasRestantes: plan.dias,
                 email: email,
-                fechaInicio: new Date().toISOString(),
-                fechaExpiracion: new Date(ahora + (this.PLANES[plan].dias * 24 * 60 * 60 * 1000)).toISOString(),
-                activa: true
+                clave: clave
             };
             
             localStorage.setItem('smartcot_licencia', JSON.stringify(licencia));
             
-            return { valido: true, plan: plan, licencia: licencia };
+            console.log('✅ Licencia activada:', licencia);
+            return { valido: true, plan: planCode, licencia: licencia };
             
         } catch (error) {
             console.error('❌ Error validando licencia:', error);
             return { valido: false, razon: error.message };
-        }
-    },
-    
-    // ─────────────────────────────────────────────────────────────────
-    // CARGAR LICENCIA ACTUAL
-    // ─────────────────────────────────────────────────────────────────
-    cargar: function() {
-        try {
-            var licenciaGuardada = localStorage.getItem('smartcot_licencia');
-            
-            if (!licenciaGuardada) {
-                // Licencia DEMO por defecto
-                var ahora = new Date();
-                var expiracion = new Date(ahora.getTime() + (7 * 24 * 60 * 60 * 1000));
-                
-                var demoLicencia = {
-                    plan: 'DEMO',
-                    fechaInicio: ahora.toISOString(),
-                    fechaExpiracion: expiracion.toISOString(),
-                    activa: true
-                };
-                localStorage.setItem('smartcot_licencia', JSON.stringify(demoLicencia));
-                return demoLicencia;
-            }
-            
-            var licencia = JSON.parse(licenciaGuardada);
-            
-            // Verificar si expiró
-            var ahora = new Date();
-            var expiracion = new Date(licencia.fechaExpiracion);
-            
-            if (ahora > expiracion) {
-                licencia.activa = false;
-                localStorage.setItem('smartcot_licencia', JSON.stringify(licencia));
-            }
-            
-            return licencia;
-            
-        } catch (error) {
-            console.error('❌ Error cargando licencia:', error);
-            return null;
         }
     },
     
@@ -162,15 +141,13 @@ window.licencia = {
             };
         }
         
-        var plan = this.PLANES[licencia.plan] || this.PLANES.DEMO;
+        var plan = this.PLANES[licencia.tipo] || this.PLANES.DEMO;
         
         if (tipo === 'conceptos') {
-            // Verificar cuando se intente importar
             return { permitido: true };
         }
         
         if (tipo === 'cotizaciones') {
-            // Verificar cuando se guarde cotización
             return { permitido: true };
         }
         
@@ -186,19 +163,6 @@ window.licencia = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // HASH DE EMAIL (para validar)
-    // ─────────────────────────────────────────────────────────────────
-    hashEmail: function(email) {
-        var hash = 0;
-        for (var i = 0; i < email.length; i++) {
-            var char = email.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
-        }
-        return Math.abs(hash).toString(36).toUpperCase().substring(0, 8);
-    },
-    
-    // ─────────────────────────────────────────────────────────────────
     // OBTENER INFORMACIÓN DE LICENCIA PARA UI
     // ─────────────────────────────────────────────────────────────────
     obtenerInfo: function() {
@@ -208,16 +172,11 @@ window.licencia = {
             return { plan: 'DEMO', activa: false, diasRestantes: 0 };
         }
         
-        var ahora = new Date();
-        var expiracion = new Date(licencia.fechaExpiracion);
-        var diferencia = expiracion - ahora;
-        var diasRestantes = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
-        
         return {
-            plan: licencia.plan,
+            plan: licencia.tipo || 'DEMO',
             activa: licencia.activa,
-            diasRestantes: diasRestantes > 0 ? diasRestantes : 0,
-            fechaExpiracion: expiracion.toLocaleDateString('es-MX')
+            diasRestantes: licencia.diasRestantes || 0,
+            fechaExpiracion: licencia.expiracion ? new Date(licencia.expiracion).toLocaleDateString('es-MX') : 'N/A'
         };
     },
     
@@ -259,7 +218,7 @@ window.licencia = {
             }
         }
     },
-
+    
     // ─────────────────────────────────────────────────────────────────
     // COMPRAR PLAN (para los botones de la pantalla de licencia)
     // ─────────────────────────────────────────────────────────────────
@@ -268,21 +227,9 @@ window.licencia = {
         var mensaje = 'Para adquirir el plan ' + plan + ':\n\n' +
             '💰 Precio: $' + info.precio + ' MXN\n' +
             '📅 Duración: ' + info.dias + ' días\n\n' +
-            'Contacta a lecterhdz@gmail.com para generar tu clave de licencia.';
+            'Contacta a lecterhdz@gmail.com para generar tu clave de licencia.\n\n' +
+            'O genera tu clave en: https://lecterhdz.github.io/smartcot/generador-licencias.html';
         alert(mensaje);
-    },
-    actualizarInfoLicenciaUI: function() {
-        var info = window.licencia.obtenerInfo();
-        var elPlan = document.getElementById('licencia-plan-actual');
-        var elDias = document.getElementById('licencia-dias-restantes');
-        var elEstado = document.getElementById('licencia-estado');
-        
-        if (elPlan) elPlan.textContent = info.plan;
-        if (elDias) elDias.textContent = info.diasRestantes;
-        if (elEstado) {
-            elEstado.textContent = info.activa ? 'Activa' : 'Expirada';
-            elEstado.style.color = info.activa ? '#4CAF50' : '#f44336';
-        }
     }
 };
 
