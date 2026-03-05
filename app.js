@@ -1600,11 +1600,29 @@ window.app = {
 // 3. Función comprarPlan (para los botones de la pantalla de licencia)
     comprarPlan: function(plan) {
         var info = window.licencia.PLANES[plan];
-        var mensaje = 'Para adquirir el plan ' + plan + ':\n\n' +
-            '💰 Precio: $' + info.precio + ' MXN\n' +
-            '📅 Duración: ' + info.dias + ' días\n\n' +
-            'Contacta a lecterhdz@gmail.com para generar tu clave de licencia.\n\n' +
-            'O genera tu clave en: https://lecterhdz.github.io/smartcot/generador-licencias.html';
+        
+        // Calcular ahorro
+        var ahorroMensual = info.precioMensual * 12;
+        var ahorro = ahorroMensual - info.precioAnual;
+        var porcentajeAhorro = Math.round((ahorro / ahorroMensual) * 100);
+        
+        var mensaje = '🎉 ¡Excelente elección! Plan ' + plan + '\n\n' +
+            '💰 PRECIOS:\n' +
+            '   Mensual: $' + info.precioMensual + '/mes ($' + ahorroMensual + '/año)\n' +
+            '   Anual: $' + info.precioAnual + '/año\n' +
+            '   💵 AHORRAS: $' + ahorro + ' (' + porcentajeAhorro + '%)\n\n' +
+            '📋 CARACTERÍSTICAS:\n' +
+            info.caracteristicas.map(function(c) { return '   ' + c; }).join('\n') + '\n\n' +
+            '📧 Para activar tu licencia:\n' +
+            '   1. Contacta a lecterhdz@gmail.com\n' +
+            '   2. Indica tu plan preferido (mensual o anual)\n' +
+            '   3. Recibe tu clave de activación\n' +
+            '   4. Activa en la sección Licencia\n\n' +
+            '💳 Métodos de pago:\n' +
+            '   • Transferencia bancaria\n' +
+            '   • PayPal\n' +
+            '   • Tarjeta de crédito/débito';
+        
         alert(mensaje);
     },
     
@@ -1620,7 +1638,7 @@ window.app = {
             elEstado.textContent = info.activa ? 'Activa' : 'Expirada';
             elEstado.style.color = info.activa ? '#4CAF50' : '#f44336';
         }
-    },
+    }
     
     // ─────────────────────────────────────────────────────────────────
     // EXPORTAR/IMPORTAR
@@ -1732,6 +1750,7 @@ window.app = {
     });
     
     console.log('✅ app.js v2.0 listo');
+
 
 
 
