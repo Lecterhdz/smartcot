@@ -258,7 +258,21 @@ window.licencia = {
                 window.app.notificacion('❌ ' + resultado.razon, 'error');
             }
         }
+    },
+
+    // ─────────────────────────────────────────────────────────────────
+    // COMPRAR PLAN (para los botones de la pantalla de licencia)
+    // ─────────────────────────────────────────────────────────────────
+    comprarPlan: function(plan) {
+        var info = this.PLANES[plan];
+        var mensaje = 'Para adquirir el plan ' + plan + ':\n\n' +
+            '💰 Precio: $' + info.precio + ' MXN\n' +
+            '📅 Duración: ' + info.dias + ' días\n\n' +
+            'Contacta a ventas@smartcot.com para generar tu clave de licencia.';
+        
+        alert(mensaje);
     }
+    
 };
 
 console.log('✅ licencias.js listo');
