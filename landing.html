@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SmartCot - Cotizador Industrial Inteligente. Cotiza proyectos eléctricos, mecánicos y HVAC en minutos.">
+    <title>SmartCot v2.0 - Cotizador Industrial Inteligente</title>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2933/2933245.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #e8ecef 100%); min-height: 100vh; color: #333; }
+        
+        /* Header */
+        .header { background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); color: white; padding: 20px 30px; position: sticky; top: 0; z-index: 100; }
+        .header-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 15px; }
+        .logo-icon { font-size: 40px; }
+        .logo-text h1 { font-size: 24px; font-weight: 700; }
+        .logo-text p { font-size: 12px; opacity: 0.8; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 600; transition: opacity 0.3s; }
+        .nav-links a:hover { opacity: 0.8; }
+        .btn-login { background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 10px; }
+        
+        /* Hero Section */
+        .hero { background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); color: white; padding: 100px 30px; text-align: center; }
+        .hero h1 { font-size: 48px; margin-bottom: 20px; font-weight: 700; }
+        .hero p { font-size: 20px; opacity: 0.9; margin-bottom: 40px; max-width: 800px; margin-left: auto; margin-right: auto; }
+        .hero-buttons { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+        .btn { padding: 16px 40px; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; text-decoration: none; display: inline-block; transition: transform 0.3s; }
+        .btn:hover { transform: translateY(-3px); }
+        .btn-primary { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; border: none; }
+        .btn-secondary { background: white; color: #1a1a1a; border: 2px solid white; }
+        
+        /* Features */
+        .features { padding: 100px 30px; max-width: 1200px; margin: 0 auto; }
+        .section-title { text-align: center; font-size: 36px; margin-bottom: 60px; color: #1a1a1a; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .feature-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; transition: transform 0.3s; }
+        .feature-card:hover { transform: translateY(-10px); }
+        .feature-icon { font-size: 60px; margin-bottom: 20px; }
+        .feature-card h3 { font-size: 24px; margin-bottom: 15px; color: #1a1a1a; }
+        .feature-card p { color: #666; line-height: 1.6; }
+        
+        /* Pricing */
+        .pricing { padding: 100px 30px; background: linear-gradient(135deg, #f5f7fa 0%, #e8ecef 100%); }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+        .pricing-card { background: white; padding: 50px 40px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; position: relative; transition: transform 0.3s; }
+        .pricing-card:hover { transform: translateY(-10px); }
+        .pricing-card.featured { border: 3px solid #4CAF50; transform: scale(1.05); }
+        .pricing-card.featured:hover { transform: scale(1.05) translateY(-10px); }
+        .badge { position: absolute; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .plan-name { font-size: 28px; font-weight: 700; color: #1a1a1a; margin-bottom: 10px; }
+        .plan-price { font-size: 48px; font-weight: 700; color: #4CAF50; margin-bottom: 10px; }
+        .plan-period { color: #666; margin-bottom: 30px; }
+        .plan-features { list-style: none; margin-bottom: 30px; text-align: left; }
+        .plan-features li { padding: 12px 0; border-bottom: 1px solid #eee; color: #666; }
+        .plan-features li:before { content: '✓ '; color: #4CAF50; font-weight: 700; }
+        .btn-plan { width: 100%; padding: 16px; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; border: none; }
+        .btn-plan-primary { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; }
+        .btn-plan-secondary { background: #1a1a1a; color: white; }
+        
+        /* Testimonials */
+        .testimonials { padding: 100px 30px; max-width: 1200px; margin: 0 auto; }
+        .testimonial-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .testimonial-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .testimonial-text { font-size: 16px; color: #666; line-height: 1.6; margin-bottom: 20px; font-style: italic; }
+        .testimonial-author { font-weight: 700; color: #1a1a1a; }
+        .testimonial-role { color: #666; font-size: 14px; }
+        
+        /* CTA */
+        .cta { background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); color: white; padding: 100px 30px; text-align: center; }
+        .cta h2 { font-size: 36px; margin-bottom: 20px; }
+        .cta p { font-size: 18px; opacity: 0.9; margin-bottom: 40px; }
+        
+        /* Footer */
+        .footer { background: #1a1a1a; color: white; padding: 60px 30px 30px; }
+        .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px; }
+        .footer-section h4 { font-size: 18px; margin-bottom: 20px; }
+        .footer-section ul { list-style: none; }
+        .footer-section ul li { margin-bottom: 10px; }
+        .footer-section a { color: rgba(255,255,255,0.7); text-decoration: none; transition: color 0.3s; }
+        .footer-section a:hover { color: white; }
+        .footer-bottom { text-align: center; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); font-size: 14px; }
+        
+        /* Mobile */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 32px; }
+            .hero p { font-size: 16px; }
+            .header-content { flex-direction: column; gap: 15px; }
+            .nav-links { flex-wrap: wrap; justify-content: center; }
+            .pricing-card.featured { transform: none; }
+            .pricing-card.featured:hover { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">🏭</span>
+                <div class="logo-text">
+                    <h1>SmartCot</h1>
+                    <p>Cotizador Industrial Inteligente</p>
+                </div>
+            </div>
+            <nav class="nav-links">
+                <a href="#features">Características</a>
+                <a href="#pricing">Precios</a>
+                <a href="#testimonials">Testimonios</a>
+                <a href="terminos.html">Términos</a>
+                <a href="privacidad.html">Privacidad</a>
+                <a href="index.html" class="btn-login">🔐 Iniciar Sesión</a>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Cotiza Proyectos Industriales en Minutos</h1>
+        <p>SmartCot automatiza tus análisis de precios unitarios para proyectos eléctricos, mecánicos y HVAC. Ahorra hasta 80% del tiempo en cotizaciones.</p>
+        <div class="hero-buttons">
+            <a href="index.html" class="btn btn-primary">🚀 Probar Demo Gratis</a>
+            <a href="#pricing" class="btn btn-secondary">💰 Ver Precios</a>
+        </div>
+    </section>
+    
+    <!-- Features -->
+    <section id="features" class="features">
+        <h2 class="section-title">¿Por qué SmartCot?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Rápido y Fácil</h3>
+                <p>Importa tus APU desde Excel y cotiza en minutos. Sin cálculos manuales, sin errores.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Curva S Integrada</h3>
+                <p>Seguimiento de avance programado vs ejecutado con índice de desempeño (SPI).</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📄</div>
+                <h3>Reportes Profesionales</h3>
+                <p>Exporta cotizaciones y APU en PDF con tu logo y datos de empresa.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚙️</div>
+                <h3>Factores de Ajuste</h3>
+                <p>Considera altura, clima, acceso y seguridad para cotizaciones más precisas.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💾</div>
+                <h3>Respaldo Automático</h3>
+                <p>Tus datos se guardan automáticamente. Exporta e importa cuando necesites.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>Acceso Móvil</h3>
+                <p>Trabaja desde cualquier dispositivo. Funciona offline sin conexión a internet.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Pricing -->
+    <section id="pricing" class="pricing">
+        <h2 class="section-title">Planes y Precios</h2>
+        <div class="pricing-grid">
+            <!-- DEMO -->
+            <div class="pricing-card">
+                <div class="plan-name">DEMO</div>
+                <div class="plan-price">GRATIS</div>
+                <div class="plan-period">7 días</div>
+                <ul class="plan-features">
+                    <li>50 conceptos máx.</li>
+                    <li>5 cotizaciones máx.</li>
+                    <li>3 clientes máx.</li>
+                    <li>Acceso básico</li>
+                    <li>Sin soporte</li>
+                </ul>
+                <a href="index.html" class="btn btn-plan btn-plan-secondary">Comenzar</a>
+            </div>
+            
+            <!-- PRO -->
+            <div class="pricing-card featured">
+                <div class="badge">MÁS POPULAR</div>
+                <div class="plan-name">PRO</div>
+                <div class="plan-price">$599</div>
+                <div class="plan-period">/año (ahorra 37%)</div>
+                <ul class="plan-features">
+                    <li>10,000 conceptos</li>
+                    <li>Cotizaciones ilimitadas</li>
+                    <li>Clientes ilimitados</li>
+                    <li>Reportes PDF</li>
+                    <li>Curva S básica</li>
+                    <li>Soporte por email</li>
+                </ul>
+                <button onclick="comprarPlan('PRO')" class="btn btn-plan btn-plan-primary">Elegir PRO</button>
+            </div>
+            
+            <!-- ENTERPRISE -->
+            <div class="pricing-card">
+                <div class="plan-name">ENTERPRISE</div>
+                <div class="plan-price">$999</div>
+                <div class="plan-period">/año (ahorra 35%)</div>
+                <ul class="plan-features">
+                    <li>Conceptos ilimitados</li>
+                    <li>Todo lo de PRO</li>
+                    <li>Curva S avanzada (EVM)</li>
+                    <li>Reportes APU</li>
+                    <li>Marca personalizada</li>
+                    <li>Soporte prioritario 24hrs</li>
+                </ul>
+                <button onclick="comprarPlan('ENTERPRISE')" class="btn btn-plan btn-plan-primary">Elegir ENTERPRISE</button>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Testimonials -->
+    <section id="testimonials" class="testimonials">
+        <h2 class="section-title">Lo que dicen nuestros usuarios</h2>
+        <div class="testimonial-grid">
+            <div class="testimonial-card">
+                <p class="testimonial-text">"SmartCot redujo nuestro tiempo de cotización de 3 días a 3 horas. El ROI fue inmediato."</p>
+                <div class="testimonial-author">Carlos Martínez</div>
+                <div class="testimonial-role">Director de Proyectos, Constructora XYZ</div>
+            </div>
+            <div class="testimonial-card">
+                <p class="testimonial-text">"La curva S integrada nos permite dar seguimiento real a nuestros proyectos. Indispensable."</p>
+                <div class="testimonial-author">Ana López</div>
+                <div class="testimonial-role">Gerente de Operaciones, Ingeniería ABC</div>
+            </div>
+            <div class="testimonial-card">
+                <p class="testimonial-text">"Los reportes PDF se ven muy profesionales. Nuestros clientes quedan impresionados."</p>
+                <div class="testimonial-author">Roberto Sánchez</div>
+                <div class="testimonial-role">Ingeniero Independiente</div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA -->
+    <section class="cta">
+        <h2>¿Listo para transformar tus cotizaciones?</h2>
+        <p>Únete a más de 500 profesionales que ya usan SmartCot</p>
+        <a href="index.html" class="btn btn-primary">🚀 Comenzar Ahora Gratis</a>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>SmartCot</h4>
+                <p style="color: rgba(255,255,255,0.7); line-height: 1.6;">Cotizador Industrial Inteligente para proyectos eléctricos, mecánicos y HVAC.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Enlaces</h4>
+                <ul>
+                    <li><a href="#features">Características</a></li>
+                    <li><a href="#pricing">Precios</a></li>
+                    <li><a href="index.html">Demo</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="terminos.html">Términos y Condiciones</a></li>
+                    <li><a href="privacidad.html">Política de Privacidad</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contacto</h4>
+                <ul>
+                    <li>📧 lecterhdz@gmail.com</li>
+                    <li>🌐 GitHub: lecterhdz/smartcot</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 SmartCot v2.0. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+    
+    <script>
+        function comprarPlan(plan) {
+            var precios = {
+                'PRO': { precio: 599, duracion: 365 },
+                'ENTERPRISE': { precio: 999, duracion: 365 }
+            };
+            
+            var info = precios[plan];
+            var mensaje = '🎉 ¡Excelente elección! Plan ' + plan + '\n\n' +
+                '💰 Precio: $' + info.precio + ' MXN / año\n' +
+                '📅 Duración: ' + info.duracion + ' días\n\n' +
+                'Para activar tu licencia:\n' +
+                '1. Contacta a lecterhdz@gmail.com\n' +
+                '2. Indica tu plan preferido\n' +
+                '3. Recibe tu clave de activación\n' +
+                '4. Activa en la sección Licencia\n\n' +
+                '💳 Métodos de pago:\n' +
+                '• Transferencia bancaria\n' +
+                '• PayPal\n' +
+                '• Tarjeta de crédito/débito';
+            
+            alert(mensaje);
+        }
+    </script>
+</body>
+</html>
