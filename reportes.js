@@ -61,29 +61,29 @@ window.reportes = {
             // ─────────────────────────────────────────────────────────
             // INFORMACION DEL CLIENTE Y PROYECTO
             // ─────────────────────────────────────────────────────────
-            let yPos = 45;
+            let yPos = 55;
             
-            // Fondo azul claro
             doc.setFillColor(227, 242, 253);
-            doc.rect(15, yPos - 5, 180, 30, 'F');
+            doc.rect(15, yPos - 10, 180, 40, 'F');  // ← Altura aumentada de 35 a 40
             
             doc.setTextColor(21, 101, 192);
-            doc.setFontSize(11);
-            doc.text('INFORMACION DEL PROYECTO', 20, yPos);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('📋 INFORMACION DEL PROYECTO', 20, yPos);
             
             doc.setTextColor(26, 26, 26);
-            doc.setFontSize(9);
+            doc.setFontSize(9);  // ← Tamaño reducido para que quepa
             
-            yPos += 6;
+            yPos += 8;
             doc.text('Cliente: ' + (cliente ? cliente.nombre : 'No especificado'), 20, yPos);
-            yPos += 5;
+            yPos += 6;
             doc.text('Descripcion: ' + (cotizacion.descripcion || 'Sin descripcion'), 20, yPos);
-            yPos += 5;
+            yPos += 6;
             doc.text('Ubicacion: ' + (cotizacion.ubicacion || 'No especificada'), 20, yPos);
-            yPos += 5;
+            yPos += 6;
             if (cotizacion.fechaInicio) {
                 doc.text('Fecha Inicio: ' + new Date(cotizacion.fechaInicio).toLocaleDateString('es-MX'), 20, yPos);
-                yPos += 5;
+                yPos += 6;
             }
             if (cotizacion.fechaFinSolicitada) {
                 doc.text('Fecha Fin Solicitada: ' + new Date(cotizacion.fechaFinSolicitada).toLocaleDateString('es-MX'), 20, yPos);
@@ -196,55 +196,113 @@ window.reportes = {
                 yPos += 8;
             }
             
-            // ─────────────────────────────────────────────────────────
-            // RESUMEN FINANCIERO
-            // ─────────────────────────────────────────────────────────
-            yPos += 5;
-            doc.setDrawColor(200);
-            doc.line(15, yPos, 195, yPos);
-            yPos += 8;
+            // ─────────────────────────────────────────────────────────────────
+            // RESUMEN FINANCIERO (CORREGIDO - OBTENER VALORES REALES)
+            // ─────────────────────────────────────────────────────────────────
+            yPos += 10;
             
             doc.setFillColor(26, 26, 26);
-            doc.rect(15, yPos - 5, 180, 5, 'F');
+            doc.rect(15, yPos - 8, 180, 8, 'F');
             
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(10);
-            doc.text('RESUMEN FINANCIERO', 20, yPos - 2);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.text('💰 RESUMEN FINANCIERO', 20, yPos - 2);
             
-            yPos += 8;
+            yPos += 10;
             doc.setTextColor(26, 26, 26);
-            doc.setFontSize(8);
+            doc.setFontSize(9);
             
-            const costoDirecto = cotizacion.costoDirecto || subtotalConceptos;
+            // ⚠️ IMPORTANTE: Obtener valores de la cotización o calcularlos
+            const costoDirecto = cotizacion.costoDirecto || 0;
             const totalIndirectos = cotizacion.totalIndirectos || 0;
             const utilidad = cotizacion.utilidad || 0;
             const iva = cotizacion.iva || 0;
             const totalFinal = cotizacion.totalFinal || 0;
             
-            doc.text('Costo Directo:', 20, yPos);
-            doc.text(calculator.formatoMoneda(costoDirecto), 185, yPos, { align: 'right' });
-            yPos += 5;
-            
-            doc.text('Indirectos:', 20, yPos);
-            doc.text(calculator.formatoMoneda(totalIndirectos), 185, yPos, { align: 'right' });
-            yPos += 5;
-            
-            doc.text('Utilidad:', 20, yPos);
-            doc.text(calculator.formatoMoneda(utilidad), 185, yPos, { align: 'right' });
-            yPos += 5;
-            
-            doc.text('IVA (16%):', 20, yPos);
-            doc.text(calculator.formatoMoneda(iva), 185, yPos, { align: 'right' });
-            yPos += 7;
-            
-            // TOTAL FINAL
-            doc.setFillColor(76, 175, 80);
-            doc.rect(15, yPos - 5, 180, 6, 'F');
-            
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(11);
-            doc.text('TOTAL FINAL:', 20, yPos - 1);
-            doc.text(calculator.formatoMoneda(totalFinal), 185, yPos - 1, { align: 'right' });
+            // Si los valores son 0, calcularlos desde los conceptos
+            if (costoDirecto === 0 && cotizacion.conceptosCatalogo && cotizacion.conceptosCatalogo.length > 0) {
+                // Calcular costo directo desde conceptos
+                let subtotal = 0;
+                cotizacion.conceptosCatalogo.forEach(function(c) {
+                    subtotal += (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
+                });
+                
+                // Obtener porcentajes
+                const indirectosOficinaPorcentaje = cotizacion.porcentajes?.indirectosOficina || 5;
+                const indirectosCampoPorcentaje = cotizacion.porcentajes?.indirectosCampo || 15;
+                const utilidadPorcentaje = cotizacion.porcentajes?.utilidad || 10;
+                
+                // Calcular indirectos
+                const indirectosOficina = subtotal * (indirectosOficinaPorcentaje / 100);
+                const indirectosCampo = subtotal * (indirectosCampoPorcentaje / 100);
+                const totalIndirectosCalculado = indirectosOficina + indirectosCampo;
+                
+                // Calcular utilidad
+                const baseConIndirectos = subtotal + totalIndirectosCalculado;
+                const utilidadCalculada = baseConIndirectos * (utilidadPorcentaje / 100);
+                
+                // Calcular IVA
+                const ivaCalculado = (baseConIndirectos + utilidadCalculada) * 0.16;
+                
+                // Calcular total
+                const totalFinalCalculado = baseConIndirectos + utilidadCalculada + ivaCalculado;
+                
+                // Usar valores calculados
+                doc.text('Costo Directo:', 20, yPos);
+                doc.text(calculator.formatoMoneda(subtotal), 185, yPos, { align: 'right' });
+                yPos += 6;
+                
+                doc.text('Indirectos:', 20, yPos);
+                doc.text(calculator.formatoMoneda(totalIndirectosCalculado), 185, yPos, { align: 'right' });
+                yPos += 6;
+                
+                doc.text('Utilidad:', 20, yPos);
+                doc.text(calculator.formatoMoneda(utilidadCalculada), 185, yPos, { align: 'right' });
+                yPos += 6;
+                
+                doc.text('IVA (16%):', 20, yPos);
+                doc.text(calculator.formatoMoneda(ivaCalculado), 185, yPos, { align: 'right' });
+                yPos += 8;
+                
+                // TOTAL FINAL
+                doc.setFillColor(76, 175, 80);
+                doc.rect(15, yPos - 8, 180, 10, 'F');
+                
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('TOTAL FINAL:', 20, yPos - 1);
+                doc.text(calculator.formatoMoneda(totalFinalCalculado), 185, yPos - 1, { align: 'right' });
+                
+            } else {
+                // Usar valores guardados
+                doc.text('Costo Directo:', 20, yPos);
+                doc.text(calculator.formatoMoneda(costoDirecto), 185, yPos, { align: 'right' });
+                yPos += 6;
+                
+                doc.text('Indirectos:', 20, yPos);
+                doc.text(calculator.formatoMoneda(totalIndirectos), 185, yPos, { align: 'right' });
+                yPos += 6;
+                
+                doc.text('Utilidad:', 20, yPos);
+                doc.text(calculator.formatoMoneda(utilidad), 185, yPos, { align: 'right' });
+                yPos += 6;
+                
+                doc.text('IVA (16%):', 20, yPos);
+                doc.text(calculator.formatoMoneda(iva), 185, yPos, { align: 'right' });
+                yPos += 8;
+                
+                // TOTAL FINAL
+                doc.setFillColor(76, 175, 80);
+                doc.rect(15, yPos - 8, 180, 10, 'F');
+                
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('TOTAL FINAL:', 20, yPos - 1);
+                doc.text(calculator.formatoMoneda(totalFinal), 185, yPos - 1, { align: 'right' });
+            }
             
             // ─────────────────────────────────────────────────────────
             // PIE DE PAGINA
