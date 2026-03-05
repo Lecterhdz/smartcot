@@ -576,13 +576,13 @@ window.curvaS = {
             yPos += 6;
             doc.text('Total Proyecto: ' + calculator.formatoMoneda(cotizacion.totalFinal || 0), 15, yPos);
             
-            // ─────────────────────────────────────────────────────────
-            // INDICADORES DE DESEMPEÑO (NUEVO)
-            // ─────────────────────────────────────────────────────────
+            // ─────────────────────────────────────────────────────────────────
+            // INDICADORES DE DESEMPEÑO (CORREGIDO - DENTRO DEL MARGEN)
+            // ─────────────────────────────────────────────────────────────────
             yPos += 10;
             
             doc.setFillColor(227, 242, 253);
-            doc.rect(15, yPos - 5, 180, 20, 'F');
+            doc.rect(15, yPos - 5, 180, 25, 'F');  // ← Altura aumentada de 20 a 25
             
             doc.setTextColor(21, 101, 192);
             doc.setFontSize(11);
@@ -591,8 +591,7 @@ window.curvaS = {
             
             yPos += 8;
             doc.setTextColor(26, 26, 26);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);  // ← Tamaño reducido de 10 a 9
             
             // Calcular variación e índice actuales
             this.calcularVariaciones();
@@ -601,11 +600,12 @@ window.curvaS = {
             const indice = this.ultimoIndice || 0;
             const semana = this.ultimaSemana || 0;
             
+            // Primera fila
             doc.text('Semana Actual: ' + semana, 20, yPos);
-            doc.text('Desviacion: ' + (variacion >= 0 ? '+' : '') + variacion.toFixed(1) + '%', 80, yPos);
+            doc.text('Desviacion: ' + (variacion >= 0 ? '+' : '') + variacion.toFixed(1) + '%', 90, yPos);
             doc.text('Indice Desempeno (SPI): ' + indice.toFixed(2), 150, yPos);
             
-            // Interpretación del SPI
+            // Segunda fila (interpretación) - MOVIDA HACIA ABAJO
             yPos += 6;
             let interpretacion = '';
             if (indice >= 1.0) {
@@ -618,7 +618,7 @@ window.curvaS = {
                 interpretacion = '🚨 Proyecto atrasado - Accion requerida';
                 doc.setTextColor(244, 67, 54);
             }
-            doc.setFontSize(9);
+            doc.setFontSize(8);  // ← Tamaño más pequeño
             doc.text(interpretacion, 20, yPos);
             
             // ─────────────────────────────────────────────────────────
