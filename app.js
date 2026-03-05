@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - APLICACIÓN PRINCIPAL (COMPLETO Y CORREGIDO)
+// SMARTCOT v2.0 - APLICACIÓN PRINCIPAL (CORREGIDO)
 // ─────────────────────────────────────────────────────────────────────
 
 console.log('🏭 SmartCot v2.0 iniciando...');
@@ -52,6 +52,7 @@ window.app = {
     },
     
     costoIndirectosDiario: 0,
+    factorAjusteActual: 1,
     
     // ─────────────────────────────────────────────────────────────────
     // INICIALIZACIÓN
@@ -63,17 +64,7 @@ window.app = {
             await this.esperarDB();
             this.estado.dbLista = true;
             console.log('✅ Base de datos lista');
-
-            // ⚠️ VERIFICAR SI HAY CONCEPTOS EN BD
-            const conceptosCount = await window.db.conceptos.count();
-            console.log('📊 Conceptos en BD:', conceptosCount);
             
-            if (conceptosCount === 0) {
-                console.log('📥 No hay conceptos en BD, cargando catálogo base...');
-                await this.cargarCatalogoBase();
-            } else {
-                console.log('✅ Ya hay', conceptosCount, 'conceptos en BD');
-            } 
             const licencia = window.licencia.cargar();
             this.estado.licenciaActiva = licencia && !licencia.expirada;
             this.actualizarInfoLicencia(licencia);
@@ -167,56 +158,6 @@ window.app = {
                 break;
         }
     },
-
-    // ─────────────────────────────────────────────────────────────────
-    // LICENCIAS
-    // ─────────────────────────────────────────────────────────────────
-    activarLicencia: async function() {
-        const email = document.getElementById('licencia-email')?.value.trim();
-        const clave = document.getElementById('licencia-clave')?.value.trim();
-        
-        if (!email || !clave) {
-            this.notificacion('⚠️ Completa email y clave', 'error');
-            return;
-        }
-        
-        const resultado = window.licencia.validarClave(clave, email);
-        
-        if (resultado.valido) {
-            this.notificacion(`✅ Licencia ${resultado.plan} activada exitosamente`, 'exito');
-            await this.cargarEstadisticas();
-            this.mostrarPantalla('dashboard-screen');
-        } else {
-            this.notificacion('❌ ' + resultado.razon, 'error');
-        }
-    },
-    
-    comprarPlan: function(plan) {
-        // Aquí integrarías Stripe/PayPal
-        const info = window.licencia.PLANES[plan];
-        
-        const mensaje = `Para adquirir el plan ${plan}:\n\n` +
-            `💰 Precio: $${info.precio} MXN\n` +
-            `📅 Duración: ${info.dias} días\n\n` +
-            `Contacta a ventas@smartcot.com para generar tu clave de licencia.`;
-        
-        alert(mensaje);
-    },
-    
-    actualizarInfoLicencia: function() {
-        const info = window.licencia.obtenerInfo();
-        
-        const elPlan = document.getElementById('licencia-plan-actual');
-        const elDias = document.getElementById('licencia-dias-restantes');
-        const elEstado = document.getElementById('licencia-estado');
-        
-        if (elPlan) elPlan.textContent = info.plan;
-        if (elDias) elDias.textContent = info.diasRestantes;
-        if (elEstado) {
-            elEstado.textContent = info.activa ? 'Activa' : 'Expirada';
-            elEstado.style.color = info.activa ? '#4CAF50' : '#f44336';
-        }
-    }
     
     // ─────────────────────────────────────────────────────────────────
     // LICENCIA
@@ -321,39 +262,9 @@ window.app = {
             console.error('❌ Error cargando actividad reciente:', error);
         }
     },
-    // ─────────────────────────────────────────────────────────────────────
-    // CARGAR CATÁLOGO BASE DESDE GITHUB
-    // ─────────────────────────────────────────────────────────────────────
-    cargarCatalogoBase: async function() {
-        try {
-            console.log('📥 Intentando cargar catálogo base...');
-            
-            const response = await fetch('data/catalogo-base.xlsx');
-            if (!response.ok) {
-                console.log('⚠️ No se encontró catálogo base en GitHub');
-                return;
-            }
-            
-            const blob = await response.blob();
-            const file = new File([blob], 'catalogo-base.xlsx', { 
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-            });
-            
-            console.log('📥 Importando catálogo base desde GitHub...');
-            
-            // Usar el mismo importador que para archivos manuales
-            const resultado = await importadorSmartCot.importarArchivo(file);
-            
-            console.log('✅ Catálogo base cargado:', resultado.estadisticas);
-            this.notificacion('📚 Catálogo base cargado: ' + resultado.estadisticas.conceptos + ' conceptos', 'exito');
-            
-        } catch (error) {
-            console.error('❌ Error cargando catálogo base:', error);
-            console.log('⚠️ El catálogo base no se cargó. Importa manualmente desde Configuración.');
-        }
-    },    
+    
     // ─────────────────────────────────────────────────────────────────
-    // CATÁLOGO (CORREGIDO - BOTONES PEQUEÑOS)
+    // CATÁLOGO
     // ─────────────────────────────────────────────────────────────────
     cargarCatalogoCompleto: async function() {
         try {
@@ -376,16 +287,15 @@ window.app = {
             }
             
             const app = this;
-            // ✅ CORRECCIÓN: Botones pequeños con flex-shrink
             container.innerHTML = conceptos.map(function(c) {
                 return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin-bottom:10px;background:white;">' +
                     '<div style="display:flex;justify-content:space-between;align-items:start;">' +
-                    '<div style="flex:1;">' +
+                    '<div>' +
                     '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + c.codigo + '</div>' +
                     '<div style="color:#666;font-size:14px;">' + c.descripcion_corta + '</div>' +
                     '<div style="color:#999;font-size:12px;margin-top:5px;">Unidad: ' + c.unidad + ' | Rendimiento: ' + c.rendimiento_base + '</div>' +
                     '</div>' +
-                    '<div style="display:flex;gap:5px;flex-shrink:0;">' +
+                    '<div style="display:flex;gap:5px;">' +
                     '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" style="background:#4CAF50;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="Agregar">➕</button>' +
                     '<button onclick="reportes.generarAPUPDF(\'' + c.id + '\')" style="background:#2196F3;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="PDF APU">📄</button>' +
                     '</div>' +
@@ -428,11 +338,10 @@ window.app = {
             }
             
             const app = this;
-            // ✅ CORRECCIÓN: Usar el MISMO HTML que cargarCatalogoCompleto
             container.innerHTML = conceptos.map(function(c) {
                 return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin-bottom:10px;background:white;">' +
                     '<div style="display:flex;justify-content:space-between;align-items:start;">' +
-                    '<div style="flex:1;">' +
+                    '<div>' +
                     '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + c.codigo + '</div>' +
                     '<div style="color:#666;font-size:14px;">' + (c.descripcion_corta || '') + '</div>' +
                     '<div style="color:#999;font-size:12px;margin-top:5px;">' +
@@ -441,7 +350,7 @@ window.app = {
                     '<span style="margin-left:10px;">Rendimiento: ' + (c.rendimiento_base || 0) + '</span>' +
                     '</div>' +
                     '</div>' +
-                    '<div style="display:flex;gap:5px;flex-shrink:0;">' +
+                    '<div style="display:flex;gap:5px;">' +
                     '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" style="background:#4CAF50;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="Agregar">➕</button>' +
                     '<button onclick="reportes.generarAPUPDF(\'' + c.id + '\')" style="background:#2196F3;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="PDF APU">📄</button>' +
                     '</div>' +
@@ -480,16 +389,15 @@ window.app = {
             }
             
             const app = this;
-            // ✅ CORRECCIÓN: Usar el MISMO HTML que cargarCatalogoCompleto
             container.innerHTML = conceptos.map(function(c) {
                 return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin-bottom:10px;background:white;">' +
                     '<div style="display:flex;justify-content:space-between;align-items:start;">' +
-                    '<div style="flex:1;">' +
+                    '<div>' +
                     '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + c.codigo + '</div>' +
                     '<div style="color:#666;font-size:14px;">' + (c.descripcion_corta || '') + '</div>' +
                     '<div style="color:#999;font-size:12px;margin-top:5px;">Unidad: ' + (c.unidad || 'N/A') + ' | Rendimiento: ' + (c.rendimiento_base || 0) + '</div>' +
                     '</div>' +
-                    '<div style="display:flex;gap:5px;flex-shrink:0;">' +
+                    '<div style="display:flex;gap:5px;">' +
                     '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" style="background:#4CAF50;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="Agregar">➕</button>' +
                     '<button onclick="reportes.generarAPUPDF(\'' + c.id + '\')" style="background:#2196F3;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="PDF APU">📄</button>' +
                     '</div>' +
@@ -759,8 +667,8 @@ window.app = {
         div.className = 'mano-obra-item';
         div.dataset.id = id;
         div.innerHTML = '<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px;margin:10px 0;">' +
-            '<input type="text" placeholder="Concepto (ej: Ayudante general)" onchange="app.actualizarManoObra(' + id + ', \'concepto\', this.value)" style="padding:10px;border:1px solid #ddd;border-radius:8px;">' +
-            '<input type="number" placeholder="Jor" value="0" min="0" step="0.01" onchange="app.actualizarManoObra(' + id + ', \'jornadas\', this.value)" style="padding:10px;border:1px solid #ddd;border-radius:8px;" title="Jornadas para tiempo de ejecución">' +
+            '<input type="text" placeholder="Concepto" onchange="app.actualizarManoObra(' + id + ', \'concepto\', this.value)" style="padding:10px;border:1px solid #ddd;border-radius:8px;">' +
+            '<input type="number" placeholder="Jor" value="0" min="0" step="0.01" onchange="app.actualizarManoObra(' + id + ', \'jornadas\', this.value)" style="padding:10px;border:1px solid #ddd;border-radius:8px;">' +
             '<input type="number" placeholder="$ / Jor" value="0" min="0" step="0.01" onchange="app.actualizarManoObra(' + id + ', \'costoJornada\', this.value)" style="padding:10px;border:1px solid #ddd;border-radius:8px;">' +
             '<div style="padding:10px;background:#f5f7fa;border-radius:8px;text-align:center;font-weight:600;" id="mo-importe-' + id + '">$0.00</div>' +
             '<button onclick="app.eliminarManoObra(' + id + ')" style="background:#f44336;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;">🗑️</button>' +
@@ -913,23 +821,6 @@ window.app = {
     },
     
     calcularTotalConConceptos: function() {
-        // ⚠️ VALIDAR que impactoFactores existe
-        if (!this.impactoFactores) {
-            console.log('⚠️ Inicializando impactoFactores por defecto');
-            this.impactoFactores = {
-                factorAltura: 1,
-                factorClima: 1,
-                factorAcceso: 1,
-                factorSeguridad: 1,
-                factorTotal: 1,
-                tiempoOriginal: 0,
-                tiempoAjustado: 0,
-                diasIncremento: 0,
-                porcentajeIncremento: 0,
-                costoTiempoExtendido: 0,
-                aplicado: false
-            };
-        }   
         let subtotal = 0;
         let totalJOR = 0;
         
@@ -1080,15 +971,15 @@ window.app = {
         const alertas = [];
         
         if (resultado.margenReal < 10) {
-            alertas.push('⚠️ Utilidad menor al 10% recomendado para proyectos electromecánicos.');
+            alertas.push('⚠️ Utilidad menor al 10% recomendado.');
         }
         
         if (resultado.margenReal < 5) {
-            alertas.push('🚨 Utilidad CRÍTICA (<5%). Considera revisar costos o rechazar el proyecto.');
+            alertas.push('🚨 Utilidad CRÍTICA (<5%).');
         }
         
         if (resultado.indirectosTotal === 0) {
-            alertas.push('⚠️ No se incluyeron costos indirectos. Lo normal es 20-25% del costo directo.');
+            alertas.push('⚠️ No se incluyeron costos indirectos.');
         }
         
         if (alertas.length > 0) {
@@ -1117,19 +1008,25 @@ window.app = {
         const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
         const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
         const factorSeguridad = parseFloat(document.getElementById('factor-seguridad')?.value) || 1;
+        
         const factorTotal = factorAltura * factorClima * factorAcceso * factorSeguridad;
         
         const tiempoOriginal = this.tiempoEjecucion?.diasHabiles || 0;
         const tiempoAjustado = Math.ceil(tiempoOriginal * factorTotal);
+        const diasIncremento = tiempoAjustado - tiempoOriginal;
+        const porcentajeIncremento = tiempoOriginal > 0 ? ((factorTotal - 1) * 100) : 0;
         
-        // ⚠️ DEFINIR LAS VARIABLES ANTES DE USARLAS
+        // Calcular costo por tiempo extendido
+        const costoTiempoExtendido = this.costoIndirectosDiario * diasIncremento;
+        
+        // Actualizar modal
         const elTiempoOriginal = document.getElementById('tiempo-original');
         const elTiempoAjustado = document.getElementById('tiempo-ajustado');
         
         if (elTiempoOriginal) elTiempoOriginal.textContent = tiempoOriginal + ' días';
         if (elTiempoAjustado) elTiempoAjustado.textContent = tiempoAjustado + ' días';
         
-        // ⚠️ GUARDAR impactoFactores PARA QUE SE MUESTRE DESPUÉS
+        // Guardar impacto
         this.impactoFactores = {
             factorAltura: factorAltura,
             factorClima: factorClima,
@@ -1138,91 +1035,145 @@ window.app = {
             factorTotal: factorTotal,
             tiempoOriginal: tiempoOriginal,
             tiempoAjustado: tiempoAjustado,
-            diasIncremento: tiempoAjustado - tiempoOriginal,
-            porcentajeIncremento: tiempoOriginal > 0 ? ((factorTotal - 1) * 100) : 0,
-            costoTiempoExtendido: (this.costoIndirectosDiario || 0) * (tiempoAjustado - tiempoOriginal),
+            diasIncremento: diasIncremento,
+            porcentajeIncremento: porcentajeIncremento,
+            costoTiempoExtendido: costoTiempoExtendido,
             aplicado: factorTotal > 1
         };
         
         this.factorAjusteActual = factorTotal;
         
-        console.log('✅ Factores aplicados:', this.impactoFactores);
+        console.log('✅ Impacto calculado:', this.impactoFactores);
     },
     
-// ─────────────────────────────────────────────────────────────────
-// GUARDAR FACTORES (CORREGIDO)
-// ─────────────────────────────────────────────────────────────────
-guardarFactores: function() {
-    const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
-    const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
-    const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
-    const factorSeguridad = parseFloat(document.getElementById('factor-seguridad')?.value) || 1;
-    const factorTotal = factorAltura * factorClima * factorAcceso * factorSeguridad;
+    guardarFactores: function() {
+        const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
+        const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
+        const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
+        const factorSeguridad = parseFloat(document.getElementById('factor-seguridad')?.value) || 1;
+        
+        this.factoresAjuste = {
+            altura: factorAltura,
+            clima: factorClima,
+            acceso: factorAcceso,
+            seguridad: factorSeguridad,
+            total: factorAltura * factorClima * factorAcceso * factorSeguridad
+        };
+        
+        if (this.tiempoEjecucion) {
+            this.tiempoEjecucion.diasHabilesAjustado = Math.ceil(
+                this.tiempoEjecucion.diasHabiles * (this.factorAjusteActual || 1)
+            );
+            this.tiempoEjecucion.semanasAjustado = (this.tiempoEjecucion.diasHabilesAjustado / 5).toFixed(2);
+            this.tiempoEjecucion.mesesAjustado = (this.tiempoEjecucion.semanasAjustado / 4.33).toFixed(2);
+        }
+        
+        const modal = document.getElementById('modal-factores');
+        if (modal) modal.style.display = 'none';
+        
+        // Mostrar sección de impacto permanentemente
+        this.mostrarImpactoFactores();
+        
+        // Recalcular totales
+        this.calcularTotalConConceptos();
+        
+        this.notificacion('✅ Factores aplicados: ' + ((this.factorAjusteActual || 1) * 100).toFixed(0) + '%', 'exito');
+    },
     
-    this.factoresAjuste = {
-        altura: factorAltura,
-        clima: factorClima,
-        acceso: factorAcceso,
-        seguridad: factorSeguridad,
-        total: factorTotal
-    };
+    mostrarImpactoFactores: function() {
+        const seccion = document.getElementById('seccion-impacto-factores');
+        if (!seccion) {
+            console.error('❌ No se encontró seccion-impacto-factores en HTML');
+            return;
+        }
+        
+        console.log('📊 Mostrar impacto - impactoFactores:', this.impactoFactores);
+        console.log('📊 factorTotal:', this.impactoFactores?.factorTotal);
+        console.log('📊 aplicado:', this.impactoFactores?.aplicado);
+        
+        // Mostrar sección solo si hay factores aplicados
+        if (this.impactoFactores && this.impactoFactores.factorTotal > 1) {
+            seccion.style.display = 'block';
+            console.log('✅ Sección de impacto MOSTRADA');
+            
+            const elTiempoOriginal = document.getElementById('impacto-tiempo-original');
+            const elTiempoAjustado = document.getElementById('impacto-tiempo-ajustado');
+            const elDiasIncremento = document.getElementById('impacto-dias-incremento');
+            const elPorcentajeTiempo = document.getElementById('impacto-porcentaje-tiempo');
+            const elFactorTotal = document.getElementById('impacto-factor-total');
+            const elCostoTiempo = document.getElementById('impacto-costo-tiempo');
+            const elCostoTotal = document.getElementById('impacto-costo-total');
+            const elSemanasOriginal = document.getElementById('impacto-semanas-original');
+            const elSemanasAjustado = document.getElementById('impacto-semanas-ajustado');
+            const elDesglose = document.getElementById('impacto-desglose-factores');
+            
+            if (elTiempoOriginal) elTiempoOriginal.textContent = this.impactoFactores.tiempoOriginal + ' días';
+            if (elTiempoAjustado) elTiempoAjustado.textContent = this.impactoFactores.tiempoAjustado + ' días';
+            if (elDiasIncremento) elDiasIncremento.textContent = '+' + this.impactoFactores.diasIncremento + ' días';
+            if (elPorcentajeTiempo) elPorcentajeTiempo.textContent = '+' + this.impactoFactores.porcentajeIncremento.toFixed(1) + '%';
+            if (elFactorTotal) elFactorTotal.textContent = this.impactoFactores.factorTotal.toFixed(2) + 'x';
+            if (elCostoTiempo) elCostoTiempo.textContent = calculator.formatoMoneda(this.impactoFactores.costoTiempoExtendido);
+            
+            if (elSemanasOriginal) {
+                const semanasOrig = (this.impactoFactores.tiempoOriginal / 5).toFixed(2);
+                elSemanasOriginal.textContent = semanasOrig + ' semanas';
+            }
+            if (elSemanasAjustado) {
+                const semanasAjust = (this.impactoFactores.tiempoAjustado / 5).toFixed(2);
+                elSemanasAjustado.textContent = semanasAjust + ' semanas';
+            }
+            
+            if (elDesglose) {
+                elDesglose.innerHTML =
+                    '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                    '<div style="font-size:11px;color:#666;">🏔️ Altura</div>' +
+                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + this.impactoFactores.factorAltura.toFixed(2) + 'x</div>' +
+                    '</div>' +
+                    '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                    '<div style="font-size:11px;color:#666;">🌤️ Clima</div>' +
+                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + this.impactoFactores.factorClima.toFixed(2) + 'x</div>' +
+                    '</div>' +
+                    '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                    '<div style="font-size:11px;color:#666;">🚪 Acceso</div>' +
+                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + this.impactoFactores.factorAcceso.toFixed(2) + 'x</div>' +
+                    '</div>' +
+                    '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
+                    '<div style="font-size:11px;color:#666;">🔒 Seguridad</div>' +
+                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + this.impactoFactores.factorSeguridad.toFixed(2) + 'x</div>' +
+                    '</div>';
+            }
+            
+            this.tiempoEjecucion.diasHabilesAjustado = this.impactoFactores.tiempoAjustado;
+            this.tiempoEjecucion.semanasAjustado = (this.impactoFactores.tiempoAjustado / 5).toFixed(2);
+            this.tiempoEjecucion.mesesAjustado = (this.tiempoEjecucion.semanasAjustado / 4.33).toFixed(2);
+            
+        } else {
+            seccion.style.display = 'none';
+            console.log('❌ Sección de impacto OCULTA (factorTotal <= 1)');
+        }
+    },
     
-    // Recalcular tiempo con factores
-    if (this.tiempoEjecucion) {
-        this.tiempoEjecucion.diasHabilesAjustado = Math.ceil(
-            this.tiempoEjecucion.diasHabiles * factorTotal
-        );
-        this.tiempoEjecucion.semanasAjustado = (this.tiempoEjecucion.diasHabilesAjustado / 5).toFixed(2);
-        this.tiempoEjecucion.mesesAjustado = (this.tiempoEjecucion.semanasAjustado / 4.33).toFixed(2);
-    }
-    
-    // Cerrar modal
-    const modal = document.getElementById('modal-factores');
-    if (modal) modal.style.display = 'none';
-    
-    // ⚠️ ACTUALIZAR impactoFactores
-    this.impactoFactores.aplicado = factorTotal > 1;
-    this.impactoFactores.factorTotal = factorTotal;
-    
-    // Mostrar sección de impacto permanentemente
-    this.mostrarImpactoFactores();
-    
-    // Recalcular totales (ESTO ACTUALIZA LOS COSTOS)
-    this.calcularTotalConConceptos();
-    
-    this.notificacion('✅ Factores aplicados: ' + (factorTotal * 100).toFixed(0) + '%', 'exito');
-},
-
-
-    // ─────────────────────────────────────────────────────────────────────
-    // CALCULAR COSTO TIEMPO EXTENDIDO (FUNCIÓN FALTANTE)
-    // ─────────────────────────────────────────────────────────────────────
     calcularCostoTiempoExtendido: function() {
         const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
         const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
         const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
         const factorSeguridad = parseFloat(document.getElementById('factor-seguridad')?.value) || 1;
+        
         const factorTotal = factorAltura * factorClima * factorAcceso * factorSeguridad;
         
         const tiempoOriginal = this.tiempoEjecucion?.diasHabiles || 0;
         const tiempoAjustado = Math.ceil(tiempoOriginal * factorTotal);
         const diasIncremento = tiempoAjustado - tiempoOriginal;
         
-        // Calcular costo indirectos diario
         const costoIndirectosDiario = this.costoIndirectosDiario || 0;
         const costoTiempoExtendido = costoIndirectosDiario * diasIncremento;
         
-        // Actualizar UI del modal
-        const elTiempoOriginal = document.getElementById('tiempo-original');
-        const elTiempoAjustado = document.getElementById('tiempo-ajustado');
         const elCostoTiempo = document.getElementById('impacto-costo-tiempo');
+        if (elCostoTiempo) {
+            elCostoTiempo.textContent = calculator.formatoMoneda(costoTiempoExtendido);
+        }
+        
         const elDesglose = document.getElementById('impacto-desglose-factores');
-        
-        if (elTiempoOriginal) elTiempoOriginal.textContent = tiempoOriginal + ' días';
-        if (elTiempoAjustado) elTiempoAjustado.textContent = tiempoAjustado + ' días';
-        if (elCostoTiempo) elCostoTiempo.textContent = calculator.formatoMoneda(costoTiempoExtendido);
-        
-        // Actualizar desglose de factores
         if (elDesglose) {
             elDesglose.innerHTML =
                 '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
@@ -1241,173 +1192,6 @@ guardarFactores: function() {
                 '<div style="font-size:11px;color:#666;">🔒 Seguridad</div>' +
                 '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + factorSeguridad.toFixed(2) + 'x</div>' +
                 '</div>';
-        }
-        
-        // Guardar en impactoFactores para usar después
-        this.impactoFactores = {
-            factorAltura: factorAltura,
-            factorClima: factorClima,
-            factorAcceso: factorAcceso,
-            factorSeguridad: factorSeguridad,
-            factorTotal: factorTotal,
-            tiempoOriginal: tiempoOriginal,
-            tiempoAjustado: tiempoAjustado,
-            diasIncremento: diasIncremento,
-            porcentajeIncremento: tiempoOriginal > 0 ? ((factorTotal - 1) * 100) : 0,
-            costoTiempoExtendido: costoTiempoExtendido,
-            aplicado: factorTotal > 1
-        };
-        
-        console.log('✅ Costo tiempo extendido calculado:', this.impactoFactores);
-    },
-    
-    // ─────────────────────────────────────────────────────────────────────
-    // APLICAR FACTORES (CORREGIDO - CON TIEMPO AJUSTADO)
-    // ─────────────────────────────────────────────────────────────────────
-    aplicarFactores: function() {
-        const factorAltura = parseFloat(document.getElementById('factor-altura')?.value) || 1;
-        const factorClima = parseFloat(document.getElementById('factor-clima')?.value) || 1;
-        const factorAcceso = parseFloat(document.getElementById('factor-acceso')?.value) || 1;
-        const factorSeguridad = parseFloat(document.getElementById('factor-seguridad')?.value) || 1;
-        const factorTotal = factorAltura * factorClima * factorAcceso * factorSeguridad;
-        
-        const tiempoOriginal = this.tiempoEjecucion?.diasHabiles || 0;
-        const tiempoAjustado = Math.ceil(tiempoOriginal * factorTotal);
-        const diasIncremento = tiempoAjustado - tiempoOriginal;
-        const porcentajeIncremento = tiempoOriginal > 0 ? ((factorTotal - 1) * 100) : 0;
-        
-        // Calcular costo por tiempo extendido
-        const costoIndirectosDiario = this.costoIndirectosDiario || 0;
-        const costoTiempoExtendido = costoIndirectosDiario * diasIncremento;
-        
-        // Actualizar modal
-        const elTiempoOriginal = document.getElementById('tiempo-original');
-        const elTiempoAjustado = document.getElementById('tiempo-ajustado');
-        
-        if (elTiempoOriginal) elTiempoOriginal.textContent = tiempoOriginal + ' días';
-        if (elTiempoAjustado) elTiempoAjustado.textContent = tiempoAjustado + ' días';
-        
-        // ⚠️ IMPORTANTE: Guardar impactoFactores ANTES de guardar
-        this.impactoFactores = {
-            factorAltura: factorAltura,
-            factorClima: factorClima,
-            factorAcceso: factorAcceso,
-            factorSeguridad: factorSeguridad,
-            factorTotal: factorTotal,
-            tiempoOriginal: tiempoOriginal,
-            tiempoAjustado: tiempoAjustado,
-            diasIncremento: diasIncremento,
-            porcentajeIncremento: porcentajeIncremento,
-            costoTiempoExtendido: costoTiempoExtendido,
-            aplicado: factorTotal > 1
-        };
-        
-        this.factorAjusteActual = factorTotal;
-        
-        console.log('✅ Factores aplicados:', this.impactoFactores);
-    },
-    
-    // ─────────────────────────────────────────────────────────────────
-    // MOSTRAR IMPACTO FACTORES (CORREGIDO)
-    // ─────────────────────────────────────────────────────────────────
-    mostrarImpactoFactores: function() {
-        const seccion = document.getElementById('seccion-impacto-factores');
-        if (!seccion) {
-            console.error('❌ No se encontró seccion-impacto-factores en HTML');
-            return;
-        }
-        
-        // ⚠️ VALIDAR que impactoFactores existe y tiene valores
-        if (!this.impactoFactores) {
-            console.log('⚠️ impactoFactores no inicializado, usando valores por defecto');
-            this.impactoFactores = {
-                factorAltura: 1,
-                factorClima: 1,
-                factorAcceso: 1,
-                factorSeguridad: 1,
-                factorTotal: 1,
-                tiempoOriginal: 0,
-                tiempoAjustado: 0,
-                diasIncremento: 0,
-                porcentajeIncremento: 0,
-                costoTiempoExtendido: 0,
-                aplicado: false
-            };
-        }
-        
-        console.log('📊 Mostrar impacto - impactoFactores:', this.impactoFactores);
-        console.log('📊 factorTotal:', this.impactoFactores?.factorTotal);
-        console.log('📊 aplicado:', this.impactoFactores?.aplicado);
-        
-        // Mostrar sección solo si hay factores aplicados (factorTotal > 1)
-        if (this.impactoFactores && (this.impactoFactores.factorTotal || 1) > 1) {
-            seccion.style.display = 'block';
-            console.log('✅ Sección de impacto MOSTRADA');
-            
-            // Llenar datos (CON VALIDACIONES)
-            const elTiempoOriginal = document.getElementById('impacto-tiempo-original');
-            const elTiempoAjustado = document.getElementById('impacto-tiempo-ajustado');
-            const elDiasIncremento = document.getElementById('impacto-dias-incremento');
-            const elPorcentajeTiempo = document.getElementById('impacto-porcentaje-tiempo');
-            const elFactorTotal = document.getElementById('impacto-factor-total');
-            const elCostoTiempo = document.getElementById('impacto-costo-tiempo');
-            const elCostoTotal = document.getElementById('impacto-costo-total');
-            const elSemanasOriginal = document.getElementById('impacto-semanas-original');
-            const elSemanasAjustado = document.getElementById('impacto-semanas-ajustado');
-            const elDesglose = document.getElementById('impacto-desglose-factores');
-            
-            const tiempoOriginal = this.impactoFactores.tiempoOriginal || 0;
-            const tiempoAjustado = this.impactoFactores.tiempoAjustado || 0;
-            const diasIncremento = this.impactoFactores.diasIncremento || 0;
-            const porcentajeIncremento = this.impactoFactores.porcentajeIncremento || 0;
-            const factorTotal = this.impactoFactores.factorTotal || 1;
-            const costoTiempoExtendido = this.impactoFactores.costoTiempoExtendido || 0;
-            
-            if (elTiempoOriginal) elTiempoOriginal.textContent = tiempoOriginal + ' días';
-            if (elTiempoAjustado) elTiempoAjustado.textContent = tiempoAjustado + ' días';
-            if (elDiasIncremento) elDiasIncremento.textContent = '+' + diasIncremento + ' días';
-            if (elPorcentajeTiempo) elPorcentajeTiempo.textContent = '+' + (porcentajeIncremento || 0).toFixed(1) + '%';
-            if (elFactorTotal) elFactorTotal.textContent = factorTotal.toFixed(2) + 'x';
-            if (elCostoTiempo) elCostoTiempo.textContent = calculator.formatoMoneda(costoTiempoExtendido);
-            
-            if (elSemanasOriginal) {
-                const semanasOrig = ((tiempoOriginal || 0) / 5).toFixed(2);
-                elSemanasOriginal.textContent = semanasOrig + ' semanas';
-            }
-            if (elSemanasAjustado) {
-                const semanasAjust = ((tiempoAjustado || 0) / 5).toFixed(2);
-                elSemanasAjustado.textContent = semanasAjust + ' semanas';
-            }
-            
-            // Desglose de factores
-            if (elDesglose) {
-                elDesglose.innerHTML =
-                    '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
-                    '<div style="font-size:11px;color:#666;">🏔️ Altura</div>' +
-                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + (this.impactoFactores.factorAltura || 1).toFixed(2) + 'x</div>' +
-                    '</div>' +
-                    '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
-                    '<div style="font-size:11px;color:#666;">🌤️ Clima</div>' +
-                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + (this.impactoFactores.factorClima || 1).toFixed(2) + 'x</div>' +
-                    '</div>' +
-                    '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
-                    '<div style="font-size:11px;color:#666;">🚪 Acceso</div>' +
-                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + (this.impactoFactores.factorAcceso || 1).toFixed(2) + 'x</div>' +
-                    '</div>' +
-                    '<div style="background:#f5f7fa;padding:10px;border-radius:8px;">' +
-                    '<div style="font-size:11px;color:#666;">🔒 Seguridad</div>' +
-                    '<div style="font-size:14px;font-weight:700;color:#1a1a1a;">' + (this.impactoFactores.factorSeguridad || 1).toFixed(2) + 'x</div>' +
-                    '</div>';
-            }
-            
-            // Actualizar tiempo de ejecución ajustado
-            this.tiempoEjecucion.diasHabilesAjustado = tiempoAjustado;
-            this.tiempoEjecucion.semanasAjustado = ((tiempoAjustado || 0) / 5).toFixed(2);
-            this.tiempoEjecucion.mesesAjustado = (((tiempoAjustado || 0) / 5) / 4.33).toFixed(2);
-            
-        } else {
-            seccion.style.display = 'none';
-            console.log('❌ Sección de impacto OCULTA (factorTotal <= 1)');
         }
     },
     
@@ -1445,22 +1229,7 @@ guardarFactores: function() {
                 return;
             }
             
-            // ⚠️ IMPORTANTE: Calcular totales ANTES de guardar
             this.calcularTotalConConceptos();
-            
-            // Calcular valores para guardar
-            let subtotal = 0;
-            this.datosCotizacion.conceptosSeleccionados.forEach(function(c) {
-                subtotal += (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
-            });
-            
-            const indirectosOficina = subtotal * (indirectosOficinaPorcentaje / 100);
-            const indirectosCampo = subtotal * (indirectosCampoPorcentaje / 100);
-            const totalIndirectos = indirectosOficina + indirectosCampo;
-            const baseConIndirectos = subtotal + totalIndirectos;
-            const utilidad = baseConIndirectos * (utilidadPorcentaje / 100);
-            const iva = (baseConIndirectos + utilidad) * 0.16;
-            const totalFinal = baseConIndirectos + utilidad + iva;
             
             const cotizacion = {
                 clienteId: clienteId,
@@ -1480,16 +1249,8 @@ guardarFactores: function() {
                     financiamiento: financiamientoPorcentaje,
                     utilidad: utilidadPorcentaje
                 },
-                // ⚠️ VALORES CALCULADOS (PARA EL REPORTE)
-                costoDirecto: subtotal,
-                totalIndirectos: totalIndirectos,
-                utilidad: utilidad,
-                iva: iva,
-                totalFinal: totalFinal,
-                // Factores y tiempo
-                factoresAjuste: this.impactoFactores?.aplicado ? this.factoresAjuste : null,
+                factoresAjuste: this.factoresAjuste,
                 tiempoEjecucion: this.tiempoEjecucion,
-                costoTiempoExtendido: this.impactoFactores?.aplicado ? this.impactoFactores.costoTiempoExtendido : 0,
                 fecha: new Date().toISOString(),
                 estado: 'pendiente'
             };
@@ -1545,71 +1306,6 @@ guardarFactores: function() {
         
         this.inicializarFormularios();
     },
-
-    // ─────────────────────────────────────────────────────────────────
-    // CARGAR DATOS DE COTIZACIÓN (PARA EDITAR)
-    // ─────────────────────────────────────────────────────────────────
-    cargarDatosCotizacion: function(cotizacion) {
-        console.log('📋 Cargando datos de cotización:', cotizacion);
-        
-        // Limpiar datos actuales
-        this.datosCotizacion = {
-            materiales: [],
-            manoObra: [],
-            equipos: [],
-            herramienta: [],
-            indirectos: [],
-            conceptosSeleccionados: []
-        };
-        
-        // Cargar conceptos
-        if (cotizacion.conceptosCatalogo && cotizacion.conceptosCatalogo.length > 0) {
-            this.datosCotizacion.conceptosSeleccionados = JSON.parse(JSON.stringify(cotizacion.conceptosCatalogo));
-        }
-        
-        // Cargar adicionales
-        if (cotizacion.materialesAdicionales) {
-            this.datosCotizacion.materiales = JSON.parse(JSON.stringify(cotizacion.materialesAdicionales));
-        }
-        if (cotizacion.manoObraAdicional) {
-            this.datosCotizacion.manoObra = JSON.parse(JSON.stringify(cotizacion.manoObraAdicional));
-        }
-        if (cotizacion.equiposAdicionales) {
-            this.datosCotizacion.equipos = JSON.parse(JSON.stringify(cotizacion.equiposAdicionales));
-        }
-        if (cotizacion.herramientaAdicional) {
-            this.datosCotizacion.herramienta = JSON.parse(JSON.stringify(cotizacion.herramientaAdicional));
-        }
-        if (cotizacion.indirectosAdicionales) {
-            this.datosCotizacion.indirectos = JSON.parse(JSON.stringify(cotizacion.indirectosAdicionales));
-        }
-        
-        // Cargar tiempo
-        if (cotizacion.tiempoEjecucion) {
-            this.tiempoEjecucion = JSON.parse(JSON.stringify(cotizacion.tiempoEjecucion));
-        }
-        
-        // Cargar factores
-        if (cotizacion.factoresAjuste) {
-            this.factoresAjuste = JSON.parse(JSON.stringify(cotizacion.factoresAjuste));
-            this.impactoFactores = {
-                factorAltura: cotizacion.factoresAjuste.altura || 1,
-                factorClima: cotizacion.factoresAjuste.clima || 1,
-                factorAcceso: cotizacion.factoresAjuste.acceso || 1,
-                factorSeguridad: cotizacion.factoresAjuste.seguridad || 1,
-                factorTotal: cotizacion.factoresAjuste.total || 1,
-                aplicado: (cotizacion.factoresAjuste.total || 1) > 1
-            };
-        }
-        
-        // Actualizar UI
-        this.actualizarConceptosSeleccionadosUI();
-        this.actualizarContadorGeneral();
-        this.calcularTotalConConceptos();
-        this.mostrarImpactoFactores();
-        
-        console.log('✅ Datos cargados correctamente');
-    },    
     
     // ─────────────────────────────────────────────────────────────────
     // CLIENTES
@@ -1671,9 +1367,6 @@ guardarFactores: function() {
         }
     },
     
-    // ─────────────────────────────────────────────────────────────────────
-    // MODAL CLIENTE RÁPIDO
-    // ─────────────────────────────────────────────────────────────────────
     mostrarModalCliente: function() {
         const modal = document.getElementById('modal-cliente');
         if (modal) {
@@ -1869,19 +1562,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
