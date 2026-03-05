@@ -174,11 +174,30 @@ window.licencia = {
                 return { permitido: true };
             }
             
+            if (tipo === 'importar') {
+                if (!plan.importar) {
+                    return { 
+                        permitido: false, 
+                        razon: 'Importación de datos no disponible en plan ' + plan.nombre + '. Actualiza a PRO para acceder.'
+                    };
+                }
+                return { permitido: true };
+            }
+            
+            if (tipo === 'factoresAjuste') {
+                if (!plan.factoresAjuste) {
+                    return { 
+                        permitido: false, 
+                        razon: 'Factores de ajuste no disponibles en plan ' + plan.nombre + '. Actualiza a PRO para acceder.'
+                    };
+                }
+                return { permitido: true };
+            }
+            
             return { permitido: true };
             
         } catch (error) {
             console.error('❌ Error verificando límite:', error);
-            // En caso de error, permitir por defecto para no bloquear al usuario
             return { permitido: true };
         }
     },
