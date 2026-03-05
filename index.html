@@ -189,6 +189,122 @@
             </div>
         </section>
 
+        <!-- LICENCIA SCREEN -->
+        <section id="licencia-screen" class="screen">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                    <h2 style="margin:0;color:#1a1a1a;">🔑 Licencia</h2>
+                    <button class="btn btn-secondary" onclick="app.mostrarPantalla('dashboard-screen')" 
+                            style="padding:10px 20px;background:#6c757d;color:#ffffff;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
+                        ↩️ Volver
+                    </button>
+                </div>
+                
+                <!-- Estado Actual -->
+                <div style="background:#E3F2FD;padding:25px;border-radius:15px;margin-bottom:25px;">
+                    <h4 style="color:#1565C0;margin:0 0 15px 0;">📋 Estado de tu Licencia</h4>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;">
+                        <div>
+                            <div style="font-size:12px;color:#666;">Plan Actual</div>
+                            <div style="font-size:24px;font-weight:700;color:#1a1a1a;" id="licencia-plan-actual">DEMO</div>
+                        </div>
+                        <div>
+                            <div style="font-size:12px;color:#666;">Días Restantes</div>
+                            <div style="font-size:24px;font-weight:700;color:#FF9800;" id="licencia-dias-restantes">7</div>
+                        </div>
+                        <div>
+                            <div style="font-size:12px;color:#666;">Estado</div>
+                            <div style="font-size:24px;font-weight:700;color:#4CAF50;" id="licencia-estado">Activa</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Activar Licencia -->
+                <div style="background:#f5f7fa;padding:25px;border-radius:15px;margin-bottom:25px;">
+                    <h4 style="color:#1a1a1a;margin:0 0 15px 0;">🔓 Activar Licencia</h4>
+                    <div style="display:grid;gap:15px;">
+                        <div>
+                            <label style="font-size:13px;color:#666;display:block;margin-bottom:5px;">Email</label>
+                            <input type="email" id="licencia-email" placeholder="tu@email.com" 
+                                   style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                        </div>
+                        <div>
+                            <label style="font-size:13px;color:#666;display:block;margin-bottom:5px;">Clave de Licencia</label>
+                            <input type="text" id="licencia-clave" placeholder="DEMO-XXXXXXXX-XXXX-XXXX" 
+                                   style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;font-family:monospace;">
+                        </div>
+                        <button class="btn btn-primary" onclick="app.activarLicencia()" 
+                                style="padding:14px 30px;background:#4CAF50;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
+                            🔓 Activar Licencia
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Planes Disponibles -->
+                <div style="margin-bottom:25px;">
+                    <h4 style="color:#1a1a1a;margin:0 0 15px 0;">💎 Planes Disponibles</h4>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
+                        <!-- DEMO -->
+                        <div style="background:white;border:2px solid #ddd;border-radius:15px;padding:25px;">
+                            <div style="text-align:center;margin-bottom:20px;">
+                                <div style="font-size:28px;font-weight:700;color:#666;">DEMO</div>
+                                <div style="font-size:32px;font-weight:700;color:#1a1a1a;">GRATIS</div>
+                                <div style="font-size:13px;color:#666;">7 días</div>
+                            </div>
+                            <ul style="list-style:none;padding:0;margin:0;">
+                                <li style="padding:8px 0;border-bottom:1px solid #eee;">✓ 100 conceptos máx.</li>
+                                <li style="padding:8px 0;border-bottom:1px solid #eee;">✓ 5 cotizaciones máx.</li>
+                                <li style="padding:8px 0;border-bottom:1px solid #eee;">✓ 10 clientes máx.</li>
+                                <li style="padding:8px 0;border-bottom:1px solid #eee;">✗ Sin soporte</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- PRO -->
+                        <div style="background:linear-gradient(135deg,#2196F3,#1976D2);border-radius:15px;padding:25px;color:white;">
+                            <div style="text-align:center;margin-bottom:20px;">
+                                <div style="font-size:28px;font-weight:700;">PRO</div>
+                                <div style="font-size:32px;font-weight:700;">$599</div>
+                                <div style="font-size:13px;opacity:0.8;">365 días</div>
+                            </div>
+                            <ul style="list-style:none;padding:0;margin:0;">
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ 10,000 conceptos</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Cotizaciones ilimitadas</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Clientes ilimitados</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Soporte por email</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Reportes PDF</li>
+                                <li style="padding:8px 0;">✓ Curva S</li>
+                            </ul>
+                            <button class="btn" onclick="app.comprarPlan('PRO')" 
+                                    style="width:100%;margin-top:20px;padding:14px;background:white;color:#1976D2;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
+                                Elegir PRO
+                            </button>
+                        </div>
+                        
+                        <!-- ENTERPRISE -->
+                        <div style="background:linear-gradient(135deg,#FF9800,#F57C00);border-radius:15px;padding:25px;color:white;">
+                            <div style="text-align:center;margin-bottom:20px;">
+                                <div style="font-size:28px;font-weight:700;">ENTERPRISE</div>
+                                <div style="font-size:32px;font-weight:700;">$999</div>
+                                <div style="font-size:13px;opacity:0.8;">365 días</div>
+                            </div>
+                            <ul style="list-style:none;padding:0;margin:0;">
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Todo de PRO</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Multi-usuario (10)</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Soporte prioritario</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ API access</li>
+                                <li style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.2);">✓ Reportes APU</li>
+                                <li style="padding:8px 0;">✓ Curva S avanzada</li>
+                            </ul>
+                            <button class="btn" onclick="app.comprarPlan('ENTERPRISE')" 
+                                    style="width:100%;margin-top:20px;padding:14px;background:white;color:#F57C00;border:none;border-radius:10px;cursor:pointer;font-weight:600;">
+                                Elegir ENTERPRISE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
         <!-- NUEVA COTIZACIÓN SCREEN -->
         <section id="nueva-cotizacion-screen" class="screen">
             <div class="card">
@@ -784,5 +900,6 @@
     </script>
 </body>
 </html>
+
 
 
