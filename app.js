@@ -1326,15 +1326,30 @@ window.app = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // GUARDAR COTIZACIÓN
+    // GUARDAR COTIZACIÓN (CORREGIDO - CON VERIFICACIÓN DE LÍMITES)
     // ─────────────────────────────────────────────────────────────────
     guardarCotizacion: async function() {
         try {
             console.log('💾 Guardando cotización...');
             
-            const limite = await window.licencia.verificarLimite();
-            if (!limite.permitido) {
-                this.notificacion(limite.razon, 'error');
+            // ⚠️ VERIFICAR LÍMITE DE COTIZACIONES ANTES DE GUARDAR
+            var limiteCotizaciones = await window.licencia.verificarLimite('cotizaciones');
+            if (!limiteCotizaciones.permitido) {
+                this.notificacion('❌ ' + limiteCotizaciones.razon, 'error');
+                
+                // Mostrar mensaje de upgrade
+                setTimeout(() => {
+                    if (confirm('¿Te gustaría conocer los planes PRO y ENTERPRISE?')) {
+                        this.mostrarPantalla('licencia-screen');
+                    }
+                }, 1000);
+                return;
+            }
+            
+            // Verificar límite de clientes
+            var limiteClientes = await window.licencia.verificarLimite('clientes');
+            if (!limiteClientes.permitido) {
+                this.notificacion('❌ ' + limiteClientes.razon, 'error');
                 return;
             }
             
@@ -1749,6 +1764,7 @@ window.app = {
     });
     
     console.log('✅ app.js v2.0 listo');
+
 
 
 
