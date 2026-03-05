@@ -268,11 +268,22 @@ window.licencia = {
         var mensaje = 'Para adquirir el plan ' + plan + ':\n\n' +
             '💰 Precio: $' + info.precio + ' MXN\n' +
             '📅 Duración: ' + info.dias + ' días\n\n' +
-            'Contacta a ventas@smartcot.com para generar tu clave de licencia.';
-        
+            'Contacta a lecterhdz@gmail.com para generar tu clave de licencia.';
         alert(mensaje);
+    },
+    actualizarInfoLicenciaUI: function() {
+        var info = window.licencia.obtenerInfo();
+        var elPlan = document.getElementById('licencia-plan-actual');
+        var elDias = document.getElementById('licencia-dias-restantes');
+        var elEstado = document.getElementById('licencia-estado');
+        
+        if (elPlan) elPlan.textContent = info.plan;
+        if (elDias) elDias.textContent = info.diasRestantes;
+        if (elEstado) {
+            elEstado.textContent = info.activa ? 'Activa' : 'Expirada';
+            elEstado.style.color = info.activa ? '#4CAF50' : '#f44336';
+        }
     }
-    
 };
 
 console.log('✅ licencias.js listo');
