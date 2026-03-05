@@ -330,7 +330,7 @@ window.app = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // CATÁLOGO
+    // CATÁLOGO (CORREGIDO PARA MÓVIL - CON PAGINACIÓN)
     // ─────────────────────────────────────────────────────────────────
     cargarCatalogoCompleto: async function() {
         try {
@@ -345,7 +345,10 @@ window.app = {
                 return;
             }
             
-            const conceptos = await window.db.conceptos.limit(50).toArray();
+            // ⚠️ PARA MÓVIL: Solo cargar 50 conceptos a la vez
+            const limiteMovil = /Mobi|Android/i.test(navigator.userAgent) ? 50 : 200;
+            
+            const conceptos = await window.db.conceptos.limit(limiteMovil).toArray();
             
             if (conceptos.length === 0) {
                 container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><h3>Sin conceptos</h3><p>Importa conceptos desde Excel para comenzar</p><button onclick="app.mostrarPantalla(\'importar-screen\')" style="margin-top:15px;background:#2196F3;color:white;border:none;padding:12px 25px;border-radius:10px;cursor:pointer;font-weight:600;">📥 Importar Ahora</button></div>';
@@ -368,12 +371,73 @@ window.app = {
                     '</div></div>';
             }).join('');
             
+            // ⚠️ AGREGAR BOTÓN PARA CARGAR MÁS
+            if (conceptos.length === limiteMovil) {
+                const btnCargarMas = document.createElement('div');
+                btnCargarMas.style.cssText = 'text-align:center;padding:20px;';
+                btnCargarMas.innerHTML = '<button onclick="app.cargarMasConceptos(' + limiteMovil + ')" style="background:#2196F3;color:white;border:none;padding:14px 30px;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;">📄 Cargar 50 más</button>';
+                container.appendChild(btnCargarMas);
+            }
+            
         } catch (error) {
             console.error('❌ Error cargando catálogo:', error);
             const container = document.getElementById('lista-catalogo');
             if (container) {
                 container.innerHTML = '<div style="padding:20px;text-align:center;color:#f44336;">Error cargando catálogo: ' + error.message + '</div>';
             }
+        }
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // CARGAR MÁS CONCEPTOS (PARA MÓVIL)
+    // ─────────────────────────────────────────────────────────────────
+    cargarMasConceptos: async function(offset) {
+        try {
+            const container = document.getElementById('lista-catalogo');
+            const limiteMovil = /Mobi|Android/i.test(navigator.userAgent) ? 50 : 200;
+            
+            const conceptos = await window.db.conceptos.offset(offset).limit(limiteMovil).toArray();
+            
+            if (conceptos.length === 0) {
+                alert('✅ No hay más conceptos para cargar');
+                return;
+            }
+            
+            const app = this;
+            const nuevosHTML = conceptos.map(function(c) {
+                return '<div style="padding:15px;border:1px solid #ddd;border-radius:10px;margin-bottom:10px;background:white;">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:start;">' +
+                    '<div>' +
+                    '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + c.codigo + '</div>' +
+                    '<div style="color:#666;font-size:14px;">' + c.descripcion_corta + '</div>' +
+                    '<div style="color:#999;font-size:12px;margin-top:5px;">Unidad: ' + c.unidad + ' | Rendimiento: ' + c.rendimiento_base + '</div>' +
+                    '</div>' +
+                    '<div style="display:flex;gap:5px;">' +
+                    '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" style="background:#4CAF50;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="Agregar">➕</button>' +
+                    '<button onclick="reportes.generarAPUPDF(\'' + c.id + '\')" style="background:#2196F3;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="PDF APU">📄</button>' +
+                    '</div>' +
+                    '</div></div>';
+            }).join('');
+            
+            // Insertar antes del botón "Cargar más"
+            const btnCargarMas = container.querySelector('button[onclick*="cargarMasConceptos"]');
+            if (btnCargarMas) {
+                btnCargarMas.parentElement.insertAdjacentHTML('beforebegin', nuevosHTML);
+            } else {
+                container.insertAdjacentHTML('beforeend', nuevosHTML);
+            }
+            
+            // Actualizar o remover botón
+            if (conceptos.length < limiteMovil) {
+                if (btnCargarMas) btnCargarMas.parentElement.remove();
+            } else {
+                if (btnCargarMas) {
+                    btnCargarMas.setAttribute('onclick', 'app.cargarMasConceptos(' + (offset + limiteMovil) + ')');
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ Error cargando más conceptos:', error);
         }
     },
     
@@ -1668,6 +1732,7 @@ window.app = {
     });
     
     console.log('✅ app.js v2.0 listo');
+
 
 
 
