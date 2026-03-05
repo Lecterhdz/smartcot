@@ -11,6 +11,12 @@ window.reportes = {
     // ─────────────────────────────────────────────────────────────────
     generarCotizacionPDF: async function(cotizacionId) {
         try {
+            // ⚠️ VERIFICAR SI EL PLAN TIENE ACCESO A REPORTES PDF
+            var limite = await window.licencia.verificarLimite('reportesPDF');
+            if (!limite.permitido) {
+                alert('❌ ' + limite.razon);
+                return;
+            }
             console.log('📄 Generando PDF de cotización #', cotizacionId);
             
             if (typeof window.jspdf === 'undefined') {
