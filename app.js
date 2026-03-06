@@ -1588,12 +1588,24 @@ window.app = {
             const config = await window.db.configuracion.toArray();
             const configObj = {};
             config.forEach(function(c) { configObj[c.clave] = c.valor; });
+            
             const elIva = document.getElementById('config-iva');
             const elUtilidad = document.getElementById('config-utilidad');
             const elEmpresa = document.getElementById('config-empresa');
+            const elColor = document.getElementById('config-color');
+            const elColorGroup = document.getElementById('config-color-group');
+            
             if (elIva && configObj.iva) elIva.value = configObj.iva;
             if (elUtilidad && configObj.utilidad) elUtilidad.value = configObj.utilidad;
             if (elEmpresa && configObj.empresa) elEmpresa.value = configObj.empresa;
+            if (elColor && configObj.marca_colores) elColor.value = configObj.marca_colores;
+            
+            // ⚠️ MOSTRAR COLOR SOLO PARA ENTERPRISE
+            const licencia = window.licencia.cargar();
+            if (elColorGroup) {
+                elColorGroup.style.display = (licencia?.tipo === 'ENTERPRISE') ? 'block' : 'none';
+            }
+            
         } catch (error) {
             console.error('❌ Error cargando configuración:', error);
         }
@@ -1765,6 +1777,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
