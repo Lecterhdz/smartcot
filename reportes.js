@@ -345,6 +345,13 @@ window.reportes = {
     generarAPUPDF: async function(conceptoId) {
         try {
             console.log('📄 Generando APU PDF para concepto #', conceptoId);
+
+            // ⚠️ VERIFICAR SI EL PLAN TIENE ACCESO A REPORTES APU
+            const limite = await window.licencia.verificarLimite('reportesAPU');
+            if (!limite.permitido) {
+                alert('❌ ' + limite.razon + '\n\nActualiza a ENTERPRISE para descargar APU individuales.');
+                return;
+            }
             
             if (typeof window.jspdf === 'undefined') {
                 alert('⚠️ jsPDF no está cargado');
@@ -369,9 +376,11 @@ window.reportes = {
             
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
             doc.text('ANALISIS DE PRECIOS UNITARIOS', 105, 18, { align: 'center' });
             
             doc.setFontSize(10);
+            doc.setFont('courier', 'italic'); 
             doc.text('SmartCot v2.0 - Cotizador Industrial', 105, 25, { align: 'center' });
             
             // ─────────────────────────────────────────────────────────
