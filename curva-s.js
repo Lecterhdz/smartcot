@@ -582,6 +582,9 @@ window.curvaS = {
             // ⚠️ VALIDAR QUE HAY AVANCES
             if (avances.length === 0) {
                 alert('⚠️ No hay avances registrados. Registra al menos 2 avances semanales para ver EVM.');
+                
+                // Limpiar valores NaN
+                this.limpiarValoresEVM();
                 return;
             }            
             // Calcular métricas EVM
