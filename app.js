@@ -995,7 +995,7 @@ window.app = {
     // ─────────────────────────────────────────────────────────────────
     // FACTORES DE AJUSTE
     // ─────────────────────────────────────────────────────────────────
-    abrirFactoresAjuste: function() {
+    abrirFactoresAjuste: async function() {
 
         // ⚠️ VERIFICAR SI EL PLAN TIENE ACCESO A FACTORES
         const limite = await window.licencia.verificarLimite('factoresAjuste');
@@ -1513,6 +1513,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
