@@ -529,36 +529,7 @@ window.curvaS = {
         // ⚠️ IMPORTANTE: Calcular variaciones después de actualizar
         this.calcularVariaciones();
     },
-
-    // ─────────────────────────────────────────────────────────────────
-    // FUNCIONES AVANZADAS CURVA S (SOLO ENTERPRISE)
-    // ─────────────────────────────────────────────────────────────────
-    generarCurvaAvanzada: async function() {
-        // ⚠️ VERIFICAR LICENCIA ENTERPRISE
-        const licencia = window.licencia.cargar();
-        if (licencia?.tipo !== 'ENTERPRISE') {
-            alert('❌ Curva S Avanzada solo disponible en plan ENTERPRISE');
-            return;
-        }
-        
-        // Mostrar sección avanzada
-        const seccionAvanzada = document.getElementById('curva-s-avanzada-seccion');
-        if (seccionAvanzada) {
-            seccionAvanzada.style.display = 'block';
-        }
-        
-        // 1. Calcular Valor Ganado (EVM)
-        this.calcularEVM();
-        
-        // 2. Generar curva de inversión
-        this.generarCurvaInversion();
-        
-        // 3. Proyección de fecha
-        this.proyectarFechaTerminacion();
-        
-        console.log('✅ Curva S Avanzada generada');
-    },
-    
+   
     // ─────────────────────────────────────────────────────────────────
     // FUNCIONES AVANZADAS CURVA S (SOLO ENTERPRISE) - CORREGIDO
     // ─────────────────────────────────────────────────────────────────
