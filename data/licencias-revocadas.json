@@ -1,0 +1,11 @@
+{
+  "ultimaActualizacion": "2026-03-07",
+  "licenciasRevocadas": [
+    "PRO-ABC12345-1709856000000-X9Y8Z7W6",
+    "ENTERPRISE-DEF67890-1709856000000-A1B2C3D4"
+  ],
+  "razones": {
+    "PRO-ABC12345-1709856000000-X9Y8Z7W6": "Pago no recibido",
+    "ENTERPRISE-DEF67890-1709856000000-A1B2C3D4": "Violación de términos"
+  }
+}
