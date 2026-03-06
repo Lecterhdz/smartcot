@@ -11,6 +11,11 @@ window.plantillas = {
     // ─────────────────────────────────────────────────────────────────
     guardarComoPlantilla: async function() {
         try {
+            // ⚠️ VERIFICAR QUE window.db EXISTA
+            if (!window.db) {
+                alert('❌ Base de datos no disponible. Recarga la página.');
+                return;
+            }    
             // ⚠️ VERIFICAR LICENCIA
             const licencia = window.licencia.cargar();
             const limite = await window.licencia.verificarLimite('plantillas');
@@ -44,7 +49,7 @@ window.plantillas = {
             alert('❌ Error: ' + error.message);
         }
     },
-    
+
     // ─────────────────────────────────────────────────────────────────
     // CARGAR PLANTILLA
     // ─────────────────────────────────────────────────────────────────
@@ -78,10 +83,16 @@ window.plantillas = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // LISTAR PLANTILLAS
+    // LISTAR PLANTILLAS (CORREGIDO)
     // ─────────────────────────────────────────────────────────────────
     listarPlantillas: async function() {
         try {
+            // ⚠️ VERIFICAR QUE window.db EXISTA
+            if (!window.db) {
+                console.error('❌ DB no disponible');
+                return [];
+            }
+            
             const plantillas = await window.db.plantillas.toArray();
             return plantillas;
         } catch (error) {
