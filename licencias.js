@@ -234,6 +234,11 @@ window.licencia = {
             }
             
             if (tipo === 'plantillas') {
+                // ⚠️ VERIFICAR QUE window.db EXISTA
+                if (!window.db) {
+                    return { permitido: true };
+                }
+                
                 const count = await window.db.plantillas.count();
                 if (count >= plan.plantillas) {
                     return { 
