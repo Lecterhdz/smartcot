@@ -17,6 +17,18 @@ window.reportes = {
                 alert('❌ ' + limite.razon);
                 return;
             }
+
+            // ⚠️ CARGAR LOGO SI ES ENTERPRISE
+            const licencia = window.licencia.cargar();
+            let logoBase64 = null;
+            
+            if (licencia?.tipo === 'ENTERPRISE') {
+                const config = await window.db.configuracion.get('marca_logo');
+                if (config) {
+                    logoBase64 = config.valor;
+                }
+            }
+            
             console.log('📄 Generando PDF de cotización #', cotizacionId);
             
             if (typeof window.jspdf === 'undefined') {
@@ -63,6 +75,14 @@ window.reportes = {
             
             doc.setFontSize(10);
             doc.text('Fecha: ' + new Date(cotizacion.fecha).toLocaleDateString('es-MX'), 150, 27);
+
+            // ⚠️ AGREGAR LOGO EN ENCABEZADO (si existe)
+            if (logoBase64) {
+                doc.addImage(logoBase64, 'PNG', 15, 10, 40, 20);
+                doc.text('ANÁLISIS DE PRECIOS UNITARIOS', 70, 25, { align: 'left' });
+            } else {
+                doc.text('ANÁLISIS DE PRECIOS UNITARIOS', 105, 25, { align: 'center' });
+            }
             
             // ─────────────────────────────────────────────────────────
             // INFORMACION DEL CLIENTE Y PROYECTO
