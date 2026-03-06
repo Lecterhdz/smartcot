@@ -86,6 +86,9 @@ window.app = {
             
             this.inicializarFormularios();
             
+            // ⚠️ AGREGAR ESTO:
+            await this.actualizarContadoresLicencia();
+            
             console.log('✅ SmartCot v2.0 listo');
             this.notificacion('¡Bienvenido a SmartCot v2.0!', 'exito');
             
@@ -1467,11 +1470,11 @@ window.app = {
                 fechaInicio: fechaInicio || new Date().toISOString(),
                 fechaFinSolicitada: fechaFinSolicitada || null,
                 conceptosCatalogo: this.datosCotizacion.conceptosSeleccionados,
-                materialesAdicionales: this.datosCotizacion.materiales,
-                manoObraAdicional: this.datosCotizacion.manoObra,
-                equiposAdicionales: this.datosCotizacion.equipos,
-                herramientaAdicional: this.datosCotizacion.herramienta,
-                indirectosAdicionales: this.datosCotizacion.indirectos,
+                materialesAdicionales: this.datosCotizacion.materiales || [],
+                manoObraAdicional: this.datosCotizacion.manoObra || [],
+                equiposAdicionales: this.datosCotizacion.equipos || [],
+                herramientaAdicional: this.datosCotizacion.herramienta || [],
+                indirectosAdicionales: this.datosCotizacion.indirectos || [],
                 porcentajes: {
                     indirectosOficina: indirectosOficinaPorcentaje,
                     indirectosCampo: indirectosCampoPorcentaje,
@@ -1480,6 +1483,11 @@ window.app = {
                 },
                 factoresAjuste: this.factoresAjuste,
                 tiempoEjecucion: this.tiempoEjecucion,
+                costoDirecto: parseFloat(document.getElementById('resumen-costo-directo')?.textContent.replace(/[^0-9.-]+/g,'')) || 0,
+                totalIndirectos: parseFloat(document.getElementById('resumen-sobrecosto-monto')?.textContent.replace(/[^0-9.-]+/g,'')) || 0,
+                utilidad: parseFloat(document.getElementById('resumen-utilidad')?.textContent.replace(/[^0-9.-]+/g,'')) || 0,
+                iva: parseFloat(document.getElementById('resumen-iva')?.textContent.replace(/[^0-9.-]+/g,'')) || 0,
+                totalFinal: parseFloat(document.getElementById('resumen-total')?.textContent.replace(/[^0-9.-]+/g,'')) || 0,
                 fecha: new Date().toISOString(),
                 estado: 'pendiente'
             };
@@ -1887,6 +1895,7 @@ window.app = {
     });
     
     console.log('✅ app.js v2.0 listo');
+
 
 
 
