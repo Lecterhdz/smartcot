@@ -759,6 +759,11 @@
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
                             <input type="number" id="config-iva" placeholder="IVA %" value="16" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                             <input type="number" id="config-utilidad" placeholder="Utilidad %" value="15" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                         <div class="form-group" id="config-color-group" style="display:none;">
+                            <label style="font-size:14px;color:#666;display:block;margin-bottom:10px;">🎨 Color Corporativo</label>
+                            <input type="color" id="config-color" value="#1a1a1a" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;height:50px;">
+                            <small style="color:#666;font-size:11px;">Se aplicará en reportes PDF (Solo ENTERPRISE)</small>
+                        </div>                       
                         </div>
                     </div>
                     <button class="btn btn-primary" onclick="app.guardarConfiguracion()" style="margin-top:15px;padding:14px 30px;">💾 Guardar Configuración</button>
@@ -1080,6 +1085,7 @@
 </footer>   
 </body>
 </html>
+
 
 
 
