@@ -791,6 +791,10 @@ window.app = {
                 console.error('❌ Material no encontrado');
                 return;
             }
+            // ⚠️ MARCAR CONCEPTO COMO EDITADO
+            concepto.precioEditado = true;
+            concepto.codigoOriginal = concepto.codigo;  // Guardar código original
+            concepto.codigo = 'E' + concepto.codigo;  // Agregar "E" al inicio
             
             // Actualizar precio
             concepto.recursos.materiales[materialIndex].precio_unitario = parseFloat(nuevoPrecio) || 0;
@@ -1777,6 +1781,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
