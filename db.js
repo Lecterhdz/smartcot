@@ -21,7 +21,7 @@ const db = new Dexie('SmartCotDB');
 // ─────────────────────────────────────────────────────────────────────
 // DEFINIR ESQUEMA DE BASE DE DATOS (VERSIÓN 3)
 // ─────────────────────────────────────────────────────────────────────
-db.version(3).stores({
+db.version(4).stores({
     // Curva S
     avanceObra: '++id, cotizacionId, semana, fecha',
     
@@ -306,5 +306,6 @@ window.dbImportar = async function(datosJSON) {
         throw error;
     }
 };
+
 
 
