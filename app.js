@@ -395,6 +395,10 @@ window.app = {
                 return;
             }
             const conceptos = await window.db.conceptos.limit(50).toArray();
+
+            // ⚠️ VERIFICAR SI EL PLAN TIENE ACCESO A REPORTES PDF
+            const tieneReportesPDF = await window.licencia.verificarLimite('reportesPDF');
+            
             if (conceptos.length === 0) {
                 container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><h3>Sin conceptos</h3><p>Importa conceptos desde Excel para comenzar</p><button onclick="app.mostrarPantalla(\'importar-screen\')" style="margin-top:15px;background:#2196F3;color:white;border:none;padding:12px 25px;border-radius:10px;cursor:pointer;font-weight:600;">📥 Importar Ahora</button></div>';
                 return;
@@ -1475,6 +1479,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
