@@ -579,7 +579,11 @@ window.curvaS = {
                 .where('cotizacionId')
                 .equals(parseInt(cotizacionId))
                 .toArray();
-            
+            // ⚠️ VALIDAR QUE HAY AVANCES
+            if (avances.length === 0) {
+                alert('⚠️ No hay avances registrados. Registra al menos 2 avances semanales para ver EVM.');
+                return;
+            }            
             // Calcular métricas EVM
             let PV = 0; // Planned Value (Valor Planificado)
             let EV = 0; // Earned Value (Valor Ganado)
