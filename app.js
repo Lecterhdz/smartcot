@@ -396,6 +396,9 @@ window.app = {
             }
             const conceptos = await window.db.conceptos.limit(50).toArray();
 
+            // ⚠️ VERIFICAR SI EL PLAN TIENE ACCESO A REPORTES APU
+            const tieneReportesAPU = await window.licencia.verificarLimite('reportesAPU');
+            
             // ⚠️ VERIFICAR SI EL PLAN TIENE ACCESO A REPORTES PDF
             const tieneReportesPDF = await window.licencia.verificarLimite('reportesPDF');
             
@@ -1513,6 +1516,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
