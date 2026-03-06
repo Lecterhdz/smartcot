@@ -817,6 +817,86 @@
                         <div style="font-size:24px;font-weight:700;color:#4CAF50;" id="indice-tiempo">1.00</div>
                     </div>
                 </div>
+
+                <!-- CURVA S AVANZADA (SOLO ENTERPRISE) -->
+                <div id="curva-s-avanzada-seccion" style="display:none;margin-top:30px;">
+                    <h3 style="color:#1a1a1a;margin-bottom:20px;">📊 Curva S Avanzada (EVM)</h3>
+                    
+                    <!-- Métricas EVM -->
+                    <div style="background:#f5f7fa;padding:25px;border-radius:15px;margin-bottom:25px;">
+                        <h4 style="color:#1a1a1a;margin-bottom:20px;">📈 Valor Ganado (EVM)</h4>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;">
+                            <div style="background:white;padding:15px;border-radius:10px;">
+                                <div style="font-size:12px;color:#666;">PV (Valor Planificado)</div>
+                                <div style="font-size:20px;font-weight:700;color:#2196F3;" id="evm-pv">$0.00</div>
+                            </div>
+                            <div style="background:white;padding:15px;border-radius:10px;">
+                                <div style="font-size:12px;color:#666;">EV (Valor Ganado)</div>
+                                <div style="font-size:20px;font-weight:700;color:#4CAF50;" id="evm-ev">$0.00</div>
+                            </div>
+                            <div style="background:white;padding:15px;border-radius:10px;">
+                                <div style="font-size:12px;color:#666;">AC (Costo Actual)</div>
+                                <div style="font-size:20px;font-weight:700;color:#FF9800;" id="evm-ac">$0.00</div>
+                            </div>
+                            <div style="background:white;padding:15px;border-radius:10px;">
+                                <div style="font-size:12px;color:#666;">CV (Variación Costo)</div>
+                                <div style="font-size:20px;font-weight:700;" id="evm-cv">$0.00</div>
+                            </div>
+                            <div style="background:white;padding:15px;border-radius:10px;">
+                                <div style="font-size:12px;color:#666;">SV (Variación Tiempo)</div>
+                                <div style="font-size:20px;font-weight:700;" id="evm-sv">$0.00</div>
+                            </div>
+                            <div style="background:white;padding:15px;border-radius:10px;">
+                                <div style="font-size:12px;color:#666;">CPI (Índice Costo)</div>
+                                <div style="font-size:20px;font-weight:700;" id="evm-cpi">0.00</div>
+                            </div>
+                            <div style="background:white;padding:15px;border-radius:10px;">
+                                <div style="font-size:12px;color:#666;">SPI (Índice Tiempo)</div>
+                                <div style="font-size:20px;font-weight:700;" id="evm-spi">0.00</div>
+                            </div>
+                            <div style="background:white;padding:15px;border-radius:10px;">
+                                <div style="font-size:12px;color:#666;">EAC (Estimado Final)</div>
+                                <div style="font-size:20px;font-weight:700;color:#f44336;" id="evm-eac">$0.00</div>
+                            </div>
+                            <div style="background:white;padding:15px;border-radius:10px;">
+                                <div style="font-size:12px;color:#666;">ETC (Por Completar)</div>
+                                <div style="font-size:20px;font-weight:700;" id="evm-etc">$0.00</div>
+                            </div>
+                            <div style="background:white;padding:15px;border-radius:10px;">
+                                <div style="font-size:12px;color:#666;">VAC (Variación Final)</div>
+                                <div style="font-size:20px;font-weight:700;" id="evm-vac">$0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Proyección de Fecha -->
+                    <div style="background:#E3F2FD;padding:25px;border-radius:15px;margin-bottom:25px;">
+                        <h4 style="color:#1565C0;margin-bottom:20px;">📅 Proyección de Terminación</h4>
+                        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
+                            <div style="text-align:center;">
+                                <div style="font-size:12px;color:#666;">Semanas Restantes</div>
+                                <div style="font-size:24px;font-weight:700;color:#FF9800;" id="proyeccion-semanas-restantes">0 semanas</div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:12px;color:#666;">Fecha Estimada</div>
+                                <div style="font-size:24px;font-weight:700;color:#2196F3;" id="proyeccion-fecha-estimada">-</div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:12px;color:#666;">Velocidad</div>
+                                <div style="font-size:24px;font-weight:700;color:#4CAF50;" id="proyeccion-velocidad">0%/semana</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Curva de Inversión -->
+                    <div style="background:#FFF3E0;padding:25px;border-radius:15px;">
+                        <h4 style="color:#E65100;margin-bottom:20px;">💰 Curva de Inversión</h4>
+                        <div style="text-align:center;">
+                            <div style="font-size:12px;color:#666;">Inversión Total Acumulada</div>
+                            <div style="font-size:32px;font-weight:700;color:#FF9800;" id="curva-inversion-total">$0.00</div>
+                        </div>
+                    </div>
+                </div>              
                 <div style="background:#f5f7fa;padding:25px;border-radius:15px;">
                     <h4 style="color:#1a1a1a;margin:0 0 20px 0;">📝 Registrar Avance Semanal</h4>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
@@ -1003,6 +1083,7 @@
 </footer>   
 </body>
 </html>
+
 
 
 
