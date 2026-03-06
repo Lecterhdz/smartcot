@@ -598,13 +598,6 @@ window.importadorSmartCot = {
     // ─────────────────────────────────────────────────────────────────────
     iniciarImportacion: async function() {
         try {
-            // ⚠️ VERIFICAR LÍMITE DE CONCEPTOS ANTES DE IMPORTAR
-            var limiteConceptos = await window.licencia.verificarLimite('conceptos');
-            if (!limiteConceptos.permitido) {
-                alert('❌ ' + limiteConceptos.razon);
-                return;
-            }
-            
             // ⚠️ VERIFICAR SI EL PLAN TIENE ACCESO A IMPORTAR
             var limiteImportar = window.licencia.verificarLimite('importar');
             if (!limiteImportar.permitido) {
@@ -618,6 +611,24 @@ window.importadorSmartCot = {
                 alert('⚠️ Selecciona un archivo Excel');
                 return;
             }
+            // ⚠️ PREGUNTAR SI QUIERE LIMPIAR ANTES DE IMPORTAR
+            const limpiar = confirm('¿Deseas limpiar los conceptos existentes antes de importar?\n\n✓ SÍ: Se borrarán todos los conceptos actuales\n✗ NO: Se agregarán a los existentes');
+            
+            if (limpiar) {
+                const confirmar = confirm('⚠️ ¿Estás SEGURO? Esta acción no se puede deshacer.\n\nSe borrarán todos los conceptos existentes.');
+                if (!confirmar) return;
+                
+                await window.db.conceptos.clear();
+                console.log('✅ Conceptos anteriores eliminados');
+                this.log('🗑️ Conceptos anteriores eliminados');
+            }
+          
+            // ⚠️ VERIFICAR LÍMITE DE CONCEPTOS ANTES DE IMPORTAR
+            var limiteConceptos = await window.licencia.verificarLimite('conceptos');
+            if (!limiteConceptos.permitido) {
+                alert('❌ ' + limiteConceptos.razon);
+                return;
+            }      
             
             // ⚠️ MOSTRAR BARRA DE PROGRESO
             const progressDiv = document.getElementById('import-progress');
@@ -694,6 +705,7 @@ window.importadorSmartCot = {
 };
 
 console.log('✅ importador_excel_smartcot.js listo');
+
 
 
 
