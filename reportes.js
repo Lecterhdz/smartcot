@@ -36,7 +36,6 @@ window.reportes = {
             
             console.log('📄 Generando PDF de cotización #', cotizacionId);
             
-            
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
@@ -102,15 +101,7 @@ window.reportes = {
             // DATOS DEL CLIENTE Y PROYECTO
             // ─────────────────────────────────────────────────────────
             let yPos = 50;
-            
-            const cotizacion = await window.db.cotizaciones.get(parseInt(cotizacionId));
-            if (!cotizacion) {
-                alert('❌ Cotización no encontrada');
-                return;
-            }
-            
-            const cliente = await window.db.clientes.get(cotizacion.clienteId);
-            
+                     
             doc.setTextColor(26, 26, 26);
             doc.setFontSize(11);
             
