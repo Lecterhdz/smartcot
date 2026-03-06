@@ -1,12 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - SISTEMA DE LICENCIAS (CON LÍMITES REALES)
+// SMARTCOT v2.0 - SISTEMA DE LICENCIAS (CORREGIDO)
 // ─────────────────────────────────────────────────────────────────────
 
 console.log('🔑 licencias.js cargado');
 
 window.licencia = {
-
-
+    
     // Planes disponibles
     PLANES: {
         DEMO: {
@@ -20,7 +19,7 @@ window.licencia = {
             reportesPDF: false,
             importar: false,
             factoresAjuste: false,
-            historial: true
+            historial: false
         },
         PRO: {
             nombre: 'PRO',
@@ -49,7 +48,7 @@ window.licencia = {
             historial: true
         }
     },
-       
+    
     // ─────────────────────────────────────────────────────────────────
     // CARGAR LICENCIA
     // ─────────────────────────────────────────────────────────────────
@@ -58,7 +57,6 @@ window.licencia = {
             var licenciaGuardada = localStorage.getItem('smartcot_licencia');
             
             if (!licenciaGuardada) {
-                // Crear licencia DEMO por defecto
                 var ahora = new Date();
                 var expiracion = new Date(ahora.getTime() + (7 * 24 * 60 * 60 * 1000));
                 
@@ -76,8 +74,6 @@ window.licencia = {
             }
             
             var licencia = JSON.parse(licenciaGuardada);
-            
-            // Verificar si expiró
             var ahora = new Date();
             var expiracion = new Date(licencia.expiracion);
             var diferencia = expiracion - ahora;
@@ -101,7 +97,7 @@ window.licencia = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // VERIFICAR LÍMITES (CORREGIDO - CON VERIFICACIÓN REAL EN DB)
+    // VERIFICAR LÍMITES (CORREGIDO)
     // ─────────────────────────────────────────────────────────────────
     verificarLimite: async function(tipo) {
         var licencia = this.cargar();
@@ -116,15 +112,12 @@ window.licencia = {
         var plan = this.PLANES[licencia.tipo] || this.PLANES.DEMO;
         
         try {
-            // Verificar que window.db exista
             if (!window.db) {
-                console.warn('⚠️ DB no disponible, permitiendo por defecto');
                 return { permitido: true };
             }
             
             if (tipo === 'conceptos') {
                 var count = await window.db.conceptos.count();
-                console.log('📊 Conceptos en BD:', count, 'Límite:', plan.limiteConceptos);
                 if (count >= plan.limiteConceptos) {
                     return { 
                         permitido: false, 
@@ -138,7 +131,6 @@ window.licencia = {
             
             if (tipo === 'cotizaciones') {
                 var count = await window.db.cotizaciones.count();
-                console.log('📊 Cotizaciones en BD:', count, 'Límite:', plan.limiteCotizaciones);
                 if (count >= plan.limiteCotizaciones) {
                     return { 
                         permitido: false, 
@@ -152,7 +144,6 @@ window.licencia = {
             
             if (tipo === 'clientes') {
                 var count = await window.db.clientes.count();
-                console.log('📊 Clientes en BD:', count, 'Límite:', plan.limiteClientes);
                 if (count >= plan.limiteClientes) {
                     return { 
                         permitido: false, 
@@ -204,6 +195,16 @@ window.licencia = {
                 return { permitido: true };
             }
             
+            if (tipo === 'historial') {
+                if (!plan.historial) {
+                    return { 
+                        permitido: false, 
+                        razon: 'Historial de cotizaciones no disponible en plan ' + plan.nombre + '. Actualiza a PRO para acceder.'
+                    };
+                }
+                return { permitido: true };
+            }
+            
             return { permitido: true };
             
         } catch (error) {
@@ -246,7 +247,6 @@ window.licencia = {
             };
             
             localStorage.setItem('smartcot_licencia', JSON.stringify(licencia));
-            
             console.log('✅ Licencia activada:', licencia);
             return { valido: true, plan: planCode, licencia: licencia };
             
@@ -304,13 +304,11 @@ window.licencia = {
                 window.app.actualizarInfoLicencia(resultado.licencia);
             }
             
-            // Cerrar modal si existe
             var modal = document.getElementById('modal-licencia');
             if (modal) {
                 modal.style.display = 'none';
             }
             
-            // Recargar para aplicar cambios
             setTimeout(function() {
                 window.location.reload();
             }, 2000);
