@@ -54,6 +54,9 @@ db.version(3).stores({
     
     // Configuración
     configuracion: 'clave, valor',
+    
+    // Plantillas
+    plantillas: '++id, nombre, descripcion, fechaCreacion, usoCount',
 
     // Historico de Precios
     historicoPrecios: '++id, materialCodigo, materialNombre, precio, unidad, cotizacionId, fecha'
@@ -303,4 +306,5 @@ window.dbImportar = async function(datosJSON) {
         throw error;
     }
 };
+
 
