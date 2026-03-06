@@ -17,6 +17,7 @@ window.licencia = {
             limiteClientes: 3,
             curvaS: false,
             reportesPDF: false,
+            reportesAPU: false,  // ← AGREGAR
             importar: false,
             factoresAjuste: false,
             historial: false
@@ -30,6 +31,7 @@ window.licencia = {
             limiteClientes: 999999,
             curvaS: true,
             reportesPDF: true,
+            reportesAPU: false,  // ← AGREGAR
             importar: true,
             factoresAjuste: true,
             historial: true
@@ -43,6 +45,7 @@ window.licencia = {
             limiteClientes: 999999,
             curvaS: true,
             reportesPDF: true,
+            reportesAPU: true,  // ← AGREGAR
             importar: true,
             factoresAjuste: true,
             historial: true
@@ -174,6 +177,16 @@ window.licencia = {
                 }
                 return { permitido: true };
             }
+
+            if (tipo === 'reportesAPU') {
+                if (!plan.reportesAPU) {
+                    return { 
+                        permitido: false, 
+                        razon: 'Reportes APU no disponibles en plan ' + plan.nombre + '. Actualiza a ENTERPRISE para acceder.'
+                    };
+                }
+                return { permitido: true };
+            }            
             
             if (tipo === 'importar') {
                 if (!plan.importar) {
