@@ -17,24 +17,25 @@ window.reportes = {
                 alert('❌ ' + limite.razon);
                 return;
             }
-
-            // ⚠️ CARGAR LOGO SI ES ENTERPRISE
-            const licencia = window.licencia.cargar();
-            let logoBase64 = null;
-            
-            if (licencia?.tipo === 'ENTERPRISE') {
-                const config = await window.db.configuracion.get('marca_logo');
-                if (config) {
-                    logoBase64 = config.valor;
-                }
-            }
-            
-            console.log('📄 Generando PDF de cotización #', cotizacionId);
-            
             if (typeof window.jspdf === 'undefined') {
                 alert('⚠️ jsPDF no está cargado');
                 return;
             }
+            
+            // ⚠️ CARGAR LOGO SI ES ENTERPRISE
+            const licencia = window.licencia.cargar();
+            let logoBase64 = null;
+            let colorCorporativo = '#1a1a1a';
+            
+            if (licencia?.tipo === 'ENTERPRISE') {
+                const configLogo = await window.db.configuracion.get('marca_logo');
+                const configColor = await window.db.configuracion.get('marca_colores');
+                if (configLogo) logoBase64 = configLogo.valor;
+                if (configColor) colorCorporativo = configColor.valor;
+            }
+            
+            console.log('📄 Generando PDF de cotización #', cotizacionId);
+            
             
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
