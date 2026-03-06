@@ -182,6 +182,33 @@ window.app = {
                 break;
         }
     },
+
+    // ─────────────────────────────────────────────────────────────────
+    // MOSTRAR PLANTILLAS
+    // ─────────────────────────────────────────────────────────────────
+    mostrarPlantillas: async function() {
+        try {
+            const plantillas = await window.plantillas.listarPlantillas();
+            
+            if (plantillas.length === 0) {
+                alert('⚠️ No hay plantillas guardadas');
+                return;
+            }
+            
+            const lista = plantillas.map(function(p, index) {
+                return (index + 1) + '. ' + p.nombre + ' (Usada ' + p.usoCount + ' veces)';
+            }).join('\n');
+            
+            const seleccion = prompt('Plantillas disponibles:\n\n' + lista + '\n\nIngresa el número de la plantilla:');
+            
+            if (seleccion && plantillas[seleccion - 1]) {
+                await window.plantillas.cargarPlantilla(plantillas[seleccion - 1].id);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error mostrando plantillas:', error);
+        }
+    },
     
     // ─────────────────────────────────────────────────────────────────
     // LICENCIA
@@ -1552,6 +1579,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
