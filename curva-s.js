@@ -878,7 +878,7 @@ window.curvaS = {
         const elIndiceTiempo = document.getElementById('indice-tiempo');
         if (elVariacionTiempo) elVariacionTiempo.textContent = '0.0%';
         if (elIndiceTiempo) elIndiceTiempo.textContent = '0.00';
-    }
+    },
     // ─────────────────────────────────────────────────────────────────
     // EXPORTAR REPORTE PDF (CORREGIDO - INCLUYE DESVIACIÓN E ÍNDICE)
     // ─────────────────────────────────────────────────────────────────
