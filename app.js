@@ -1620,15 +1620,15 @@ window.app = {
             const empresa = document.getElementById('config-empresa')?.value;
             const iva = parseFloat(document.getElementById('config-iva')?.value) || 16;
             const utilidad = parseFloat(document.getElementById('config-utilidad')?.value) || 15;
-
-            // ⚠️ AGREGAR CAMPO DE COLOR CORPORATIVO (SOLO ENTERPRISE)
-            const colorCorporativo = document.getElementById('config-color')?.value || '#1a1a1a';   
-            
-            await window.db.configuracion.bulkPut([
+          
+            // ⚠️ DECLARAR configData CORRECTAMENTE
+            const configData = [
                 { clave: 'empresa', valor: empresa },
                 { clave: 'iva', valor: iva },
                 { clave: 'utilidad', valor: utilidad }
-            ]);
+            ];
+            
+            await window.db.configuracion.bulkPut(configData);
 
              // ⚠️ SOLO GUARDAR COLOR SI ES ENTERPRISE
             const licencia = window.licencia.cargar();
@@ -1781,6 +1781,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
