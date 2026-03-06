@@ -16,14 +16,15 @@ window.importadorSmartCot = {
         filasSaltadas: 0
     },
     
-    // ─────────────────────────────────────────────────────────────────
-    // IMPORTAR ARCHIVO
-    // ─────────────────────────────────────────────────────────────────
-    importarArchivo: async function(file) {
+    // ─────────────────────────────────────────────────────────────────────
+    // IMPORTAR ARCHIVO (CON LÍMITE OPCIONAL)
+    // ─────────────────────────────────────────────────────────────────────
+    importarArchivo: async function(file, limiteConceptos) {
         return new Promise(async (resolve, reject) => {
             try {
                 console.log('📥 Iniciando importación...', file.name);
                 console.log('📊 Tamaño del archivo:', file.size, 'bytes');
+                console.log('📊 Límite de conceptos:', limiteConceptos || 'Ilimitado');
                 
                 const reader = new FileReader();
                 
@@ -38,14 +39,21 @@ window.importadorSmartCot = {
                         const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                         
                         console.log('📊 Filas leídas:', json.length);
-                        console.log('📋 Fila 0 (headers):', json[0]);
-                        console.log('📋 Fila 1:', json[1]);
-                        console.log('📋 Fila 2:', json[2]);
                         
                         const resultado = await this.procesarDatos(json);
                         console.log('✅ Procesamiento completado:', resultado);
                         
+                        // ⚠️ APLICAR LÍMITE DE CONCEPTOS SI SE ESPECIFICA
+                        if (limiteConceptos && resultado.conceptos && resultado.conceptos.length > limiteConceptos) {
+                            console.log('⚠️ Límite de', limiteConceptos, 'conceptos aplicado. Se importarán solo los primeros', limiteConceptos);
+                            resultado.conceptos = resultado.conceptos.slice(0, limiteConceptos);
+                            resultado.estadisticas.conceptos = resultado.conceptos.length;
+                        }
+                        
                         await this.importarADB(resultado);
+                        
+                        console.log('✅ Importación completada:', resultado.estadisticas);
+                        
                         resolve(resultado);
                         
                     } catch (error) {
@@ -686,6 +694,7 @@ window.importadorSmartCot = {
 };
 
 console.log('✅ importador_excel_smartcot.js listo');
+
 
 
 
