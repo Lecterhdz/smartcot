@@ -1366,6 +1366,7 @@ window.app = {
             const ubicacion = document.getElementById('cot-ubicacion')?.value;
             const fechaInicio = document.getElementById('cot-fecha-inicio')?.value;
             const fechaFinSolicitada = document.getElementById('cot-fecha-fin')?.value;
+            
             const indirectosOficinaPorcentaje = parseFloat(document.getElementById('cot-indirectos-oficina')?.value) || 5;
             const indirectosCampoPorcentaje = parseFloat(document.getElementById('cot-indirectos-campo')?.value) || 15;
             const financiamientoPorcentaje = parseFloat(document.getElementById('cot-financiamiento')?.value) || 0.85;
@@ -1781,6 +1782,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
