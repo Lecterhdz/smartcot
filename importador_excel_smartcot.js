@@ -585,6 +585,9 @@ window.importadorSmartCot = {
         document.body.appendChild(container);
     },
     
+    // ─────────────────────────────────────────────────────────────────────
+    // INICIAR IMPORTACIÓN (CORREGIDO)
+    // ─────────────────────────────────────────────────────────────────────
     iniciarImportacion: async function() {
         try {
             // ⚠️ VERIFICAR LÍMITE DE CONCEPTOS ANTES DE IMPORTAR
@@ -600,31 +603,33 @@ window.importadorSmartCot = {
                 alert('❌ ' + limiteImportar.razon);
                 return;
             }
-
-        
-        const file = document.getElementById('excel-file')?.files[0];
-        if (!file) {
-            alert('⚠️ Selecciona un archivo Excel');
-            return;
-        }
-        
-        const progressDiv = document.getElementById('import-progress');
-        if (progressDiv) progressDiv.style.display = 'block';
-        
-        this.log('📥 Leyendo archivo...');
-        
-        try {
+            
+            // ⚠️ VERIFICAR QUE EXISTA EL INPUT FILE
+            const file = document.getElementById('excel-file')?.files[0];
+            if (!file) {
+                alert('⚠️ Selecciona un archivo Excel');
+                return;
+            }
+            
+            // ⚠️ MOSTRAR BARRA DE PROGRESO
+            const progressDiv = document.getElementById('import-progress');
+            if (progressDiv) progressDiv.style.display = 'block';
+            
+            this.log('📥 Leyendo archivo...');
+            
+            // ⚠️ PROCESAR IMPORTACIÓN
             this.actualizarProgreso(10, 'Procesando datos...');
             const resultado = await this.importarArchivo(file);
             this.actualizarProgreso(90, 'Finalizando...');
             this.mostrarResultado(resultado);
             this.actualizarProgreso(100, '✅ Completado');
+            
         } catch (error) {
-            console.error('❌ Error:', error);
+            console.error('❌ Error en importación:', error);
             alert('❌ Error: ' + error.message);
             this.actualizarProgreso(0, '❌ Error');
         }
-    }},
+    },  // ← UN SOLO CIERRE AL FINAL
     
     log: function(mensaje) {
         const logDiv = document.getElementById('progress-log');
@@ -681,5 +686,6 @@ window.importadorSmartCot = {
 };
 
 console.log('✅ importador_excel_smartcot.js listo');
+
 
 
