@@ -454,7 +454,7 @@ window.app = {
                     '</div>' +
                     '<div style="display:flex;gap:5px;">' +
                     '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" style="background:#4CAF50;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="Agregar">➕</button>' +
-                    '<button onclick="reportes.generarAPUPDF(\'' + c.id + '\')" style="background:#2196F3;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="PDF APU">📄</button>' +
+                    '<button onclick="window.reportes.generarAPUPDF(\'' + c.id + '\')" style="background:#2196F3;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="PDF APU">📄</button>' +
                     '</div>' +
                     '</div></div>';
             }).join('');
@@ -507,7 +507,7 @@ window.app = {
                     '</div>' +
                     '<div style="display:flex;gap:5px;">' +
                     '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" style="background:#4CAF50;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="Agregar">➕</button>' +
-                    '<button onclick="reportes.generarAPUPDF(\'' + c.id + '\')" style="background:#2196F3;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="PDF APU">📄</button>' +
+                    '<button onclick="window.reportes.generarAPUPDF(\'' + c.id + '\')" style="background:#2196F3;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="PDF APU">📄</button>' +
                     '</div>' +
                     '</div></div>';
             }).join('');
@@ -550,7 +550,7 @@ window.app = {
                     '</div>' +
                     '<div style="display:flex;gap:5px;">' +
                     '<button onclick="app.agregarConceptoACotizacion(\'' + c.id + '\')" style="background:#4CAF50;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="Agregar">➕</button>' +
-                    '<button onclick="reportes.generarAPUPDF(\'' + c.id + '\')" style="background:#2196F3;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="PDF APU">📄</button>' +
+                    '<button onclick="window.reportes.generarAPUPDF(\'' + c.id + '\')" style="background:#2196F3;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;" title="PDF APU">📄</button>' +
                     '</div>' +
                     '</div></div>';
             }).join('');
@@ -1781,6 +1781,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
