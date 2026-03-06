@@ -123,32 +123,41 @@ window.app = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // NAVEGACIÓN
+    // NAVEGACIÓN (CORREGIDO - CON VERIFICACIÓN DE LÍMITES)
     // ─────────────────────────────────────────────────────────────────
-    mostrarPantalla: function(id) {
+    mostrarPantalla: async function(id) {
         console.log('📄 Navegando a:', id);
-
-        // ⚠️ VERIFICAR RESTRICCIONES POR PLAN
-        if (id === 'importar-screen') {
-            var limite = window.licencia.verificarLimite('importar');
-            if (!limite.permitido) {
-                this.notificacion('❌ ' + limite.razon, 'error');
+        
+        // ⚠️ VERIFICAR RESTRICCIONES POR PLAN ANTES DE NAVEGAR
+        if (id === 'curva-s-screen') {
+            var limiteCurvaS = await window.licencia.verificarLimite('curvaS');
+            if (!limiteCurvaS.permitido) {
+                this.notificacion('❌ ' + limiteCurvaS.razon, 'error');
                 return;
             }
         }
         
-        if (id === 'curva-s-screen') {
-            var limite = window.licencia.verificarLimite('curvaS');
-            if (!limite.permitido) {
-                this.notificacion('❌ ' + limite.razon, 'error');
+        if (id === 'importar-screen') {
+            var limiteImportar = await window.licencia.verificarLimite('importar');
+            if (!limiteImportar.permitido) {
+                this.notificacion('❌ ' + limiteImportar.razon, 'error');
                 return;
             }
         }
-
+        
+        if (id === 'historial-cotizaciones-screen') {
+            var limiteHistorial = await window.licencia.verificarLimite('historial');
+            if (!limiteHistorial.permitido) {
+                this.notificacion('❌ ' + limiteHistorial.razon, 'error');
+                return;
+            }
+        }
+        
         document.querySelectorAll('.screen').forEach(function(s) {
             s.classList.remove('active');
             s.style.display = 'none';
         });
+        
         const pantalla = document.getElementById(id);
         if (!pantalla) {
             console.error('❌ Pantalla NO encontrada:', id);
@@ -194,6 +203,19 @@ window.app = {
     cargarCatalogoBase: async function() {
         try {
             console.log('📥 Intentando cargar catálogo base...');
+
+            var conceptosCount = await window.db.conceptos.count();
+            if (conceptosCount > 0) {
+                console.log('✅ Ya hay', conceptosCount, 'conceptos en BD');
+                return;
+            }
+            
+            var licencia = window.licencia.cargar();
+            var plan = window.licencia.PLANES[licencia?.tipo || 'DEMO'];
+            var limiteImportar = plan ? plan.limiteConceptos : 50;
+            
+            console.log('📊 Límite de conceptos para importar:', limiteImportar);
+            
             
             // Verificar si ya hay conceptos
             const conceptosCount = await window.db.conceptos.count();
@@ -1499,6 +1521,7 @@ window.app = {
             
             this.resetearFormulario();
             await this.cargarEstadisticas();
+            await this.actualizarContadoresLicencia();  // ← AGREGAR ESTO
             this.mostrarPantalla('dashboard-screen');
             
         } catch (error) {
@@ -1664,6 +1687,7 @@ window.app = {
             
             this.cerrarModalCliente();
             this.notificacion('✅ Cliente guardado y seleccionado', 'exito');
+            this.actualizarContadoresLicencia();  // ← AGREGAR ESTO
             
         } catch (error) {
             console.error('❌ Error guardando cliente:', error);
@@ -1895,6 +1919,7 @@ window.app = {
     });
     
     console.log('✅ app.js v2.0 listo');
+
 
 
 
