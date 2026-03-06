@@ -66,53 +66,6 @@ window.licencia = {
             curvaSAvanzada: true
         }
     },
-    
-    // ─────────────────────────────────────────────────────────────────
-    // CARGAR LICENCIA
-    // ─────────────────────────────────────────────────────────────────
-    cargar: function() {
-        try {
-            var licenciaGuardada = localStorage.getItem('smartcot_licencia');
-            
-            if (!licenciaGuardada) {
-                var ahora = new Date();
-                var expiracion = new Date(ahora.getTime() + (7 * 24 * 60 * 60 * 1000));
-                
-                var licenciaDemo = {
-                    tipo: 'DEMO',
-                    activa: true,
-                    expirada: false,
-                    expiracion: expiracion.toISOString(),
-                    diasRestantes: 7
-                };
-                
-                localStorage.setItem('smartcot_licencia', JSON.stringify(licenciaDemo));
-                console.log('📋 Licencia DEMO creada');
-                return licenciaDemo;
-            }
-            
-            var licencia = JSON.parse(licenciaGuardada);
-            var ahora = new Date();
-            var expiracion = new Date(licencia.expiracion);
-            var diferencia = expiracion - ahora;
-            var diasRestantes = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
-            
-            licencia.expirada = ahora > expiracion;
-            licencia.activa = !licencia.expirada;
-            licencia.diasRestantes = diasRestantes > 0 ? diasRestantes : 0;
-            
-            if (licencia.expirada) {
-                localStorage.setItem('smartcot_licencia', JSON.stringify(licencia));
-            }
-            
-            console.log('📋 Licencia cargada:', licencia.tipo);
-            return licencia;
-            
-        } catch (error) {
-            console.error('❌ Error cargando licencia:', error);
-            return null;
-        }
-    },
 
     // ─────────────────────────────────────────────────────────────────
     // VERIFICAR LICENCIAS REVOCADAS
@@ -170,6 +123,53 @@ window.licencia = {
         }
     },
     
+    // ─────────────────────────────────────────────────────────────────
+    // CARGAR LICENCIA
+    // ─────────────────────────────────────────────────────────────────
+    cargar: function() {
+        try {
+            var licenciaGuardada = localStorage.getItem('smartcot_licencia');
+            
+            if (!licenciaGuardada) {
+                var ahora = new Date();
+                var expiracion = new Date(ahora.getTime() + (7 * 24 * 60 * 60 * 1000));
+                
+                var licenciaDemo = {
+                    tipo: 'DEMO',
+                    activa: true,
+                    expirada: false,
+                    expiracion: expiracion.toISOString(),
+                    diasRestantes: 7
+                };
+                
+                localStorage.setItem('smartcot_licencia', JSON.stringify(licenciaDemo));
+                console.log('📋 Licencia DEMO creada');
+                return licenciaDemo;
+            }
+            
+            var licencia = JSON.parse(licenciaGuardada);
+            var ahora = new Date();
+            var expiracion = new Date(licencia.expiracion);
+            var diferencia = expiracion - ahora;
+            var diasRestantes = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
+            
+            licencia.expirada = ahora > expiracion;
+            licencia.activa = !licencia.expirada;
+            licencia.diasRestantes = diasRestantes > 0 ? diasRestantes : 0;
+            
+            if (licencia.expirada) {
+                localStorage.setItem('smartcot_licencia', JSON.stringify(licencia));
+            }
+            
+            console.log('📋 Licencia cargada:', licencia.tipo);
+            return licencia;
+            
+        } catch (error) {
+            console.error('❌ Error cargando licencia:', error);
+            return null;
+        }
+    },
+
     // ─────────────────────────────────────────────────────────────────
     // VERIFICAR LÍMITES (CORREGIDO)
     // ─────────────────────────────────────────────────────────────────
