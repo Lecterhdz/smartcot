@@ -1093,29 +1093,6 @@ window.app = {
             'resumen-total': totalConFactores
         };
 
-        // ─────────────────────────────────────────────────────────────────
-        // ACTUALIZAR UI SEGÚN PLAN
-        // ─────────────────────────────────────────────────────────────────
-        actualizarUIPorPlan: async function() {
-            var licencia = window.licencia.cargar();
-            var plan = licencia ? licencia.tipo : 'DEMO';
-            
-            // Ocultar/mostrar elementos según el plan
-            document.querySelectorAll('[data-requiere-plan]').forEach(function(el) {
-                var requierePlan = el.getAttribute('data-requiere-plan');
-                var badge = el.querySelector('.plan-badge');
-                
-                if (plan === 'DEMO' && requierePlan === 'PRO') {
-                    el.style.opacity = '0.5';
-                    el.style.pointerEvents = 'none';
-                    if (badge) badge.style.display = 'block';
-                } else {
-                    el.style.opacity = '1';
-                    el.style.pointerEvents = 'auto';
-                    if (badge) badge.style.display = 'none';
-                }
-            });
-        },
         
         // Actualizar costo total con factores si existe la sección
         const elCostoTotalImpacto = document.getElementById('impacto-costo-total');
@@ -1408,7 +1385,30 @@ window.app = {
                 '</div>';
         }
     },
-    
+
+    // ─────────────────────────────────────────────────────────────────
+    // ACTUALIZAR UI SEGÚN PLAN
+    // ─────────────────────────────────────────────────────────────────
+    actualizarUIPorPlan: async function() {
+        var licencia = window.licencia.cargar();
+        var plan = licencia ? licencia.tipo : 'DEMO';
+        
+        // Ocultar/mostrar elementos según el plan
+        document.querySelectorAll('[data-requiere-plan]').forEach(function(el) {
+            var requierePlan = el.getAttribute('data-requiere-plan');
+            var badge = el.querySelector('.plan-badge');
+            
+            if (plan === 'DEMO' && requierePlan === 'PRO') {
+                el.style.opacity = '0.5';
+                el.style.pointerEvents = 'none';
+                if (badge) badge.style.display = 'block';
+            } else {
+                el.style.opacity = '1';
+                el.style.pointerEvents = 'auto';
+                if (badge) badge.style.display = 'none';
+            }
+        });
+    },    
     // ─────────────────────────────────────────────────────────────────
     // GUARDAR COTIZACIÓN (CORREGIDO - CON VERIFICACIÓN DE LÍMITES)
     // ─────────────────────────────────────────────────────────────────
@@ -1710,30 +1710,14 @@ window.app = {
     // ─────────────────────────────────────────────────────────────────
     // LICENCIAS
 // 3. Función comprarPlan (para los botones de la pantalla de licencia)
+
     comprarPlan: function(plan) {
         var info = window.licencia.PLANES[plan];
-        
-        // Calcular ahorro
-        var ahorroMensual = info.precioMensual * 12;
-        var ahorro = ahorroMensual - info.precioAnual;
-        var porcentajeAhorro = Math.round((ahorro / ahorroMensual) * 100);
-        
-        var mensaje = '🎉 ¡Excelente elección! Plan ' + plan + '\n\n' +
-            '💰 PRECIOS:\n' +
-            '   Mensual: $' + info.precioMensual + '/mes ($' + ahorroMensual + '/año)\n' +
-            '   Anual: $' + info.precioAnual + '/año\n' +
-            '   💵 AHORRAS: $' + ahorro + ' (' + porcentajeAhorro + '%)\n\n' +
-            '📋 CARACTERÍSTICAS:\n' +
-            info.caracteristicas.map(function(c) { return '   ' + c; }).join('\n') + '\n\n' +
-            '📧 Para activar tu licencia:\n' +
-            '   1. Contacta a lecterhdz@gmail.com\n' +
-            '   2. Indica tu plan preferido (mensual o anual)\n' +
-            '   3. Recibe tu clave de activación\n' +
-            '   4. Activa en la sección Licencia\n\n' +
-            '💳 Métodos de pago:\n' +
-            '   • Transferencia bancaria\n' +
-            '   • PayPal\n' +
-            '   • Tarjeta de crédito/débito';
+        var mensaje = 'Para adquirir el plan ' + plan + ':\n\n' +
+            '💰 Precio: $' + info.precio + ' MXN\n' +
+            '📅 Duración: ' + info.dias + ' días\n\n' +
+            'Contacta a lecterhdz@gmail.com para generar tu clave de licencia.\n\n' +
+            'O genera tu clave en: https://lecterhdz.github.io/smartcot/generador-licencias.html';
         alert(mensaje);
     },
     
@@ -1748,6 +1732,48 @@ window.app = {
         if (elEstado) {
             elEstado.textContent = info.activa ? 'Activa' : 'Expirada';
             elEstado.style.color = info.activa ? '#4CAF50' : '#f44336';
+        }
+        
+        // ⚠️ AGREGAR ESTO: Actualizar contadores de uso
+        this.actualizarContadoresLicencia();
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // ACTUALIZAR CONTADORES DE LICENCIA
+    // ─────────────────────────────────────────────────────────────────
+    actualizarContadoresLicencia: async function() {
+        try {
+            if (!window.db) return;
+            
+            var conceptos = await window.db.conceptos.count();
+            var cotizaciones = await window.db.cotizaciones.count();
+            var clientes = await window.db.clientes.count();
+            
+            var licencia = window.licencia.cargar();
+            var plan = window.licencia.PLANES[licencia?.tipo || 'DEMO'] || window.licencia.PLANES.DEMO;
+            
+            // Actualizar UI de la pantalla de licencia
+            var elUsoConceptos = document.getElementById('uso-conceptos');
+            var elUsoCotizaciones = document.getElementById('uso-cotizaciones');
+            var elUsoClientes = document.getElementById('uso-clientes');
+            
+            if (elUsoConceptos) elUsoConceptos.textContent = conceptos + '/' + plan.limiteConceptos;
+            if (elUsoCotizaciones) elUsoCotizaciones.textContent = cotizaciones + '/' + plan.limiteCotizaciones;
+            if (elUsoClientes) elUsoClientes.textContent = clientes + '/' + plan.limiteClientes;
+            
+            // Cambiar color si está cerca del límite
+            if (elUsoConceptos && conceptos >= plan.limiteConceptos * 0.8) {
+                elUsoConceptos.style.color = '#f44336';
+            }
+            if (elUsoCotizaciones && cotizaciones >= plan.limiteCotizaciones * 0.8) {
+                elUsoCotizaciones.style.color = '#f44336';
+            }
+            if (elUsoClientes && clientes >= plan.limiteClientes * 0.8) {
+                elUsoClientes.style.color = '#f44336';
+            }
+            
+        } catch (error) {
+            console.error('❌ Error actualizando contadores de licencia:', error);
         }
     },
     
@@ -1861,19 +1887,6 @@ window.app = {
     });
     
     console.log('✅ app.js v2.0 listo');
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
