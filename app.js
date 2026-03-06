@@ -431,10 +431,13 @@ window.app = {
         try {
             const container = document.getElementById('lista-catalogo');
             if (!container) return;
+            
             document.querySelectorAll('#catalogos-screen .btn').forEach(function(btn) {
                 btn.classList.remove('btn-primary');
                 btn.classList.add('btn-secondary');
             });
+            
+            // ⚠️ MARCAR BOTÓN ACTIVO CORRECTAMENTE
             if (event && event.target) {
                 event.target.classList.remove('btn-secondary');
                 event.target.classList.add('btn-primary');
@@ -468,7 +471,9 @@ window.app = {
                     '</div>' +
                     '</div></div>';
             }).join('');
+            
             this.actualizarContadorCatalogo();
+            
         } catch (error) {
             console.error('❌ Error filtrando catálogo:', error);
         }
@@ -1147,6 +1152,7 @@ window.app = {
     guardarCotizacion: async function() {
         try {
             console.log('💾 Guardando cotización...');
+            
             const limite = await window.licencia.verificarLimite('cotizaciones');
             if (!limite.permitido) {
                 this.notificacion('❌ ' + limite.razon, 'error');
@@ -1170,6 +1176,15 @@ window.app = {
                 return;
             }
             this.calcularTotalConConceptos();
+
+            // ⚠️ OBTENER VALORES DEL DOM (conversión correcta)
+            const costoDirecto = parseFloat(document.getElementById('resumen-costo-directo')?.textContent.replace(/[^0-9.-]+/g, '')) || 0;
+            const totalIndirectos = parseFloat(document.getElementById('resumen-sobrecosto-monto')?.textContent.replace(/[^0-9.-]+/g, '')) || 0;
+            const utilidad = parseFloat(document.getElementById('resumen-utilidad')?.textContent.replace(/[^0-9.-]+/g, '')) || 0;
+            const iva = parseFloat(document.getElementById('resumen-iva')?.textContent.replace(/[^0-9.-]+/g, '')) || 0;
+            const totalFinal = parseFloat(document.getElementById('resumen-total')?.textContent.replace(/[^0-9.-]+/g, '')) || 0;
+           
+            
             const cotizacion = {
                 clienteId: clienteId,
                 descripcion: descripcion,
@@ -1190,6 +1205,14 @@ window.app = {
                 },
                 factoresAjuste: this.factoresAjuste,
                 tiempoEjecucion: this.tiempoEjecucion,
+
+                // ⚠️ GUARDAR TOTALES CALCULADOS
+                costoDirecto: costoDirecto,
+                totalIndirectos: totalIndirectos,
+                utilidad: utilidad,
+                iva: iva,
+                totalFinal: totalFinal,
+                
                 fecha: new Date().toISOString(),
                 estado: 'pendiente'
             };
@@ -1491,6 +1514,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
