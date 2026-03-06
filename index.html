@@ -360,6 +360,17 @@
         
         <!-- NUEVA COTIZACIÓN SCREEN -->
         <section id="nueva-cotizacion-screen" class="screen">
+            <!-- Botones de Plantillas -->
+            <div style="display:flex;gap:10px;margin-bottom:20px;">
+                <button onclick="plantillas.guardarComoPlantilla()" 
+                        style="background:#FF9800;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;">
+                    💾 Guardar como Plantilla
+                </button>
+                <button onclick="app.mostrarPlantillas()" 
+                        style="background:#2196F3;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;">
+                    📋 Cargar Plantilla
+                </button>
+            </div>
             <div class="card">
                 <h2 style="margin-bottom:25px;">📝 Nueva Cotización</h2>
                 
@@ -991,6 +1002,7 @@
 </footer>   
 </body>
 </html>
+
 
 
 
