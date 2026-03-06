@@ -613,6 +613,12 @@ window.app = {
     },
     
     actualizarConceptosSeleccionadosUI: function() {
+
+        // ⚠️ VERIFICAR SI PUEDE EDITAR PRECIOS
+        const licencia = window.licencia.cargar();
+        const puedeEditar = licencia?.tipo === 'PRO' || licencia?.tipo === 'ENTERPRISE';
+        const puedeGuardar = licencia?.tipo === 'ENTERPRISE';
+
         const container = document.getElementById('conceptos-seleccionados');
         const containerCatalogo = document.getElementById('conceptos-seleccionados-catalogo');
         this.actualizarContadorGeneral();
@@ -669,10 +675,19 @@ window.app = {
                 '</div>' +
                 '<div style="background:#f5f7fa;padding:15px;border-radius:10px;margin-top:15px;">' +
                 '<div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;border-bottom:2px solid #ddd;padding-bottom:5px;">📦 MATERIALES (' + materiales.length + ') - ' + calculator.formatoMoneda(totalMateriales) + '</div>' +
-                (materiales.length > 0 ? materiales.map(function(m) {
+                (materiales.length > 0 ? materiales.map(function(m, mIndex) {
                     return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ddd;font-size:12px;">' +
                         '<span style="color:#666;">' + (m.nombre || m.material_codigo || 'Sin nombre') + '</span>' +
-                        '<span style="font-weight:600;">' + m.cantidad + ' ' + m.unidad + ' × ' + calculator.formatoMoneda(m.precio_unitario || 0) + ' = <span style="color:#1a1a1a;">' + calculator.formatoMoneda(m.importe || 0) + '</span></span>' +
+                        '<span style="font-weight:600;">' + m.cantidad + ' ' + m.unidad + ' × ' + 
+                        (puedeEditar 
+                            ? '<input type="number" value="' + (m.precio_unitario || 0) + '" onchange="app.editarPrecioMaterial(' + index + ', ' + mIndex + ', this.value)" style="width:80px;padding:4px;border:1px solid #ddd;border-radius:4px;">'
+                            : calculator.formatoMoneda(m.precio_unitario || 0)
+                        ) + 
+                        (puedeGuardar 
+                            ? '<button onclick="app.guardarPrecioEnCatalogo(' + index + ', ' + mIndex + ')" style="background:#4CAF50;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;margin-left:5px;">💾</button>'
+                            : ''
+                        ) +
+                        '</span>' +
                         '</div>';
                 }).join('') : '<div style="color:#999;padding:10px;text-align:center;">Sin materiales</div>') +
                 '</div>' +
@@ -725,6 +740,46 @@ window.app = {
         this.calcularTotalConConceptos();
         this.actualizarConceptosSeleccionadosUI();
         this.notificacion('Concepto eliminado', 'advertencia');
+    },
+
+    // ─────────────────────────────────────────────────────────────────
+    // EDITAR PRECIO MATERIAL
+    // ─────────────────────────────────────────────────────────────────
+    editarPrecioMaterial: function(conceptoIndex, materialIndex, nuevoPrecio) {
+        const concepto = this.datosCotizacion.conceptosSeleccionados[conceptoIndex];
+        if (concepto && concepto.recursos?.materiales?.[materialIndex]) {
+            concepto.recursos.materiales[materialIndex].precio_unitario = parseFloat(nuevoPrecio) || 0;
+            this.calcularTotalConConceptos();
+            this.notificacion('💰 Precio actualizado (temporal)', 'info');
+        }
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // GUARDAR PRECIO EN CATÁLOGO (SOLO ENTERPRISE)
+    // ─────────────────────────────────────────────────────────────────
+    guardarPrecioEnCatalogo: async function(conceptoIndex, materialIndex) {
+        try {
+            // ⚠️ VERIFICAR QUE SEA ENTERPRISE
+            const licencia = window.licencia.cargar();
+            if (licencia?.tipo !== 'ENTERPRISE') {
+                this.notificacion('❌ Solo ENTERPRISE puede guardar precios en catálogo', 'error');
+                return;
+            }
+            
+            const concepto = this.datosCotizacion.conceptosSeleccionados[conceptoIndex];
+            const material = concepto.recursos.materiales[materialIndex];
+            
+            // Actualizar en BD
+            const conceptoDB = await window.db.conceptos.get(concepto.id);
+            conceptoDB.recursos.materiales[materialIndex].precio_unitario = material.precio_unitario;
+            await window.db.conceptos.put(conceptoDB);
+            
+            this.notificacion('✅ Precio guardado en catálogo local', 'exito');
+            
+        } catch (error) {
+            console.error('❌ Error guardando precio:', error);
+            this.notificacion('❌ Error: ' + error.message, 'error');
+        }
     },
     
     // ─────────────────────────────────────────────────────────────────
@@ -1175,6 +1230,39 @@ window.app = {
             elCostoTiempo.textContent = calculator.formatoMoneda(costoTiempoExtendido);
         }
     },
+
+    // ─────────────────────────────────────────────────────────────────
+    // GUARDAR PRECIOS EN HISTÓRICO
+    // ─────────────────────────────────────────────────────────────────
+    guardarPreciosEnHistorico: async function(cotizacion) {
+        try {
+            const historial = [];
+            
+            // Extraer materiales de conceptos
+            cotizacion.conceptosCatalogo?.forEach(function(c) {
+                c.recursos?.materiales?.forEach(function(m) {
+                    historial.push({
+                        materialCodigo: m.material_codigo || m.nombre,
+                        materialNombre: m.nombre || m.material_codigo,
+                        precio: m.precio_unitario || 0,
+                        unidad: m.unidad || '',
+                        cotizacionId: cotizacion.id,
+                        fecha: new Date().toISOString()
+                    });
+                });
+            });
+            
+            // Guardar en BD
+            if (historial.length > 0) {
+                await window.db.historicoPrecios.bulkAdd(historial);
+                console.log('📊 ' + historial.length + ' precios guardados en histórico');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error guardando histórico:', error);
+        }
+    },
+
     
     // ─────────────────────────────────────────────────────────────────
     // GUARDAR COTIZACIÓN
@@ -1249,6 +1337,13 @@ window.app = {
             await window.db.cotizaciones.add(cotizacion);
             console.log('✅ Cotización guardada:', cotizacion);
             this.notificacion('✅ Cotización guardada exitosamente', 'exito');
+
+            // ⚠️ GUARDAR PRECIOS EN HISTÓRICO (SOLO ENTERPRISE)
+            const licencia = window.licencia.cargar();
+            if (licencia?.tipo === 'ENTERPRISE') {
+                await this.guardarPreciosEnHistorico(cotizacion);
+            }
+            
             this.resetearFormulario();
             await this.cargarEstadisticas();
             await this.actualizarContadoresLicencia();
@@ -1579,6 +1674,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
