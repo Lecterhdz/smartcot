@@ -20,7 +20,12 @@ window.licencia = {
             reportesAPU: false,  // ← AGREGAR
             importar: false,
             factoresAjuste: false,
-            historial: false
+            historial: false,
+            plantillas: 0,
+            historicoPrecios: false,
+            editarPrecios: false,
+            marcaPersonalizada: false,
+            curvaSAvanzada: false
         },
         PRO: {
             nombre: 'PRO',
@@ -34,7 +39,12 @@ window.licencia = {
             reportesAPU: false,  // ← AGREGAR
             importar: true,
             factoresAjuste: true,
-            historial: true
+            historial: true,
+            plantillas: 5,
+            historicoPrecios: false,
+            editarPrecios: true,
+            marcaPersonalizada: false,
+            curvaSAvanzada: false
         },
         ENTERPRISE: {
             nombre: 'ENTERPRISE',
@@ -48,7 +58,12 @@ window.licencia = {
             reportesAPU: true,  // ← AGREGAR
             importar: true,
             factoresAjuste: true,
-            historial: true
+            historial: true,
+            plantillas: 999999,
+            historicoPrecios: true,
+            editarPrecios: true,
+            marcaPersonalizada: true,
+            curvaSAvanzada: true
         }
     },
     
@@ -218,6 +233,36 @@ window.licencia = {
                 return { permitido: true };
             }
             
+            if (tipo === 'plantillas') {
+                const count = await window.db.plantillas.count();
+                if (count >= plan.plantillas) {
+                    return { 
+                        permitido: false, 
+                        razon: 'Límite de plantillas alcanzado (' + count + '/' + plan.plantillas + '). Actualiza a ENTERPRISE para ilimitadas.'
+                    };
+                }
+                return { permitido: true };
+            }
+            
+            if (tipo === 'historicoPrecios') {
+                if (!plan.historicoPrecios) {
+                    return { 
+                        permitido: false, 
+                        razon: 'Histórico de precios solo disponible en ENTERPRISE.'
+                    };
+                }
+                return { permitido: true };
+            }
+            
+            if (tipo === 'curvaSAvanzada') {
+                if (!plan.curvaSAvanzada) {
+                    return { 
+                        permitido: false, 
+                        razon: 'Curva S Avanzada solo disponible en ENTERPRISE.'
+                    };
+                }
+                return { permitido: true };
+            }
             return { permitido: true };
             
         } catch (error) {
