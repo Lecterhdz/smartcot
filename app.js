@@ -75,6 +75,7 @@ window.app = {
             await this.cargarClientesSelect();
             await this.cargarActividadReciente();
             
+            await this.cargarCatalogoBase();
             this.inicializarFormularios();
             
             console.log('✅ SmartCot v2.0 listo');
@@ -321,6 +322,69 @@ window.app = {
             }).join('') + '</div>';
         } catch (error) {
             console.error('❌ Error cargando actividad reciente:', error);
+        }
+    },
+
+    // ─────────────────────────────────────────────────────────────────────
+    // CARGAR CATÁLOGO BASE DESDE GITHUB (CON LÍMITES DEMO)
+    // ─────────────────────────────────────────────────────────────────────
+    cargarCatalogoBase: async function() {
+        try {
+            console.log('📥 Intentando cargar catálogo base...');
+            
+            // Verificar si ya hay conceptos
+            const conceptosCount = await window.db.conceptos.count();
+            if (conceptosCount > 0) {
+                console.log('✅ Ya hay', conceptosCount, 'conceptos en BD');
+                return;
+            }
+            
+            // ⚠️ VERIFICAR LICENCIA ANTES DE CARGAR
+            const licencia = window.licencia.cargar();
+            const plan = window.licencia.PLANES[licencia?.tipo || 'DEMO'] || window.licencia.PLANES.DEMO;
+            const limiteConceptos = plan.limiteConceptos || 50;
+            
+            console.log('📊 Límite de conceptos para plan', licencia?.tipo || 'DEMO', ':', limiteConceptos);
+            
+            // URL del catálogo base en GitHub
+            const url = 'data/catalogo-base.xlsx';
+            console.log('🔗 URL:', url);
+            
+            const response = await fetch(url);
+            if (!response.ok) {
+                console.log('⚠️ No se encontró catálogo base en:', url);
+                console.log('Status:', response.status);
+                return;
+            }
+            
+            const blob = await response.blob();
+            const file = new File([blob], 'catalogo-base.xlsx', {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            
+            console.log('📥 Importando catálogo base desde GitHub...');
+            
+            // Usar el mismo importador que para archivos manuales
+            if (window.importadorSmartCot) {
+                // ⚠️ IMPORTANTE: El importador ya tiene verificación de límites
+                const resultado = await window.importadorSmartCot.importarArchivo(file);
+                console.log('✅ Catálogo base cargado:', resultado.estadisticas);
+                
+                // Verificar si se excedió el límite
+                const conceptosCargados = resultado.estadisticas?.conceptos || 0;
+                if (conceptosCargados > limiteConceptos) {
+                    console.log('⚠️ Se cargaron', conceptosCargados, 'conceptos pero el límite es', limiteConceptos);
+                    this.notificacion('⚠️ Límite DEMO: Solo puedes usar ' + limiteConceptos + ' conceptos. Actualiza a PRO para más.', 'advertencia');
+                } else {
+                    this.notificacion('📚 Catálogo base cargado: ' + conceptosCargados + ' conceptos', 'exito');
+                }
+            } else {
+                console.log('⚠️ importadorSmartCot no disponible');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error cargando catálogo base:', error);
+            console.log('⚠️ El catálogo base no se cargó. Importa manualmente desde Importar Datos.');
         }
     },
     
@@ -1412,3 +1476,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
