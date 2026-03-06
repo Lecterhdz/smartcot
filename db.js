@@ -53,7 +53,10 @@ db.version(3).stores({
     cotizaciones: '++id, proyectoId, fecha, estado, total',
     
     // Configuración
-    configuracion: 'clave, valor'
+    configuracion: 'clave, valor',
+
+    // Historico de Precios
+    historicoPrecios: '++id, materialCodigo, materialNombre, precio, unidad, cotizacionId, fecha'
 });
 
 // ─────────────────────────────────────────────────────────────────────
@@ -300,3 +303,4 @@ window.dbImportar = async function(datosJSON) {
         throw error;
     }
 };
+
