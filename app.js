@@ -326,7 +326,7 @@ window.app = {
     },
 
     // ─────────────────────────────────────────────────────────────────────
-    // CARGAR CATÁLOGO BASE DESDE GITHUB (CON LÍMITES DEMO)
+    // CARGAR CATÁLOGO BASE (CON LÍMITE DEMO DE 50 CONCEPTOS)
     // ─────────────────────────────────────────────────────────────────────
     cargarCatalogoBase: async function() {
         try {
@@ -364,27 +364,19 @@ window.app = {
             
             console.log('📥 Importando catálogo base desde GitHub...');
             
-            // Usar el mismo importador que para archivos manuales
             if (window.importadorSmartCot) {
-                // ⚠️ IMPORTANTE: El importador ya tiene verificación de límites
-                const resultado = await window.importadorSmartCot.importarArchivo(file);
+                // ⚠️ IMPORTAR CON LÍMITE
+                const resultado = await window.importadorSmartCot.importarArchivo(file, limiteConceptos);
                 console.log('✅ Catálogo base cargado:', resultado.estadisticas);
                 
-                // Verificar si se excedió el límite
                 const conceptosCargados = resultado.estadisticas?.conceptos || 0;
-                if (conceptosCargados > limiteConceptos) {
-                    console.log('⚠️ Se cargaron', conceptosCargados, 'conceptos pero el límite es', limiteConceptos);
-                    this.notificacion('⚠️ Límite DEMO: Solo puedes usar ' + limiteConceptos + ' conceptos. Actualiza a PRO para más.', 'advertencia');
-                } else {
-                    this.notificacion('📚 Catálogo base cargado: ' + conceptosCargados + ' conceptos', 'exito');
-                }
+                this.notificacion('📚 Catálogo base cargado: ' + conceptosCargados + ' conceptos', 'exito');
             } else {
                 console.log('⚠️ importadorSmartCot no disponible');
             }
             
         } catch (error) {
             console.error('❌ Error cargando catálogo base:', error);
-            console.log('⚠️ El catálogo base no se cargó. Importa manualmente desde Importar Datos.');
         }
     },
     
@@ -1476,4 +1468,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
