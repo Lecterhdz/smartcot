@@ -1621,7 +1621,10 @@ window.app = {
             const empresa = document.getElementById('config-empresa')?.value;
             const iva = parseFloat(document.getElementById('config-iva')?.value) || 16;
             const utilidad = parseFloat(document.getElementById('config-utilidad')?.value) || 15;
-          
+            
+            // ⚠️ AGREGAR ESTA LÍNEA - DECLARAR colorCorporativo
+            const colorCorporativo = document.getElementById('config-color')?.value || '#1a1a1a';   
+            
             // ⚠️ DECLARAR configData CORRECTAMENTE
             const configData = [
                 { clave: 'empresa', valor: empresa },
@@ -1782,6 +1785,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
