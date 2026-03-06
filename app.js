@@ -66,6 +66,16 @@ window.app = {
             console.log('✅ Base de datos lista');
             
             const licencia = window.licencia.cargar();
+
+              // ⚠️ VERIFICAR SI ESTÁ REVOCADA
+            const verificacion = await window.licencia.verificarLicenciaRevocada(licencia?.clave);
+            if (verificacion.revocada) {
+                console.error('❌ Licencia revocada:', verificacion.razon);
+                alert('❌ LICENCIA REVOCADA\n\n' + verificacion.razon + '\n\nContacta a lecterhdz@gmail.com para más información.');
+                window.licencia.cerrar();
+                return;
+            }   
+            
             this.estado.licenciaActiva = licencia && !licencia.expirada;
             this.actualizarInfoLicencia(licencia);
             this.actualizarInfoLicenciaUI();
@@ -1745,6 +1755,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
