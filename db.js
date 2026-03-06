@@ -171,7 +171,7 @@ window.dbUtils = {
     // Exportar toda la base de datos
     exportarTodo: async function() {
         const datos = {
-            version: '3.0',
+            version: '4.0',
             fecha: new Date().toISOString(),
             conceptos: await db.conceptos.toArray(),
             materiales: await db.materiales.toArray(),
@@ -180,7 +180,12 @@ window.dbUtils = {
             herramienta: await db.herramienta.toArray(),
             clientes: await db.clientes.toArray(),
             configuracion: await db.configuracion.toArray(),
-            factoresRendimiento: await db.factoresRendimiento.toArray()
+            factoresRendimiento: await db.factoresRendimiento.toArray(),
+            cotizaciones: await window.db.cotizaciones.toArray(),
+            // ⚠️ AGREGAR ESTAS TABLAS NUEVAS:
+            plantillas: await window.db.plantillas.toArray(),
+            historicoPrecios: await window.db.historicoPrecios.toArray(),
+            avanceObra: await window.db.avanceObra.toArray()  // Para Curva S
         };
         
         const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
@@ -257,55 +262,75 @@ window.dbImportar = async function(datosJSON) {
             throw new Error('Datos inválidos');
         }
         
-        // Importar conceptos
-        if (datos.conceptos && datos.conceptos.length > 0) {
-            await db.conceptos.bulkPut(datos.conceptos);
+        // ⚠️ IMPORTAR CADA TABLA POR SEPARADO
+        if (datos.conceptos) {
+            await window.db.conceptos.bulkPut(datos.conceptos);
             console.log('✅ Conceptos importados:', datos.conceptos.length);
         }
         
         // Importar materiales
-        if (datos.materiales && datos.materiales.length > 0) {
-            await db.materiales.bulkPut(datos.materiales);
+        if (datos.materiales) {
+            await window.db.materiales.bulkPut(datos.materiales);
             console.log('✅ Materiales importados:', datos.materiales.length);
         }
         
         // Importar mano de obra
-        if (datos.manoObra && datos.manoObra.length > 0) {
-            await db.manoObra.bulkPut(datos.manoObra);
+        if (datos.manoObra) {
+            await window.db.manoObra.bulkPut(datos.manoObra);
             console.log('✅ Mano de obra importada:', datos.manoObra.length);
         }
         
         // Importar equipos
-        if (datos.equipos && datos.equipos.length > 0) {
-            await db.equipos.bulkPut(datos.equipos);
+        if (datos.equipos) {
+            await window.db.equipos.bulkPut(datos.equipos);
             console.log('✅ Equipos importados:', datos.equipos.length);
         }
         
         // Importar herramienta
-        if (datos.herramienta && datos.herramienta.length > 0) {
-            await db.herramienta.bulkPut(datos.herramienta);
+        if (datos.herramienta) {
+            await window.db.herramienta.bulkPut(datos.herramienta);
             console.log('✅ Herramienta importada:', datos.herramienta.length);
         }
         
-        // Importar clientes
-        if (datos.clientes && datos.clientes.length > 0) {
-            await db.clientes.bulkPut(datos.clientes);
+        if (datos.clientes) {
+            await window.db.clientes.bulkPut(datos.clientes);
             console.log('✅ Clientes importados:', datos.clientes.length);
         }
         
-        // Importar cotizaciones
-        if (datos.cotizaciones && datos.cotizaciones.length > 0) {
-            await db.cotizaciones.bulkPut(datos.cotizaciones);
+        if (datos.cotizaciones) {
+            await window.db.cotizaciones.bulkPut(datos.cotizaciones);
             console.log('✅ Cotizaciones importadas:', datos.cotizaciones.length);
         }
         
-        console.log('✅ Importación completada');
+        if (datos.configuracion) {
+            await window.db.configuracion.bulkPut(datos.configuracion);
+            console.log('✅ Configuración importada:', datos.configuracion.length);
+        }
+        
+        // ⚠️ IMPORTAR TABLAS NUEVAS
+        if (datos.plantillas) {
+            await window.db.plantillas.bulkPut(datos.plantillas);
+            console.log('✅ Plantillas importadas:', datos.plantillas.length);
+        }
+        
+        if (datos.historicoPrecios) {
+            await window.db.historicoPrecios.bulkPut(datos.historicoPrecios);
+            console.log('✅ Histórico de precios importado:', datos.historicoPrecios.length);
+        }
+        
+        if (datos.avanceObra) {
+            await window.db.avanceObra.bulkPut(datos.avanceObra);
+            console.log('✅ Avance de Curva S importado:', datos.avanceObra.length);
+        }
+        
+        console.log('✅ Importación completada exitosamente');
         
     } catch (error) {
         console.error('❌ Error importando:', error);
         throw error;
     }
 };
+
 
 
 
