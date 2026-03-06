@@ -541,6 +541,12 @@ window.curvaS = {
             return;
         }
         
+        // Mostrar sección avanzada
+        const seccionAvanzada = document.getElementById('curva-s-avanzada-seccion');
+        if (seccionAvanzada) {
+            seccionAvanzada.style.display = 'block';
+        }
+        
         // 1. Calcular Valor Ganado (EVM)
         this.calcularEVM();
         
@@ -549,30 +555,213 @@ window.curvaS = {
         
         // 3. Proyección de fecha
         this.proyectarFechaTerminacion();
+        
+        console.log('✅ Curva S Avanzada generada');
     },
     
     calcularEVM: function() {
-        // PV = Planned Value (Valor Planificado)
-        // EV = Earned Value (Valor Ganado)
-        // AC = Actual Cost (Costo Actual)
-        // SPI = EV / PV
-        // CPI = EV / AC
-        // CV = EV - AC
-        // SV = EV - PV
-        // EAC = BAC / CPI
-        // ETC = EAC - AC
+        // ⚠️ OBTENER DATOS DE LA COTIZACIÓN SELECCIONADA
+        const cotizacionId = document.getElementById('curva-s-cotizacion')?.value;
+        if (!cotizacionId) {
+            console.warn('⚠️ No hay cotización seleccionada para EVM');
+            return;
+        }
         
-        console.log('📊 EVM Calculado');
+        // Obtener cotización de la BD
+        window.db.cotizaciones.get(parseInt(cotizacionId)).then(async (cotizacion) => {
+            if (!cotizacion) {
+                console.warn('⚠️ Cotización no encontrada');
+                return;
+            }
+            
+            // Obtener avances registrados
+            const avances = await window.db.avanceObra
+                .where('cotizacionId')
+                .equals(parseInt(cotizacionId))
+                .toArray();
+            
+            // Calcular métricas EVM
+            let PV = 0; // Planned Value (Valor Planificado)
+            let EV = 0; // Earned Value (Valor Ganado)
+            let AC = 0; // Actual Cost (Costo Actual)
+            
+            const totalProyecto = cotizacion.totalFinal || 0;
+            
+            avances.forEach((avance, index) => {
+                // PV = Porcentaje planificado * Total proyecto
+                const porcentajePlanificado = ((index + 1) / avances.length) * 100;
+                PV += (porcentajePlanificado / 100) * totalProyecto;
+                
+                // EV = Porcentaje ejecutado * Total proyecto
+                EV += (avance.porcentaje / 100) * totalProyecto;
+                
+                // AC = Monto ejecutado real
+                AC += avance.monto || 0;
+            });
+            
+            // Calcular indicadores
+            const CV = EV - AC;  // Cost Variance
+            const SV = EV - PV;  // Schedule Variance
+            const CPI = AC > 0 ? EV / AC : 0;  // Cost Performance Index
+            const SPI = PV > 0 ? EV / PV : 0;  // Schedule Performance Index
+            const EAC = CPI > 0 ? totalProyecto / CPI : totalProyecto;  // Estimate at Completion
+            const ETC = EAC - AC;  // Estimate to Complete
+            const VAC = totalProyecto - EAC;  // Variance at Completion
+            
+            // ⚠️ ACTUALIZAR UI CON LOS VALORES
+            const elPV = document.getElementById('evm-pv');
+            const elEV = document.getElementById('evm-ev');
+            const elAC = document.getElementById('evm-ac');
+            const elCV = document.getElementById('evm-cv');
+            const elSV = document.getElementById('evm-sv');
+            const elCPI = document.getElementById('evm-cpi');
+            const elSPI = document.getElementById('evm-spi');
+            const elEAC = document.getElementById('evm-eac');
+            const elETC = document.getElementById('evm-etc');
+            const elVAC = document.getElementById('evm-vac');
+            
+            if (elPV) elPV.textContent = calculator.formatoMoneda(PV);
+            if (elEV) elEV.textContent = calculator.formatoMoneda(EV);
+            if (elAC) elAC.textContent = calculator.formatoMoneda(AC);
+            if (elCV) {
+                elCV.textContent = calculator.formatoMoneda(CV);
+                elCV.style.color = CV >= 0 ? '#4CAF50' : '#f44336';
+            }
+            if (elSV) {
+                elSV.textContent = calculator.formatoMoneda(SV);
+                elSV.style.color = SV >= 0 ? '#4CAF50' : '#f44336';
+            }
+            if (elCPI) {
+                elCPI.textContent = CPI.toFixed(2);
+                elCPI.style.color = CPI >= 1 ? '#4CAF50' : '#f44336';
+            }
+            if (elSPI) {
+                elSPI.textContent = SPI.toFixed(2);
+                elSPI.style.color = SPI >= 1 ? '#4CAF50' : '#f44336';
+            }
+            if (elEAC) elEAC.textContent = calculator.formatoMoneda(EAC);
+            if (elETC) elETC.textContent = calculator.formatoMoneda(ETC);
+            if (elVAC) {
+                elVAC.textContent = calculator.formatoMoneda(VAC);
+                elVAC.style.color = VAC >= 0 ? '#4CAF50' : '#f44336';
+            }
+            
+            // Actualizar indicadores existentes
+            const elVariacionTiempo = document.getElementById('variacion-tiempo');
+            const elIndiceTiempo = document.getElementById('indice-tiempo');
+            
+            if (elVariacionTiempo) {
+                const variacion = ((SPI - 1) * 100).toFixed(1);
+                elVariacionTiempo.textContent = (variacion >= 0 ? '+' : '') + variacion + '%';
+                elVariacionTiempo.style.color = SPI >= 1 ? '#4CAF50' : '#f44336';
+            }
+            
+            if (elIndiceTiempo) {
+                elIndiceTiempo.textContent = SPI.toFixed(2);
+                elIndiceTiempo.style.color = SPI >= 1 ? '#4CAF50' : '#f44336';
+            }
+            
+            console.log('📊 EVM Calculado:', { PV, EV, AC, CV, SV, CPI, SPI, EAC, ETC, VAC });
+        });
     },
     
     generarCurvaInversion: function() {
-        // Curva de flujo de efectivo acumulado
-        console.log('💰 Curva de Inversión generada');
+        // ⚠️ OBTENER DATOS DE LA COTIZACIÓN SELECCIONADA
+        const cotizacionId = document.getElementById('curva-s-cotizacion')?.value;
+        if (!cotizacionId) {
+            console.warn('⚠️ No hay cotización seleccionada para Curva de Inversión');
+            return;
+        }
+        
+        window.db.cotizaciones.get(parseInt(cotizacionId)).then(async (cotizacion) => {
+            if (!cotizacion) return;
+            
+            const avances = await window.db.avanceObra
+                .where('cotizacionId')
+                .equals(parseInt(cotizacionId))
+                .toArray();
+            
+            // Calcular inversión acumulada
+            let inversionAcumulada = 0;
+            const datosInversion = avances.map((avance, index) => {
+                inversionAcumulada += avance.monto || 0;
+                return {
+                    semana: avance.semana || (index + 1),
+                    inversion: inversionAcumulada,
+                    avance: avance.porcentaje || 0
+                };
+            });
+            
+            // ⚠️ ACTUALIZAR UI
+            const elInversionTotal = document.getElementById('curva-inversion-total');
+            if (elInversionTotal) {
+                elInversionTotal.textContent = calculator.formatoMoneda(inversionAcumulada);
+            }
+            
+            console.log('💰 Curva de Inversión generada:', datosInversion);
+        });
     },
     
     proyectarFechaTerminacion: function() {
-        // Línea de tendencia para fecha estimada
-        console.log('📅 Proyección de fecha calculada');
+        // ⚠️ OBTENER DATOS DE LA COTIZACIÓN SELECCIONADA
+        const cotizacionId = document.getElementById('curva-s-cotizacion')?.value;
+        if (!cotizacionId) {
+            console.warn('⚠️ No hay cotización seleccionada para Proyección');
+            return;
+        }
+        
+        window.db.cotizaciones.get(parseInt(cotizacionId)).then(async (cotizacion) => {
+            if (!cotizacion) return;
+            
+            const avances = await window.db.avanceObra
+                .where('cotizacionId')
+                .equals(parseInt(cotizacionId))
+                .toArray();
+            
+            if (avances.length < 2) {
+                console.warn('⚠️ Se necesitan al menos 2 avances para proyectar');
+                return;
+            }
+            
+            // Calcular velocidad de avance
+            const avanceActual = avances[avances.length - 1].porcentaje || 0;
+            const semanaActual = avances[avances.length - 1].semana || avances.length;
+            const velocidad = avanceActual / semanaActual;
+            
+            // Proyectar semanas restantes
+            const semanasTotales = velocidad > 0 ? Math.ceil(100 / velocidad) : 0;
+            const semanasRestantes = semanasTotales - semanaActual;
+            
+            // Calcular fecha estimada de terminación
+            const fechaInicio = new Date(cotizacion.fechaInicio || Date.now());
+            const fechaEstimada = new Date(fechaInicio);
+            fechaEstimada.setDate(fechaInicio.getDate() + (semanasTotales * 7));
+            
+            // ⚠️ ACTUALIZAR UI
+            const elSemanasRestantes = document.getElementById('proyeccion-semanas-restantes');
+            const elFechaEstimada = document.getElementById('proyeccion-fecha-estimada');
+            const elVelocidad = document.getElementById('proyeccion-velocidad');
+            
+            if (elSemanasRestantes) {
+                elSemanasRestantes.textContent = semanasRestantes + ' semanas';
+                elSemanasRestantes.style.color = semanasRestantes > 0 ? '#FF9800' : '#4CAF50';
+            }
+            
+            if (elFechaEstimada) {
+                elFechaEstimada.textContent = fechaEstimada.toLocaleDateString('es-MX');
+            }
+            
+            if (elVelocidad) {
+                elVelocidad.textContent = velocidad.toFixed(2) + '%/semana';
+            }
+            
+            console.log('📅 Proyección de fecha calculada:', {
+                semanasTotales,
+                semanasRestantes,
+                fechaEstimada,
+                velocidad
+            });
+        });
     },
     // ─────────────────────────────────────────────────────────────────
     // EXPORTAR REPORTE PDF (CORREGIDO - INCLUYE DESVIACIÓN E ÍNDICE)
