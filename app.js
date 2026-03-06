@@ -1412,6 +1412,42 @@ window.app = {
             this.notificacion('❌ Error: ' + error.message, 'error');
         }
     },
+
+    // ─────────────────────────────────────────────────────────────────
+    // GUARDAR MARCA PERSONALIZADA
+    // ─────────────────────────────────────────────────────────────────
+    guardarMarcaPersonalizada: async function() {
+        try {
+            // ⚠️ VERIFICAR QUE SEA ENTERPRISE
+            const licencia = window.licencia.cargar();
+            if (licencia?.tipo !== 'ENTERPRISE') {
+                this.notificacion('❌ Marca personalizada solo disponible en ENTERPRISE', 'error');
+                return;
+            }
+            
+            const logoFile = document.getElementById('config-logo')?.files[0];
+            const colores = document.getElementById('config-colores')?.value;
+            
+            if (logoFile) {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    await window.db.configuracion.put({
+                        clave: 'marca_logo',
+                        valor: e.target.result  // Base64 del logo
+                    });
+                    await window.db.configuracion.put({
+                        clave: 'marca_colores',
+                        valor: colores
+                    });
+                    app.notificacion('✅ Marca personalizada guardada', 'exito');
+                };
+                reader.readAsDataURL(logoFile);
+            }
+        } catch (error) {
+            console.error('❌ Error guardando marca:', error);
+            this.notificacion('❌ Error: ' + error.message, 'error');
+        }
+    },    
     
     // ─────────────────────────────────────────────────────────────────
     // LICENCIAS
@@ -1516,6 +1552,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
