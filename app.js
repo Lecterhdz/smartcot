@@ -1314,6 +1314,14 @@ window.app = {
     
     guardarClienteRapido: async function() {
         try {
+
+            // ⚠️ VERIFICAR LÍMITE DE CLIENTES ANTES DE GUARDAR
+            const limiteClientes = await window.licencia.verificarLimite('clientes');
+            if (!limiteClientes.permitido) {
+                this.notificacion('❌ ' + limiteClientes.razon, 'error');
+                return;
+            }
+            
             const nombre = document.getElementById('modal-cliente-nombre')?.value.trim();
             if (!nombre) {
                 this.notificacion('⚠️ El nombre del cliente es obligatorio', 'error');
@@ -1329,9 +1337,13 @@ window.app = {
             await this.cargarClientesSelect();
             const select = document.getElementById('cot-cliente');
             if (select) select.value = clienteId;
+            
             this.cerrarModalCliente();
             this.notificacion('✅ Cliente guardado y seleccionado', 'exito');
+            
+            // ⚠️ ACTUALIZAR CONTADORES DE LICENCIA
             await this.actualizarContadoresLicencia();
+            
         } catch (error) {
             console.error('❌ Error guardando cliente:', error);
             this.notificacion('❌ Error: ' + error.message, 'error');
@@ -1479,6 +1491,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
