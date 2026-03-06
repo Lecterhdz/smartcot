@@ -987,6 +987,13 @@ window.app = {
     // FACTORES DE AJUSTE
     // ─────────────────────────────────────────────────────────────────
     abrirFactoresAjuste: function() {
+
+        // ⚠️ VERIFICAR SI EL PLAN TIENE ACCESO A FACTORES
+        const limite = await window.licencia.verificarLimite('factoresAjuste');
+        if (!limite.permitido) {
+            this.notificacion('❌ ' + limite.razon, 'error');
+            return;
+        }
         const modal = document.getElementById('modal-factores');
         if (modal) {
             modal.style.display = 'flex';
@@ -1468,5 +1475,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
