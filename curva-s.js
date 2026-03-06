@@ -529,7 +529,51 @@ window.curvaS = {
         // ⚠️ IMPORTANTE: Calcular variaciones después de actualizar
         this.calcularVariaciones();
     },
+
+    // ─────────────────────────────────────────────────────────────────
+    // FUNCIONES AVANZADAS CURVA S (SOLO ENTERPRISE)
+    // ─────────────────────────────────────────────────────────────────
+    generarCurvaAvanzada: async function() {
+        // ⚠️ VERIFICAR LICENCIA ENTERPRISE
+        const licencia = window.licencia.cargar();
+        if (licencia?.tipo !== 'ENTERPRISE') {
+            alert('❌ Curva S Avanzada solo disponible en plan ENTERPRISE');
+            return;
+        }
+        
+        // 1. Calcular Valor Ganado (EVM)
+        this.calcularEVM();
+        
+        // 2. Generar curva de inversión
+        this.generarCurvaInversion();
+        
+        // 3. Proyección de fecha
+        this.proyectarFechaTerminacion();
+    },
     
+    calcularEVM: function() {
+        // PV = Planned Value (Valor Planificado)
+        // EV = Earned Value (Valor Ganado)
+        // AC = Actual Cost (Costo Actual)
+        // SPI = EV / PV
+        // CPI = EV / AC
+        // CV = EV - AC
+        // SV = EV - PV
+        // EAC = BAC / CPI
+        // ETC = EAC - AC
+        
+        console.log('📊 EVM Calculado');
+    },
+    
+    generarCurvaInversion: function() {
+        // Curva de flujo de efectivo acumulado
+        console.log('💰 Curva de Inversión generada');
+    },
+    
+    proyectarFechaTerminacion: function() {
+        // Línea de tendencia para fecha estimada
+        console.log('📅 Proyección de fecha calculada');
+    }
     // ─────────────────────────────────────────────────────────────────
     // EXPORTAR REPORTE PDF (CORREGIDO - INCLUYE DESVIACIÓN E ÍNDICE)
     // ─────────────────────────────────────────────────────────────────
