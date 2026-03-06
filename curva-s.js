@@ -573,7 +573,7 @@ window.curvaS = {
     proyectarFechaTerminacion: function() {
         // Línea de tendencia para fecha estimada
         console.log('📅 Proyección de fecha calculada');
-    }
+    },
     // ─────────────────────────────────────────────────────────────────
     // EXPORTAR REPORTE PDF (CORREGIDO - INCLUYE DESVIACIÓN E ÍNDICE)
     // ─────────────────────────────────────────────────────────────────
