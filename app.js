@@ -761,7 +761,8 @@ window.app = {
             } else {
                 btnExtraerMO.style.display = 'none';
             }
-        },    
+        } 
+    },
     // ─────────────────────────────────────────────────────────────────
     // ACTUALIZAR CANTIDAD DE CONCEPTO
     // ─────────────────────────────────────────────────────────────────
@@ -2235,6 +2236,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
