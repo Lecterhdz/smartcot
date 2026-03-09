@@ -393,7 +393,7 @@ cargarCatalogoCompleto: async function() {
                 '<div style="display:flex;justify-content:space-between;align-items:start;">' +
                 '<div>' +
                 '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + c.codigo + '</div>' +
-                '<div style="color:#666;font-size:14px;">' + c.descripcion_corta + '</div>' +
+                '<div style="color:#666;font-size:14px;">' + c.descripcion_tecnica + '</div>' +
                 '<div style="color:#999;font-size:12px;margin-top:5px;">Unidad: ' + c.unidad + ' | Rendimiento: ' + c.rendimiento_base + '</div>' +
                 '</div>' +
                 '<div style="display:flex;gap:5px;">' +
@@ -439,7 +439,7 @@ filtrarCatalogo: async function(categoria) {
                 '<div style="display:flex;justify-content:space-between;align-items:start;">' +
                 '<div>' +
                 '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + c.codigo + '</div>' +
-                '<div style="color:#666;font-size:14px;">' + (c.descripcion_corta || '') + '</div>' +
+                '<div style="color:#666;font-size:14px;">' + (c.descripcion_tecnica || '') + '</div>' +
                 '<div style="color:#999;font-size:12px;margin-top:5px;">' +
                 '<span style="background:#E3F2FD;padding:2px 8px;border-radius:4px;font-size:11px;">' + (c.categoria || 'General') + '</span>' +
                 '<span style="margin-left:10px;">Unidad: ' + (c.unidad || 'N/A') + '</span>' +
@@ -470,7 +470,7 @@ buscarEnCatalogo: async function() {
         const conceptos = await window.db.conceptos
             .filter(function(c) {
                 return (c.codigo || '').toLowerCase().includes(termino.toLowerCase()) ||
-                    (c.descripcion_corta || '').toLowerCase().includes(termino.toLowerCase());
+                    (c.descripcion_tecnica || '').toLowerCase().includes(termino.toLowerCase());
             })
             .limit(50)
             .toArray();
@@ -484,7 +484,7 @@ buscarEnCatalogo: async function() {
                 '<div style="display:flex;justify-content:space-between;align-items:start;">' +
                 '<div>' +
                 '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + c.codigo + '</div>' +
-                '<div style="color:#666;font-size:14px;">' + (c.descripcion_corta || '') + '</div>' +
+                '<div style="color:#666;font-size:14px;">' + (c.descripcion_tecnica || '') + '</div>' +
                 '<div style="color:#999;font-size:12px;margin-top:5px;">Unidad: ' + (c.unidad || 'N/A') + ' | Rendimiento: ' + (c.rendimiento_base || 0) + '</div>' +
                 '</div>' +
                 '<div style="display:flex;gap:5px;">' +
@@ -600,7 +600,7 @@ actualizarConceptosSeleccionadosUI: function() {
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">' +
             '<div style="flex:1;">' +
             '<div style="font-weight:700;color:#1a1a1a;font-size:16px;">' + c.codigo + '</div>' +
-            '<div style="color:#666;font-size:13px;">' + (c.descripcion_corta || '').substring(0, 60) + '...</div>' +
+            '<div style="color:#666;font-size:13px;">' + (c.descripcion_tecnica || '').substring(0, 60) + '...</div>' +
             '</div>' +
             '<button onclick="app.eliminarConceptoDeCotizacion(' + index + ')" ' +
             'style="background:#f44336;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;">🗑️</button>' +
@@ -1453,10 +1453,10 @@ extraerSoloManoDeObra: async function() {
                     
                     manoDeObraTotal.push({
                         // ⚠️ AGREGAR DESCRIPCIÓN COMPLETA DEL CONCEPTO
-                        concepto: (concepto.descripcion || concepto.descripcion_corta || 'Sin descripcion').substring(0, 50),
+                        concepto: (concepto.descripcion_tecnica || concepto.descripcion_corta || 'Sin descripcion').substring(0, 50),
                         conceptoCodigo: concepto.codigo || 'N/A',
-                        conceptoDescripcion: (concepto.descripcion || concepto.descripcion_corta || 'Sin descripción').substring(0, 50),
-                        conceptoCompleto: concepto.codigo + ' - ' + (concepto.descripcion || concepto.descripcion_corta || 'Sin descripción').substring(0, 40),
+                        conceptoDescripcion: (concepto.descripcion_tecnica || concepto.descripcion_corta || 'Sin descripción').substring(0, 50),
+                        conceptoCompleto: concepto.codigo + ' - ' + (concepto.descripcion_tecnica || concepto.descripcion_corta || 'Sin descripción').substring(0, 40),
                         puesto: mo.puesto || 'Sin nombre',
                         jornadas: jornadas,
                         costoJornada: (mo.salario_hora || 0) * 8,
@@ -1575,7 +1575,7 @@ confirmarExtraerManoDeObra: async function() {
         // Guardar cotización SOLO MANO DE OBRA
         const cotizacion = {
             clienteId: clienteId,
-            descripcion: descripcion + ' (Solo Mano de Obra)',
+            descripcion: descripcion_tecnica + ' (Solo Mano de Obra)',
             descripcionManoObra: descripcionManoObra,  // ⚠️ AGREGAR DESCRIPCIÓN DETALLADA
             tipo: 'solo-mano-obra-extraida',
             ubicacion: document.getElementById('cot-ubicacion')?.value || '',
@@ -2121,6 +2121,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
