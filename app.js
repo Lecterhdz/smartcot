@@ -752,17 +752,16 @@ window.app = {
         
         if (container) container.innerHTML = conceptosHTML;
         if (containerCatalogo) containerCatalogo.innerHTML = conceptosHTML;
-    },
 
-    // ⚠️ MOSTRAR/OCULTAR BOTÓN DE EXTRAER MO
-    const btnExtraerMO = document.getElementById('btn-extraer-mo');
-    if (btnExtraerMO) {
-        if (this.datosCotizacion.conceptosSeleccionados.length > 0) {
-            btnExtraerMO.style.display = 'block';
-        } else {
-            btnExtraerMO.style.display = 'none';
-        }
-    },    
+        // ⚠️ MOSTRAR/OCULTAR BOTÓN DE EXTRAER MO
+        const btnExtraerMO = document.getElementById('btn-extraer-mo');
+        if (btnExtraerMO) {
+            if (this.datosCotizacion.conceptosSeleccionados.length > 0) {
+                btnExtraerMO.style.display = 'block';
+            } else {
+                btnExtraerMO.style.display = 'none';
+            }
+        },    
     // ─────────────────────────────────────────────────────────────────
     // ACTUALIZAR CANTIDAD DE CONCEPTO
     // ─────────────────────────────────────────────────────────────────
@@ -1823,21 +1822,25 @@ window.app = {
             
             // ⚠️ AGREGAR ESTA LÍNEA - DECLARAR colorCorporativo
             const colorCorporativo = document.getElementById('config-color')?.value || '#1a1a1a';   
-            
+           
+            // ⚠️ DECLARAR licencias ANTES DE USAR
+            const licencia = window.licencia.cargar();            
+           
             // ⚠️ DECLARAR configData CORRECTAMENTE
             const configData = [
                 { clave: 'empresa', valor: empresa },
                 { clave: 'iva', valor: iva },
                 { clave: 'utilidad', valor: utilidad }
             ];
-            
-            await window.db.configuracion.bulkPut(configData);
 
              // ⚠️ SOLO GUARDAR COLOR SI ES ENTERPRISE
-            const licencia = window.licencia.cargar();
             if (licencia?.tipo === 'ENTERPRISE') {
                 configData.push({ clave: 'marca_colores', valor: colorCorporativo });
-            }           
+            }
+            
+            // ⚠️ AHORA SÍ GUARDAR
+            await window.db.configuracion.bulkPut(configData);
+          
             this.notificacion('✅ Configuración guardada', 'exito');
         } catch (error) {
             console.error('❌ Error guardando configuración:', error);
@@ -2232,6 +2235,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
