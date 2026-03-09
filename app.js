@@ -630,6 +630,16 @@ window.app = {
         const container = document.getElementById('conceptos-seleccionados');
         const containerCatalogo = document.getElementById('conceptos-seleccionados-catalogo');
         this.actualizarContadorGeneral();
+
+        // ⚠️ MOSTRAR/OCULTAR BOTÓN DE EXTRAER MO
+        const btnExtraerMO = document.getElementById('btn-extraer-mo');
+        if (btnExtraerMO) {
+            if (this.datosCotizacion.conceptosSeleccionados.length > 0) {
+                btnExtraerMO.style.display = 'block';
+            } else {
+                btnExtraerMO.style.display = 'none';
+            }
+        }
         
         if (!container && !containerCatalogo) return;
         
@@ -866,6 +876,193 @@ window.app = {
             console.error('❌ Error guardando precio:', error);
             this.notificacion('❌ Error: ' + error.message, 'error');
         }
+    },
+
+    // ─────────────────────────────────────────────────────────────────
+    // EXTRAER SOLO MANO DE OBRA DE CONCEPTOS SELECCIONADOS
+    // ─────────────────────────────────────────────────────────────────
+    extraerSoloManoDeObra: async function() {
+        try {
+            // ⚠️ VERIFICAR QUE HAYA CONCEPTOS SELECCIONADOS
+            if (this.datosCotizacion.conceptosSeleccionados.length === 0) {
+                this.notificacion('⚠️ Agrega conceptos del catálogo primero', 'advertencia');
+                return;
+            }
+            
+            // ⚠️ VERIFICAR QUE SEA PRO O ENTERPRISE
+            const licencia = window.licencia.cargar();
+            if (licencia?.tipo === 'DEMO') {
+                this.notificacion('❌ Extraer mano de obra solo disponible en PRO/ENTERPRISE', 'error');
+                return;
+            }
+            
+            // Recopilar toda la mano de obra de los conceptos
+            const manoDeObraTotal = [];
+            let costoTotalMO = 0;
+            let totalJornadas = 0;
+            
+            this.datosCotizacion.conceptosSeleccionados.forEach(function(concepto) {
+                if (concepto.recursos?.mano_obra) {
+                    concepto.recursos.mano_obra.forEach(function(mo) {
+                        const jornadas = (mo.horas_jornada || 0) * (concepto.cantidad || 1);
+                        const costo = (mo.salario_hora || 0) * 8 * jornadas;
+                        
+                        manoDeObraTotal.push({
+                            concepto: concepto.codigo + ' - ' + (mo.puesto || 'Sin nombre'),
+                            puesto: mo.puesto || 'Sin nombre',
+                            codigoConcepto: concepto.codigo,
+                            jornadas: jornadas,
+                            costoJornada: (mo.salario_hora || 0) * 8,
+                            importe: costo
+                        });
+                        
+                        costoTotalMO += costo;
+                        totalJornadas += jornadas;
+                    });
+                }
+            });
+            
+            if (manoDeObraTotal.length === 0) {
+                this.notificacion('⚠️ Los conceptos seleccionados no tienen mano de obra', 'advertencia');
+                return;
+            }
+            
+            // Mostrar resumen en modal
+            const resumenDiv = document.getElementById('resumen-mano-obra-extraer');
+            if (resumenDiv) {
+                resumenDiv.innerHTML = 
+                    '<div style="margin-bottom:15px;">' +
+                    '<div style="font-weight:700;color:#1a1a1a;margin-bottom:10px;">Mano de Obra a Extraer (' + manoDeObraTotal.length + ' puestos)</div>' +
+                    manoDeObraTotal.map(function(mo) {
+                        return '<div style="display:flex;justify-content:space-between;padding:8px;background:white;border-radius:6px;margin-bottom:5px;font-size:13px;">' +
+                            '<div>' +
+                            '<div style="font-weight:600;">' + mo.concepto + '</div>' +
+                            '<div style="color:#666;font-size:11px;">' + mo.jornadas + ' jornadas × ' + calculator.formatoMoneda(mo.costoJornada) + '</div>' +
+                            '</div>' +
+                            '<div style="font-weight:700;color:#FF9800;">' + calculator.formatoMoneda(mo.importe) + '</div>' +
+                            '</div>';
+                    }).join('') +
+                    '</div>' +
+                    '<div style="border-top:2px solid #ddd;padding-top:10px;">' +
+                    '<div style="display:flex;justify-content:space-between;font-weight:700;font-size:16px;">' +
+                    '<span>Subtotal Mano de Obra:</span>' +
+                    '<span style="color:#FF9800;">' + calculator.formatoMoneda(costoTotalMO) + '</span>' +
+                    '</div>' +
+                    '<div style="display:flex;justify-content:space-between;font-size:13px;color:#666;margin-top:5px;">' +
+                    '<span>Total Jornadas:</span>' +
+                    '<span>' + totalJornadas + ' jornadas</span>' +
+                    '</div>' +
+                    '</div>';
+            }
+            
+            // Mostrar modal
+            const modal = document.getElementById('modal-extraer-mo');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+            
+            // Guardar datos temporales
+            this._manoDeObraExtraer = manoDeObraTotal;
+            this._costoTotalMO = costoTotalMO;
+            this._totalJornadas = totalJornadas;
+            
+        } catch (error) {
+            console.error('❌ Error extrayendo mano de obra:', error);
+            this.notificacion('❌ Error: ' + error.message, 'error');
+        }
+    },
+    
+    confirmarExtraerManoDeObra: async function() {
+        try {
+            // ⚠️ VERIFICAR LÍMITE DE COTIZACIONES
+            const limite = await window.licencia.verificarLimite('cotizaciones');
+            if (!limite.permitido) {
+                this.notificacion('❌ ' + limite.razon, 'error');
+                return;
+            }
+            
+            const clienteId = document.getElementById('cot-cliente')?.value;
+            const descripcion = document.getElementById('cot-descripcion')?.value;
+            
+            if (!clienteId || !descripcion) {
+                this.notificacion('⚠️ Completa cliente y descripción', 'error');
+                return;
+            }
+            
+            // Calcular totales
+            const subtotal = this._costoTotalMO || 0;
+            const indirectosPorcentaje = parseFloat(document.getElementById('cot-indirectos-oficina')?.value) || 5;
+            const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
+            
+            const indirectos = subtotal * (indirectosPorcentaje / 100);
+            const utilidad = (subtotal + indirectos) * (utilidadPorcentaje / 100);
+            const iva = (subtotal + indirectos + utilidad) * 0.16;
+            const totalFinal = subtotal + indirectos + utilidad + iva;
+            
+            // Guardar cotización SOLO MANO DE OBRA
+            const cotizacion = {
+                clienteId: clienteId,
+                descripcion: descripcion + ' (Solo Mano de Obra)',
+                tipo: 'solo-mano-obra-extraida',  // ⚠️ MARCAR COMO SOLO MO EXTRAIDA
+                ubicacion: document.getElementById('cot-ubicacion')?.value || '',
+                fechaInicio: document.getElementById('cot-fecha-inicio')?.value || new Date().toISOString(),
+                fechaFinSolicitada: document.getElementById('cot-fecha-fin')?.value || null,
+                conceptosCatalogo: [],  // Sin conceptos completos
+                manoObraExtraida: this._manoDeObraExtraer,  // ⚠️ GUARDAR MANO DE OBRA EXTRAIDA
+                materialesAdicionales: [],
+                manoObraAdicional: [],
+                equiposAdicionales: [],
+                herramientaAdicional: [],
+                indirectosAdicionales: [],
+                porcentajes: {
+                    indirectosOficina: indirectosPorcentaje,
+                    indirectosCampo: 0,
+                    financiamiento: 0,
+                    utilidad: utilidadPorcentaje
+                },
+                factoresAjuste: { altura: 1, clima: 1, acceso: 1, seguridad: 1, total: 1 },
+                tiempoEjecucion: {
+                    jornadas: this._totalJornadas || 0,
+                    diasHabiles: Math.ceil((this._totalJornadas || 0) / 8),
+                    semanas: Math.ceil((this._totalJornadas || 0) / 8 / 5),
+                    meses: Math.ceil((this._totalJornadas || 0) / 8 / 5 / 4.33)
+                },
+                costoDirecto: subtotal,
+                totalIndirectos: indirectos,
+                utilidad: utilidad,
+                iva: iva,
+                totalFinal: totalFinal,
+                fecha: new Date().toISOString(),
+                estado: 'pendiente'
+            };
+            
+            await window.db.cotizaciones.add(cotizacion);
+            
+            this.notificacion('✅ Cotización solo mano de obra guardada', 'exito');
+            this.cancelarExtraerManoDeObra();
+            this.resetearFormulario();
+            await this.cargarEstadisticas();
+            await this.actualizarContadoresLicencia();
+            this.mostrarPantalla('dashboard-screen');
+            
+        } catch (error) {
+            console.error('❌ Error guardando cotización solo MO:', error);
+            this.notificacion('❌ Error: ' + error.message, 'error');
+        }
+    },
+    
+    cancelarExtraerManoDeObra: function() {
+        const modal = document.getElementById('modal-extraer-mo');
+        if (modal) modal.style.display = 'none';
+        
+        this._manoDeObraExtraer = null;
+        this._costoTotalMO = 0;
+        this._totalJornadas = 0;
+    },
+    
+    guardarCotizacionCompleta: function() {
+        // Función existente para guardar cotización completa
+        this.guardarCotizacion();
     },
     
     // ─────────────────────────────────────────────────────────────────
@@ -2034,6 +2231,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
