@@ -1453,6 +1453,7 @@ extraerSoloManoDeObra: async function() {
                     
                     manoDeObraTotal.push({
                         // ⚠️ AGREGAR DESCRIPCIÓN COMPLETA DEL CONCEPTO
+                        concepto: (concepto.descripcion || concepto.descripcion_corta || 'Sin descripcion').substring(0, 50),
                         conceptoCodigo: concepto.codigo || 'N/A',
                         conceptoDescripcion: (concepto.descripcion || concepto.descripcion_corta || 'Sin descripción').substring(0, 50),
                         conceptoCompleto: concepto.codigo + ' - ' + (concepto.descripcion || concepto.descripcion_corta || 'Sin descripción').substring(0, 40),
@@ -2120,6 +2121,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
