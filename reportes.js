@@ -179,10 +179,12 @@ window.reportes = {
                         codigo = 'E' + codigo;
                     }
                     
-                    // ⚠️ VERIFICAR SI EXISTE descripcion LARGA
+                    // ⚠️ USAR DESCRIPCION TECNICA (LA COMPLETA DEL EXCEL)
                     let descripcion = '';
-                    if (c.descripcion && c.descripcion.trim() !== '') {
-                        descripcion = c.descripcion.substring(0, 37);  // ✅ USAR descripcion LARGA
+                    if (c.descripcion_tecnica && c.descripcion_tecnica.trim() !== '') {
+                        descripcion = c.descripcion_tecnica.substring(0, 37);  // ✅ USAR descripcion_tecnica (completa)
+                    } else if (c.descripcion && c.descripcion.trim() !== '') {
+                        descripcion = c.descripcion.substring(0, 37);  // ✅ fallback a descripcion
                     } else if (c.descripcion_corta && c.descripcion_corta.trim() !== '') {
                         descripcion = c.descripcion_corta.substring(0, 37);  // ✅ fallback a descripcion_corta
                     } else {
