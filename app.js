@@ -1451,17 +1451,27 @@ extraerSoloManoDeObra: async function() {
                     const jornadas = (mo.horas_jornada || 0) * (concepto.cantidad || 1);
                     const costo = (mo.salario_hora || 0) * 8 * jornadas;
                     
+                    // ⚠️ USAR DESCRIPCION COMPLETA DEL CONCEPTO (CORREGIDO)
+                    let descripcionConcepto = '';
+                    if (concepto.descripcion_tecnica && concepto.descripcion_tecnica.trim() !== '') {
+                        descripcionConcepto = concepto.descripcion_tecnica.substring(0, 50);
+                    } else if (concepto.descripcion && concepto.descripcion.trim() !== '') {
+                        descripcionConcepto = concepto.descripcion.substring(0, 50);
+                    } else if (concepto.descripcion_corta && concepto.descripcion_corta.trim() !== '') {
+                        descripcionConcepto = concepto.descripcion_corta.substring(0, 50);
+                    } else {
+                        descripcionConcepto = 'Sin descripción';
+                    }
+                    
                     manoDeObraTotal.push({
-                        // ⚠️ AGREGAR DESCRIPCIÓN COMPLETA DEL CONCEPTO
-                        concepto: (concepto.descripcion_tecnica || concepto.descripcion_corta || 'Sin descripcion').substring(0, 50),
+                        // ⚠️ GUARDAR DESCRIPCION COMPLETA PARA EL REPORTE
+                        concepto: concepto.codigo + ' - ' + descripcionConcepto,
                         conceptoCodigo: concepto.codigo || 'N/A',
-                        conceptoDescripcion: (concepto.descripcion_tecnica || concepto.descripcion_corta || 'Sin descripción').substring(0, 50),
-                        conceptoCompleto: concepto.codigo + ' - ' + (concepto.descripcion_tecnica || concepto.descripcion_corta || 'Sin descripción').substring(0, 40),
+                        conceptoDescripcion: descripcionConcepto,
                         puesto: mo.puesto || 'Sin nombre',
                         jornadas: jornadas,
                         costoJornada: (mo.salario_hora || 0) * 8,
                         importe: costo,
-                        // ⚠️ GUARDAR DATOS ORIGINALES PARA REFERENCIA
                         salarioHora: mo.salario_hora || 0,
                         horasJornada: mo.horas_jornada || 0,
                         cantidadConcepto: concepto.cantidad || 1
@@ -1474,7 +1484,7 @@ extraerSoloManoDeObra: async function() {
         });
         
         if (manoDeObraTotal.length === 0) {
-            this.notificacion('⚠️ Los conceptos seleccionados no tienen mano de obra registrada', 'advertencia');
+            this.notificacion('⚠️ Los conceptos seleccionados no tienen mano de obra', 'advertencia');
             return;
         }
         
@@ -1487,7 +1497,7 @@ extraerSoloManoDeObra: async function() {
                 manoDeObraTotal.map(function(mo, index) {
                     return '<div style="display:flex;justify-content:space-between;align-items:start;padding:10px;background:white;border-radius:8px;margin-bottom:8px;border-left:4px solid #FF9800;font-size:12px;">' +
                         '<div style="flex:1;">' +
-                        '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + (index + 1) + '. ' + mo.conceptoCompleto + '</div>' +
+                        '<div style="font-weight:700;color:#1a1a1a;margin-bottom:5px;">' + (index + 1) + '. ' + mo.concepto + '</div>' +
                         '<div style="color:#666;margin-bottom:3px;">👷 <strong>Puesto:</strong> ' + mo.puesto + '</div>' +
                         '<div style="color:#666;margin-bottom:3px;">⏱️ <strong>Jornadas:</strong> ' + mo.jornadas.toFixed(2) + ' (' + mo.horasJornada + ' hrs/jor × ' + mo.cantidadConcepto + ' cant)</div>' +
                         '<div style="color:#666;">💰 <strong>Costo/Jornada:</strong> ' + calculator.formatoMoneda(mo.costoJornada) + '</div>' +
@@ -1575,7 +1585,7 @@ confirmarExtraerManoDeObra: async function() {
         // Guardar cotización SOLO MANO DE OBRA
         const cotizacion = {
             clienteId: clienteId,
-            descripcion: descripcion_tecnica + ' (Solo Mano de Obra)',
+            descripcion: descripcion + ' (Solo Mano de Obra)',
             descripcionManoObra: descripcionManoObra,  // ⚠️ AGREGAR DESCRIPCIÓN DETALLADA
             tipo: 'solo-mano-obra-extraida',
             ubicacion: document.getElementById('cot-ubicacion')?.value || '',
@@ -2121,6 +2131,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
