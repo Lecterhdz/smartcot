@@ -1739,6 +1739,158 @@ window.app = {
     },
     
     // ─────────────────────────────────────────────────────────────────
+    // CREAR COTIZACIÓN SOLO MANO DE OBRA (PRO/ENTERPRISE)
+    // ─────────────────────────────────────────────────────────────────
+    crearCotizacionSoloManoObra: function() {
+        // ⚠️ VERIFICAR QUE SEA PRO O ENTERPRISE
+        const licencia = window.licencia.cargar();
+        if (licencia?.tipo === 'DEMO') {
+            this.notificacion('❌ Cotización solo mano de obra solo disponible en PRO/ENTERPRISE', 'error');
+            return;
+        }
+        
+        const modal = document.getElementById('modal-solo-mano-obra');
+        if (modal) {
+            modal.style.display = 'flex';
+            this.agregarManoObraSoloMO();  // Agregar primer puesto por defecto
+        }
+    },
+    
+    cerrarModalSoloManoObra: function() {
+        const modal = document.getElementById('modal-solo-mano-obra');
+        if (modal) modal.style.display = 'none';
+    },
+    
+    agregarManoObraSoloMO: function() {
+        const container = document.getElementById('solo-mo-lista');
+        if (!container) return;
+        
+        const id = Date.now();
+        const div = document.createElement('div');
+        div.dataset.id = id;
+        div.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;margin:10px 0;padding:15px;background:#f5f7fa;border-radius:10px;';
+        div.innerHTML = 
+            '<input type="text" placeholder="Puesto (ej. Electricista)" class="solo-mo-puesto" style="padding:10px;border:1px solid #ddd;border-radius:8px;">' +
+            '<input type="number" placeholder="Jornadas" class="solo-mo-jornadas" value="1" min="1" style="padding:10px;border:1px solid #ddd;border-radius:8px;">' +
+            '<input type="number" placeholder="Costo/Jornada" class="solo-mo-costo" value="0" min="0" step="0.01" style="padding:10px;border:1px solid #ddd;border-radius:8px;">' +
+            '<button onclick="this.parentElement.remove()" style="background:#f44336;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;">🗑️</button>';
+        
+        container.appendChild(div);
+    },
+    
+    guardarCotizacionSoloManoObra: async function() {
+        try {
+            // ⚠️ VERIFICAR QUE SEA PRO O ENTERPRISE
+            const licencia = window.licencia.cargar();
+            if (licencia?.tipo === 'DEMO') {
+                this.notificacion('❌ Cotización solo mano de obra solo disponible en PRO/ENTERPRISE', 'error');
+                return;
+            }
+            
+            // ⚠️ VERIFICAR LÍMITE DE COTIZACIONES
+            const limite = await window.licencia.verificarLimite('cotizaciones');
+            if (!limite.permitido) {
+                this.notificacion('❌ ' + limite.razon, 'error');
+                return;
+            }
+            
+            const clienteId = document.getElementById('cot-cliente')?.value;
+            const descripcion = document.getElementById('cot-descripcion')?.value;
+            
+            if (!clienteId || !descripcion) {
+                this.notificacion('⚠️ Completa cliente y descripción', 'error');
+                return;
+            }
+            
+            // Recopilar mano de obra del modal
+            const manoObraLista = [];
+            document.querySelectorAll('#solo-mo-lista > div').forEach(function(div) {
+                const puesto = div.querySelector('.solo-mo-puesto')?.value;
+                const jornadas = parseFloat(div.querySelector('.solo-mo-jornadas')?.value) || 0;
+                const costo = parseFloat(div.querySelector('.solo-mo-costo')?.value) || 0;
+                
+                if (puesto && jornadas > 0) {
+                    manoObraLista.push({
+                        concepto: puesto,
+                        jornadas: jornadas,
+                        costoJornada: costo,
+                        importe: jornadas * costo
+                    });
+                }
+            });
+            
+            if (manoObraLista.length === 0) {
+                this.notificacion('⚠️ Agrega al menos un puesto de mano de obra', 'error');
+                return;
+            }
+            
+            // Calcular totales
+            const subtotal = manoObraLista.reduce(function(sum, mo) { return sum + mo.importe; }, 0);
+            const indirectosPorcentaje = parseFloat(document.getElementById('cot-indirectos-oficina')?.value) || 5;
+            const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
+            
+            const indirectos = subtotal * (indirectosPorcentaje / 100);
+            const utilidad = (subtotal + indirectos) * (utilidadPorcentaje / 100);
+            const iva = (subtotal + indirectos + utilidad) * 0.16;
+            const totalFinal = subtotal + indirectos + utilidad + iva;
+            
+            // Guardar cotización
+            const cotizacion = {
+                clienteId: clienteId,
+                descripcion: descripcion,
+                tipo: 'solo-mano-obra',  // ⚠️ MARCAR COMO SOLO MO
+                ubicacion: document.getElementById('cot-ubicacion')?.value || '',
+                fechaInicio: document.getElementById('cot-fecha-inicio')?.value || new Date().toISOString(),
+                fechaFinSolicitada: document.getElementById('cot-fecha-fin')?.value || null,
+                conceptosCatalogo: [],  // Sin conceptos
+                materialesAdicionales: [],
+                manoObraAdicional: manoObraLista,
+                equiposAdicionales: [],
+                herramientaAdicional: [],
+                indirectosAdicionales: [],
+                porcentajes: {
+                    indirectosOficina: indirectosPorcentaje,
+                    indirectosCampo: 0,
+                    financiamiento: 0,
+                    utilidad: utilidadPorcentaje
+                },
+                factoresAjuste: { altura: 1, clima: 1, acceso: 1, seguridad: 1, total: 1 },
+                tiempoEjecucion: {
+                    jornadas: parseFloat(document.getElementById('solo-mo-jornadas')?.value) || 0,
+                    diasHabiles: Math.ceil(parseFloat(document.getElementById('solo-mo-jornadas')?.value) || 0),
+                    semanas: 0,
+                    meses: 0
+                },
+                costoDirecto: subtotal,
+                totalIndirectos: indirectos,
+                utilidad: utilidad,
+                iva: iva,
+                totalFinal: totalFinal,
+                fecha: new Date().toISOString(),
+                estado: 'pendiente'
+            };
+            
+            await window.db.cotizaciones.add(cotizacion);
+            
+            this.notificacion('✅ Cotización solo mano de obra guardada', 'exito');
+            this.cerrarModalSoloManoObra();
+            this.resetearFormulario();
+            await this.cargarEstadisticas();
+            await this.actualizarContadoresLicencia();
+            this.mostrarPantalla('dashboard-screen');
+            
+        } catch (error) {
+            console.error('❌ Error guardando cotización solo MO:', error);
+            this.notificacion('❌ Error: ' + error.message, 'error');
+        }
+    },
+    
+    crearCotizacionEstandar: function() {
+        // Cierra el modal y deja el formulario estándar
+        this.cerrarModalSoloManoObra();
+    }    
+    
+    // ─────────────────────────────────────────────────────────────────
     // APLICAR COSTOS DE MANO DE OBRA A CONCEPTOS
     // ─────────────────────────────────────────────────────────────────
     aplicarCostosManoObraAConceptos: async function(costos) {
@@ -1881,6 +2033,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
