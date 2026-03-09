@@ -755,11 +755,50 @@
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
                             <input type="number" id="config-iva" placeholder="IVA %" value="16" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
                             <input type="number" id="config-utilidad" placeholder="Utilidad %" value="15" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
-                         <div class="form-group" id="config-color-group" style="display:none;">
+                         
+                        <div class="form-group" id="config-costos-mano-obra" style="margin-top:30px;">
+                            <h4 style="color:#1a1a1a;margin-bottom:15px;">💰 Costos de Mano de Obra</h4>
+                            
+                            <div style="background:#FFF3E0;padding:15px;border-radius:10px;margin-bottom:15px;border-left:4px solid #FF9800;">
+                                <p style="color:#E65100;font-size:13px;margin:0;">
+                                    ℹ️ Estos costos se aplicarán automáticamente a todos los conceptos (PRO/ENTERPRISE)
+                                </p>
+                            </div>
+                            
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
+                                <div>
+                                    <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">👷 Ayudante</label>
+                                    <input type="number" id="costo-ayudante" placeholder="$ por jornada" 
+                                           style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                                </div>
+                                <div>
+                                    <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">🔧 Oficial</label>
+                                    <input type="number" id="costo-oficial" placeholder="$ por jornada" 
+                                           style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                                </div>
+                                <div>
+                                    <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">⚡ Técnico</label>
+                                    <input type="number" id="costo-tecnico" placeholder="$ por jornada" 
+                                           style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                                </div>
+                                <div>
+                                    <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">📋 Supervisor</label>
+                                    <input type="number" id="costo-supervisor" placeholder="$ por jornada" 
+                                           style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
+                                </div>
+                            </div>
+                            
+                            <button onclick="app.guardarCostosManoObra()" 
+                                    style="margin-top:20px;background:#4CAF50;color:white;border:none;padding:14px 30px;border-radius:10px;cursor:pointer;font-weight:600;">
+                                💾 Guardar Costos de Mano de Obra
+                            </button>
+                        </div>                          
+                            
+                            <div class="form-group" id="config-color-group" style="display:none;">
                             <label style="font-size:14px;color:#666;display:block;margin-bottom:10px;">🎨 Color Corporativo</label>
                             <input type="color" id="config-color" value="#1a1a1a" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;height:50px;">
                             <small style="color:#666;font-size:11px;">Se aplicará en reportes PDF (Solo ENTERPRISE)</small>
-                        </div>                       
+                            </div>                       
                         </div>
                     </div>
                     <button class="btn btn-primary" onclick="app.guardarConfiguracion()" style="margin-top:15px;padding:14px 30px;">💾 Guardar Configuración</button>
@@ -1082,6 +1121,7 @@
 </footer>   
 </body>
 </html>
+
 
 
 
