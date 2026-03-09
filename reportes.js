@@ -179,9 +179,15 @@ window.reportes = {
                         codigo = 'E' + codigo;
                     }
                     
-                    // ⚠️ USAR DESCRIPCION LARGA (descripcion en vez de descripcion_corta)
-                    const descripcion = (c.descripcion || c.descripcion_corta || 'Sin descripcion').substring(0, 37);
-                    
+                    // ⚠️ VERIFICAR SI EXISTE descripcion LARGA
+                    let descripcion = '';
+                    if (c.descripcion && c.descripcion.trim() !== '') {
+                        descripcion = c.descripcion.substring(0, 37);  // ✅ USAR descripcion LARGA
+                    } else if (c.descripcion_corta && c.descripcion_corta.trim() !== '') {
+                        descripcion = c.descripcion_corta.substring(0, 37);  // ✅ fallback a descripcion_corta
+                    } else {
+                        descripcion = 'Sin descripcion';
+                    }
                     doc.text(codigo.substring(0, 12), 15, yPos);
                     doc.text(descripcion, 42, yPos);
                     doc.text((c.cantidad || 1).toString(), 125, yPos);
