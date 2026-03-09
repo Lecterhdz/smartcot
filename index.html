@@ -948,25 +948,45 @@ body { font-family: 'Segoe UI', 'Roboto', sans-serif; background: linear-gradien
 </div>
 </div>
 
-<!-- MODAL EXTRAER MANO DE OBRA -->
-<div id="modal-extraer-mo">
-<div>
-<h3 style="color:#1a1a1a;margin-bottom:20px;">👷 Extraer Solo Mano de Obra</h3>
-<div style="background:#FFF3E0;padding:15px;border-radius:10px;margin-bottom:20px;">
-<p style="color:#E65100;font-size:13px;margin:0;">
-ℹ️ Esto creará UNA NUEVA cotización solo con la mano de obra de los conceptos seleccionados.
-<br><br>
-<strong>Se incluirá:</strong><br>✓ Mano de obra de todos los conceptos<br>✓ Tiempo de ejecución<br>✓ Indirectos y utilidad
-<br><br>
-<strong>NO se incluirá:</strong><br>✗ Materiales<br>✗ Equipos<br>✗ Herramienta
-</p>
-</div>
-<div id="resumen-mano-obra-extraer" style="background:#f5f7fa;padding:15px;border-radius:10px;margin-bottom:20px;max-height:300px;overflow-y:auto;"></div>
-<div style="display:flex;gap:10px;margin-top:20px;">
-<button onclick="app.confirmarExtraerManoDeObra()" style="flex:1;background:#FF9800;color:white;border:none;padding:14px;border-radius:10px;cursor:pointer;font-weight:600;">✅ Sí, Extraer Mano de Obra</button>
-<button onclick="app.cancelarExtraerManoDeObra()" style="flex:1;background:#f44336;color:white;border:none;padding:14px;border-radius:10px;cursor:pointer;font-weight:600;">❌ Cancelar</button>
-</div>
-</div>
+<!-- Modal para confirmar extracción -->
+<div id="modal-extraer-mo" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10000;justify-content:center;align-items:center;">
+    <div style="background:white;padding:40px;border-radius:20px;max-width:700px;width:90%;max-height:90vh;overflow-y:auto;">
+        <h3 style="color:#1a1a1a;margin-bottom:20px;">👷 Extraer Solo Mano de Obra</h3>
+        
+        <div style="background:#FFF3E0;padding:15px;border-radius:10px;margin-bottom:20px;">
+            <p style="color:#E65100;font-size:13px;margin:0;">
+                ℹ️ Esto creará UNA NUEVA cotización solo con la mano de obra de los conceptos seleccionados.
+                <br><br>
+                <strong>Se incluirá:</strong>
+                <br>✓ Código y descripción de cada concepto
+                <br>✓ Puesto de mano de obra
+                <br>✓ Jornadas y costo por jornada
+                <br>✓ Tiempo de ejecución
+                <br>✓ Indirectos y utilidad
+                <br><br>
+                <strong>NO se incluirá:</strong>
+                <br>✗ Materiales
+                <br>✗ Equipos
+                <br>✗ Herramienta
+            </p>
+        </div>
+        
+        <!-- ⚠️ ESTE DIV SE LLENA DINÁMICAMENTE -->
+        <div id="resumen-mano-obra-extraer" style="background:#f5f7fa;padding:15px;border-radius:10px;margin-bottom:20px;max-height:400px;overflow-y:auto;">
+            <!-- Se llenará dinámicamente con JavaScript -->
+        </div>
+        
+        <div style="display:flex;gap:10px;margin-top:20px;">
+            <button onclick="app.confirmarExtraerManoDeObra()" 
+                    style="flex:1;background:#FF9800;color:white;border:none;padding:14px;border-radius:10px;cursor:pointer;font-weight:600;">
+                ✅ Sí, Extraer Mano de Obra
+            </button>
+            <button onclick="app.cancelarExtraerManoDeObra()" 
+                    style="flex:1;background:#f44336;color:white;border:none;padding:14px;border-radius:10px;cursor:pointer;font-weight:600;">
+                ❌ Cancelar
+            </button>
+        </div>
+    </div>
 </div>
 
 <!-- MODAL SOLO MANO DE OBRA -->
@@ -1045,3 +1065,4 @@ navigator.serviceWorker.register('sw.js')
 
 </body>
 </html>
+
