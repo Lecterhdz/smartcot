@@ -923,7 +923,6 @@ window.curvaS = {
             // INFORMACIÓN DE LA COTIZACIÓN
             // ─────────────────────────────────────────────────────────
             let yPos = 40;
-            
             doc.setTextColor(26, 26, 26);
             doc.setFontSize(10);
             doc.text('Cotizacion #' + this.datos.cotizacionId, 15, yPos);
@@ -933,7 +932,13 @@ window.curvaS = {
             doc.text('Fecha de Reporte: ' + new Date().toLocaleDateString('es-MX'), 15, yPos);
             yPos += 6;
             doc.text('Total Proyecto: ' + calculator.formatoMoneda(cotizacion.totalFinal || 0), 15, yPos);
-            
+            yPos += 6;
+            // ⚠️ AGREGAR DESCRIPCION DEL PROYECTO (ANTES DE "INCLUYE")
+            if (cotizacion.descripcion && cotizacion.descripcion.trim() !== '') {
+                const descProyecto = cotizacion.descripcion.substring(0, 80);
+                doc.text('Proyecto: ' + descProyecto, 15, yPos);
+                yPos += 6;
+            }            
             // ─────────────────────────────────────────────────────────────────
             // INDICADORES DE DESEMPEÑO (CORREGIDO - DENTRO DEL MARGEN)
             // ─────────────────────────────────────────────────────────────────
