@@ -561,65 +561,69 @@ window.reportes = {
             // ─────────────────────────────────────────────────────────
             // MANO DE OBRA
             // ─────────────────────────────────────────────────────────
-            yPos += 8;
-            
-            doc.setFillColor(76, 175, 80);
-            doc.rect(15, yPos - 4, 180, 4, 'F');
-            
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(9);
-            doc.text('MANO DE OBRA', 20, yPos - 1);
-            
-            yPos += 6;
-            doc.setTextColor(26, 26, 26);
-            doc.setFontSize(8);
-            
-            const manoObra = concepto.recursos?.mano_obra || [];
-            if (manoObra.length > 0) {
-                const headers = ['Puesto', 'Horas/Jornada', 'Salario/Hora', 'Importe'];
-                const colWidths = [80, 35, 35, 30];
-                let xPos = 20;
+            if (cotizacion.conceptosCatalogo && cotizacion.conceptosCatalogo.length > 0) {
+                // Extraer toda la mano de obra de los conceptos
+                const manoDeObraTotal = [];
                 
-                headers.forEach(function(header, index) {
-                    doc.text(header, xPos, yPos);
-                    xPos += colWidths[index];
-                });
-                
-                yPos += 2;
-                doc.setDrawColor(200);
-                doc.line(15, yPos, 195, yPos);
-                yPos += 4;
-                
-                doc.setFontSize(7);
-                
-                let totalManoObra = 0;
-                manoObra.forEach(function(mo) {
-                    totalManoObra += (mo.importe || 0);
-                    
-                    doc.text((mo.puesto || 'Sin nombre').substring(0, 35), 20, yPos);
-                    doc.text((mo.horas_jornada || 0).toFixed(4), 105, yPos);
-                    doc.text(calculator.formatoMoneda(mo.salario_hora || 0), 145, yPos);
-                    doc.text(calculator.formatoMoneda(mo.importe || 0), 185, yPos, { align: 'right' });
-                    
-                    yPos += 4;
-                    
-                    if (yPos > 260) {
-                        doc.addPage();
-                        yPos = 20;
+                cotizacion.conceptosCatalogo.forEach(function(c) {
+                    if (c.recursos?.mano_obra) {
+                        c.recursos.mano_obra.forEach(function(mo) {
+                            manoDeObraTotal.push({
+                                conceptoCodigo: c.codigo || '',
+                                conceptoDescripcion: c.descripcion_corta || c.descripcion || '',  // ✅ USAR DESCRIPCIÓN COMPLETA
+                                cantidad: c.cantidad || 1,  // ✅ AGREGAR CANTIDAD
+                                puesto: mo.puesto || 'Sin nombre',
+                                jornadas: (mo.horas_jornada || 0) * (c.cantidad || 1),
+                                costoJornada: (mo.salario_hora || 0) * 8,
+                                importe: (mo.salario_hora || 0) * 8 * (mo.horas_jornada || 0) * (c.cantidad || 1)
+                            });
+                        });
                     }
                 });
                 
-                yPos += 2;
-                doc.setDrawColor(200);
-                doc.line(15, yPos, 195, yPos);
-                yPos += 4;
-                
-                doc.setFontSize(8);
-                doc.text('Subtotal Mano de Obra:', 150, yPos);
-                doc.text(calculator.formatoMoneda(totalManoObra), 185, yPos, { align: 'right' });
-            } else {
-                doc.setTextColor(150, 150, 150);
-                doc.text('No hay mano de obra', 20, yPos);
+                // Mostrar en reporte
+                if (manoDeObraTotal.length > 0) {
+                    yPos += 10;
+                    doc.setFillColor(76, 175, 80);
+                    doc.rect(15, yPos - 5, 180, 5, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(10);
+                    doc.text('👷 MANO DE OBRA', 20, yPos);
+                    
+                    yPos += 8;
+                    doc.setTextColor(26, 26, 26);
+                    doc.setFontSize(8);
+                    
+                    // Encabezados
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Concepto', 20, yPos);
+                    doc.text('Cant.', 70, yPos);
+                    doc.text('Puesto', 85, yPos);
+                    doc.text('Jornadas', 130, yPos);
+                    doc.text('Importe', 170, yPos);
+                    
+                    yPos += 2;
+                    doc.setDrawColor(200);
+                    doc.line(15, yPos, 195, yPos);
+                    yPos += 5;
+                    
+                    doc.setFont('helvetica', 'normal');
+                    
+                    manoDeObraTotal.forEach(function(mo) {
+                        doc.text(mo.conceptoCodigo + ' - ' + mo.conceptoDescripcion.substring(0, 25), 20, yPos);
+                        doc.text(mo.cantidad.toString(), 70, yPos);
+                        doc.text(mo.puesto.substring(0, 20), 85, yPos);
+                        doc.text(mo.jornadas.toFixed(2), 130, yPos);
+                        doc.text(calculator.formatoMoneda(mo.importe), 170, yPos, { align: 'right' });
+                        
+                        yPos += 5;
+                        
+                        if (yPos > 270) {
+                            doc.addPage();
+                            yPos = 20;
+                        }
+                    });
+                }
             }
             
             // ─────────────────────────────────────────────────────────
