@@ -1681,6 +1681,102 @@ window.app = {
             this.notificacion('❌ Error: ' + error.message, 'error');
         }
     },    
+
+    // ─────────────────────────────────────────────────────────────────
+    // GUARDAR COSTOS DE MANO DE OBRA (PRO/ENTERPRISE)
+    // ─────────────────────────────────────────────────────────────────
+    guardarCostosManoObra: async function() {
+        try {
+            // ⚠️ VERIFICAR QUE SEA PRO O ENTERPRISE
+            const licencia = window.licencia.cargar();
+            if (licencia?.tipo === 'DEMO') {
+                this.notificacion('❌ Costos de mano de obra solo disponible en PRO/ENTERPRISE', 'error');
+                return;
+            }
+            
+            const costos = {
+                ayudante: parseFloat(document.getElementById('costo-ayudante')?.value) || 0,
+                oficial: parseFloat(document.getElementById('costo-oficial')?.value) || 0,
+                tecnico: parseFloat(document.getElementById('costo-tecnico')?.value) || 0,
+                supervisor: parseFloat(document.getElementById('costo-supervisor')?.value) || 0
+            };
+            
+            await window.db.configuracion.put({ clave: 'costos_mano_obra', valor: costos });
+            
+            this.notificacion('✅ Costos de mano de obra actualizados', 'exito');
+            
+            // ⚠️ PREGUNTAR SI QUIERE APLICAR A CONCEPTOS EXISTENTES
+            if (confirm('¿Deseas aplicar estos costos a todos los conceptos existentes?')) {
+                await this.aplicarCostosManoObraAConceptos(costos);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error guardando costos:', error);
+            this.notificacion('❌ Error: ' + error.message, 'error');
+        }
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // CARGAR COSTOS DE MANO DE OBRA
+    // ─────────────────────────────────────────────────────────────────
+    cargarCostosManoObra: async function() {
+        try {
+            const costos = await window.db.configuracion.get('costos_mano_obra');
+            if (costos) {
+                const elAyudante = document.getElementById('costo-ayudante');
+                const elOficial = document.getElementById('costo-oficial');
+                const elTecnico = document.getElementById('costo-tecnico');
+                const elSupervisor = document.getElementById('costo-supervisor');
+                
+                if (elAyudante) elAyudante.value = costos.ayudante || 0;
+                if (elOficial) elOficial.value = costos.oficial || 0;
+                if (elTecnico) elTecnico.value = costos.tecnico || 0;
+                if (elSupervisor) elSupervisor.value = costos.supervisor || 0;
+            }
+        } catch (error) {
+            console.error('❌ Error cargando costos:', error);
+        }
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // APLICAR COSTOS DE MANO DE OBRA A CONCEPTOS
+    // ─────────────────────────────────────────────────────────────────
+    aplicarCostosManoObraAConceptos: async function(costos) {
+        try {
+            const conceptos = await window.db.conceptos.toArray();
+            let actualizados = 0;
+            
+            for (const concepto of conceptos) {
+                if (concepto.recursos?.mano_obra) {
+                    concepto.recursos.mano_obra.forEach(function(mo) {
+                        // Actualizar salario según puesto
+                        const puesto = mo.puesto?.toLowerCase() || '';
+                        if (puesto.includes('ayudante')) {
+                            mo.salario_hora = costos.ayudante / 8;
+                        } else if (puesto.includes('oficial')) {
+                            mo.salario_hora = costos.oficial / 8;
+                        } else if (puesto.includes('técnico') || puesto.includes('tecnico')) {
+                            mo.salario_hora = costos.tecnico / 8;
+                        } else if (puesto.includes('supervisor')) {
+                            mo.salario_hora = costos.supervisor / 8;
+                        }
+                        
+                        // Recalcular importe
+                        mo.importe = mo.salario_hora * (mo.horas_jornada || 0) * 8;
+                    });
+                    
+                    await window.db.conceptos.put(concepto);
+                    actualizados++;
+                }
+            }
+            
+            this.notificacion('✅ ' + actualizados + ' conceptos actualizados con nuevos costos', 'exito');
+            
+        } catch (error) {
+            console.error('❌ Error aplicando costos:', error);
+            this.notificacion('❌ Error: ' + error.message, 'error');
+        }
+    },
     
     // ─────────────────────────────────────────────────────────────────
     // LICENCIAS
@@ -1785,6 +1881,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
