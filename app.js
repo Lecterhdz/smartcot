@@ -1249,78 +1249,140 @@ guardarPreciosEnHistorico: async function(cotizacion) {
 },
 
 // ─────────────────────────────────────────────────────────────────
-// GUARDAR COTIZACIÓN
+// GUARDAR COTIZACIÓN (CORREGIDO - PERMITE SOLO RECURSOS ADICIONALES)
 // ─────────────────────────────────────────────────────────────────
 guardarCotizacion: async function() {
     try {
         console.log('💾 Guardando cotización...');
+        
+        // ⚠️ VERIFICAR LÍMITE DE COTIZACIONES
         const limite = await window.licencia.verificarLimite('cotizaciones');
         if (!limite.permitido) {
             this.notificacion('❌ ' + limite.razon, 'error');
             return;
         }
+        
         const clienteId = document.getElementById('cot-cliente')?.value;
         const descripcion = document.getElementById('cot-descripcion')?.value;
         const ubicacion = document.getElementById('cot-ubicacion')?.value;
         const fechaInicio = document.getElementById('cot-fecha-inicio')?.value;
         const fechaFinSolicitada = document.getElementById('cot-fecha-fin')?.value;
-        const indirectosOficinaPorcentaje = parseFloat(document.getElementById('cot-indirectos-oficina')?.value) || 5;
-        const indirectosCampoPorcentaje = parseFloat(document.getElementById('cot-indirectos-campo')?.value) || 15;
-        const financiamientoPorcentaje = parseFloat(document.getElementById('cot-financiamiento')?.value) || 0.85;
-        const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
+        
         if (!clienteId || !descripcion) {
             this.notificacion('⚠️ Completa cliente y descripción', 'error');
             return;
         }
-        if (this.datosCotizacion.conceptosSeleccionados.length === 0) {
-            this.notificacion('⚠️ Agrega al menos un concepto', 'error');
+        
+        // ⚠️ VALIDAR QUE HAYA AL MENOS UN RECURSO (CONCEPTOS O ADICIONALES)
+        const hayConceptos = this.datosCotizacion.conceptosSeleccionados.length > 0;
+        const hayMateriales = this.datosCotizacion.materiales.length > 0;
+        const hayManoObra = this.datosCotizacion.manoObra.length > 0;
+        const hayEquipos = this.datosCotizacion.equipos.length > 0;
+        
+        if (!hayConceptos && !hayMateriales && !hayManoObra && !hayEquipos) {
+            this.notificacion('⚠️ Agrega al menos un concepto O recursos adicionales (materiales, mano de obra o equipos)', 'error');
             return;
         }
+        
+        // Calcular totales
         this.calcularTotalConConceptos();
+        
+        // ⚠️ OBTENER VALORES DEL DOM
         const costoDirecto = parseFloat(document.getElementById('resumen-costo-directo')?.textContent.replace(/[^0-9.-]+/g, '')) || 0;
         const totalIndirectos = parseFloat(document.getElementById('resumen-sobrecosto-monto')?.textContent.replace(/[^0-9.-]+/g, '')) || 0;
         const utilidad = parseFloat(document.getElementById('resumen-utilidad')?.textContent.replace(/[^0-9.-]+/g, '')) || 0;
         const iva = parseFloat(document.getElementById('resumen-iva')?.textContent.replace(/[^0-9.-]+/g, '')) || 0;
         const totalFinal = parseFloat(document.getElementById('resumen-total')?.textContent.replace(/[^0-9.-]+/g, '')) || 0;
+        
+        // ⚠️ CALCULAR TIEMPO DE EJECUCIÓN DESDE MANO DE OBRA ADICIONAL
+        let totalJOR = 0;
+        
+        // Jornadas de conceptos del catálogo
+        this.datosCotizacion.conceptosSeleccionados.forEach(function(c) {
+            if (c.recursos?.mano_obra) {
+                c.recursos.mano_obra.forEach(function(mo) {
+                    totalJOR += (mo.horas_jornada || 0) * (c.cantidad || 1);
+                });
+            }
+        });
+        
+        // ⚠️ Jornadas de mano de obra adicional
+        this.datosCotizacion.manoObra.forEach(function(mo) {
+            totalJOR += (mo.jornadas || 0);
+        });
+        
+        const diasHabiles = Math.ceil(totalJOR) || 1;
+        const semanas = Math.ceil(diasHabiles / 5);
+        const meses = Math.ceil(semanas / 4.33);
+        
+        // ⚠️ OBTENER PORCENTAJES
+        const indirectosOficinaPorcentaje = parseFloat(document.getElementById('cot-indirectos-oficina')?.value) || 5;
+        const indirectosCampoPorcentaje = parseFloat(document.getElementById('cot-indirectos-campo')?.value) || 15;
+        const financiamientoPorcentaje = parseFloat(document.getElementById('cot-financiamiento')?.value) || 0.85;
+        const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
+        
+        // ⚠️ CREAR OBJETO DE COTIZACIÓN
         const cotizacion = {
             clienteId: clienteId,
             descripcion: descripcion,
             ubicacion: ubicacion || '',
             fechaInicio: fechaInicio || new Date().toISOString(),
             fechaFinSolicitada: fechaFinSolicitada || null,
+            
+            // ⚠️ GUARDAR TODOS LOS RECURSOS
             conceptosCatalogo: this.datosCotizacion.conceptosSeleccionados,
             materialesAdicionales: this.datosCotizacion.materiales,
             manoObraAdicional: this.datosCotizacion.manoObra,
             equiposAdicionales: this.datosCotizacion.equipos,
             herramientaAdicional: this.datosCotizacion.herramienta,
             indirectosAdicionales: this.datosCotizacion.indirectos,
+            
             porcentajes: {
                 indirectosOficina: indirectosOficinaPorcentaje,
                 indirectosCampo: indirectosCampoPorcentaje,
                 financiamiento: financiamientoPorcentaje,
                 utilidad: utilidadPorcentaje
             },
+            
             factoresAjuste: this.factoresAjuste,
-            tiempoEjecucion: this.tiempoEjecucion,
+            
+            // ⚠️ TIEMPO DE EJECUCIÓN CALCULADO
+            tiempoEjecucion: {
+                jornadas: totalJOR.toFixed(2),
+                diasHabiles: diasHabiles,
+                semanas: semanas,
+                meses: meses
+            },
+            
+            // ⚠️ TOTALES CALCULADOS
             costoDirecto: costoDirecto,
             totalIndirectos: totalIndirectos,
             utilidad: utilidad,
             iva: iva,
             totalFinal: totalFinal,
             fecha: new Date().toISOString(),
-            estado: 'pendiente'
+            estado: 'pendiente',
+            
+            // ⚠️ TIPO DE COTIZACIÓN
+            tipo: hayConceptos ? 'estandar' : 'solo-recursos-adicionales'
         };
+        
         await window.db.cotizaciones.add(cotizacion);
+        
         console.log('✅ Cotización guardada:', cotizacion);
         this.notificacion('✅ Cotización guardada exitosamente', 'exito');
+        
+        // ⚠️ GUARDAR PRECIOS EN HISTÓRICO (SOLO ENTERPRISE)
         const licencia = window.licencia.cargar();
         if (licencia?.tipo === 'ENTERPRISE') {
             await this.guardarPreciosEnHistorico(cotizacion);
         }
+        
         this.resetearFormulario();
         await this.cargarEstadisticas();
         await this.actualizarContadoresLicencia();
         this.mostrarPantalla('dashboard-screen');
+        
     } catch (error) {
         console.error('❌ Error guardando cotización:', error);
         this.notificacion('❌ Error: ' + error.message, 'error');
@@ -2058,5 +2120,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
