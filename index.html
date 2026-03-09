@@ -370,18 +370,6 @@
                         style="background:#2196F3;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;">
                     📋 Cargar Plantilla
                 </button>
-
-                <!-- Después del título de Nueva Cotización, agrega: -->
-                <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
-                    <button onclick="app.crearCotizacionSoloManoObra()" 
-                            style="background:#FF9800;color:white;border:none;padding:12px 25px;border-radius:10px;cursor:pointer;font-weight:600;">
-                        👷 Cotizar Solo Mano de Obra
-                    </button>
-                    <button onclick="app.crearCotizacionEstandar()" 
-                            style="background:#2196F3;color:white;border:none;padding:12px 25px;border-radius:10px;cursor:pointer;font-weight:600;">
-                        📋 Cotización Estándar
-                    </button>
-                </div>
                 
                 <!-- Modal para plantilla solo MO -->
                 <div id="modal-solo-mano-obra" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10000;justify-content:center;align-items:center;">
@@ -497,10 +485,7 @@
                             style="display:none;background:#FF9800;color:white;border:none;padding:12px 25px;border-radius:10px;cursor:pointer;font-weight:600;">
                         👷 Extraer Solo Mano de Obra
                     </button>
-                    <button onclick="app.guardarCotizacionCompleta()" 
-                            style="background:#4CAF50;color:white;border:none;padding:12px 25px;border-radius:10px;cursor:pointer;font-weight:600;">
-                        💾 Guardar Cotización Completa
-                    </button>
+
                 </div>
                 
                 <!-- Modal para confirmar extracción -->
@@ -1241,6 +1226,7 @@
 </footer>   
 </body>
 </html>
+
 
 
 
