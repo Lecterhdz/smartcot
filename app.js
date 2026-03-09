@@ -81,6 +81,7 @@ window.app = {
             this.actualizarInfoLicenciaUI();
             
             await this.cargarConfiguracion();
+            await this.cargarCostosManoObra();  // ← AGREGAR ESTA LÍNEA
             await this.cargarEstadisticas();
             await this.cargarClientesSelect();
             await this.cargarActividadReciente();
@@ -2033,6 +2034,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
