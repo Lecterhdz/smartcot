@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────
-// SMARTCOT v2.0 - GENERADOR DE REPORTES PDF (CORREGIDO UTF-8)
+// SMARTCOT v2.0 - GENERADOR DE REPORTES PDF (CORREGIDO)
 // ─────────────────────────────────────────────────────────────────────
 
 console.log('📄 reportes.js cargado');
@@ -22,7 +22,7 @@ window.reportes = {
                 return;
             }
             
-            // ⚠️ CARGAR LOGO SI ES ENTERPRISE
+            // ⚠️ CARGAR CONFIGURACIÓN DE MARCA (SOLO ENTERPRISE)
             const licencia = window.licencia.cargar();
             let logoBase64 = null;
             let colorCorporativo = '#1a1a1a';
@@ -101,7 +101,7 @@ window.reportes = {
             // DATOS DEL CLIENTE Y PROYECTO
             // ─────────────────────────────────────────────────────────
             let yPos = 50;
-                     
+            
             doc.setTextColor(26, 26, 26);
             doc.setFontSize(11);
             
@@ -182,8 +182,11 @@ window.reportes = {
                         codigo = 'E' + codigo;  // Agregar "E" al inicio
                     }
                     
+                    // ⚠️ USAR DESCRIPCIÓN COMPLETA (no solo descripción_corta)
+                    const descripcion = (c.descripcion || c.descripcion_corta || 'Sin descripción').substring(0, 40);
+                    
                     doc.text(codigo.substring(0, 12), 15, yPos);
-                    doc.text((c.descripcion || c.descripcion_corta || '').substring(0, 40), 42, yPos);
+                    doc.text(descripcion, 42, yPos);
                     doc.text((c.cantidad || 1).toString(), 125, yPos);
                     doc.text(c.unidad || '', 142, yPos);
                     doc.text(calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0), 160, yPos);
@@ -234,166 +237,6 @@ window.reportes = {
             yPos += 8;
             doc.setFontSize(14);
             doc.text(calculator.formatoMoneda(cotizacion.totalFinal || 0), 185, yPos, { align: 'right' });
-       
-            
-            // ─────────────────────────────────────────────────────────
-            // TIEMPO DE EJECUCION
-            // ─────────────────────────────────────────────────────────
-            yPos += 5;
-            doc.setDrawColor(200);
-            doc.line(15, yPos, 195, yPos);
-            yPos += 8;
-            
-            doc.setFillColor(232, 245, 233);
-            doc.rect(15, yPos - 5, 180, 5, 'F');
-            
-            doc.setTextColor(46, 125, 50);
-            doc.setFontSize(10);
-            doc.text('TIEMPO DE EJECUCION ESTIMADO', 20, yPos - 2);
-            
-            yPos += 8;
-            doc.setTextColor(26, 26, 26);
-            doc.setFontSize(8);
-            
-            if (cotizacion.tiempoEjecucion) {
-                doc.text('Jornadas: ' + (cotizacion.tiempoEjecucion.jornadas || 0), 20, yPos);
-                doc.text('Dias Habiles: ' + (cotizacion.tiempoEjecucion.diasHabiles || 0), 70, yPos);
-                doc.text('Semanas: ' + (cotizacion.tiempoEjecucion.semanas || 0), 120, yPos);
-                doc.text('Meses: ' + (cotizacion.tiempoEjecucion.meses || 0), 170, yPos);
-            }
-            
-            yPos += 8;
-            
-            // ─────────────────────────────────────────────────────────
-            // FACTORES DE AJUSTE (SI APLICAN)
-            // ─────────────────────────────────────────────────────────
-            if (cotizacion.factoresAjuste && cotizacion.factoresAjuste.total > 1) {
-                doc.setFillColor(255, 243, 224);
-                doc.rect(15, yPos - 5, 180, 5, 'F');
-                
-                doc.setTextColor(230, 81, 0);
-                doc.setFontSize(10);
-                doc.text('FACTORES DE AJUSTE APLICADOS', 20, yPos - 2);
-                
-                yPos += 8;
-                doc.setTextColor(26, 26, 26);
-                doc.setFontSize(8);
-                
-                doc.text('Altura: ' + (cotizacion.factoresAjuste.altura || 1) + 'x', 20, yPos);
-                doc.text('Clima: ' + (cotizacion.factoresAjuste.clima || 1) + 'x', 70, yPos);
-                doc.text('Acceso: ' + (cotizacion.factoresAjuste.acceso || 1) + 'x', 120, yPos);
-                doc.text('Seguridad: ' + (cotizacion.factoresAjuste.seguridad || 1) + 'x', 170, yPos);
-                
-                yPos += 8;
-            }
-            
-            // ─────────────────────────────────────────────────────────────────
-            // RESUMEN FINANCIERO (CORREGIDO - OBTENER VALORES REALES)
-            // ─────────────────────────────────────────────────────────────────
-            yPos += 10;
-            
-            doc.setFillColor(26, 26, 26);
-            doc.rect(15, yPos - 8, 180, 8, 'F');
-            
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
-            doc.text('💰 RESUMEN FINANCIERO', 20, yPos - 2);
-            
-            yPos += 10;
-            doc.setTextColor(26, 26, 26);
-            doc.setFontSize(9);
-            
-            // ⚠️ IMPORTANTE: Obtener valores de la cotización o calcularlos
-            const costoDirecto = cotizacion.costoDirecto || 0;
-            const totalIndirectos = cotizacion.totalIndirectos || 0;
-            const utilidad = cotizacion.utilidad || 0;
-            const iva = cotizacion.iva || 0;
-            const totalFinal = cotizacion.totalFinal || 0;
-            
-            // Si los valores son 0, calcularlos desde los conceptos
-            if (costoDirecto === 0 && cotizacion.conceptosCatalogo && cotizacion.conceptosCatalogo.length > 0) {
-                // Calcular costo directo desde conceptos
-                let subtotal = 0;
-                cotizacion.conceptosCatalogo.forEach(function(c) {
-                    subtotal += (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
-                });
-                
-                // Obtener porcentajes
-                const indirectosOficinaPorcentaje = cotizacion.porcentajes?.indirectosOficina || 5;
-                const indirectosCampoPorcentaje = cotizacion.porcentajes?.indirectosCampo || 15;
-                const utilidadPorcentaje = cotizacion.porcentajes?.utilidad || 10;
-                
-                // Calcular indirectos
-                const indirectosOficina = subtotal * (indirectosOficinaPorcentaje / 100);
-                const indirectosCampo = subtotal * (indirectosCampoPorcentaje / 100);
-                const totalIndirectosCalculado = indirectosOficina + indirectosCampo;
-                
-                // Calcular utilidad
-                const baseConIndirectos = subtotal + totalIndirectosCalculado;
-                const utilidadCalculada = baseConIndirectos * (utilidadPorcentaje / 100);
-                
-                // Calcular IVA
-                const ivaCalculado = (baseConIndirectos + utilidadCalculada) * 0.16;
-                
-                // Calcular total
-                const totalFinalCalculado = baseConIndirectos + utilidadCalculada + ivaCalculado;
-                
-                // Usar valores calculados
-                doc.text('Costo Directo:', 20, yPos);
-                doc.text(calculator.formatoMoneda(subtotal), 185, yPos, { align: 'right' });
-                yPos += 6;
-                
-                doc.text('Indirectos:', 20, yPos);
-                doc.text(calculator.formatoMoneda(totalIndirectosCalculado), 185, yPos, { align: 'right' });
-                yPos += 6;
-                
-                doc.text('Utilidad:', 20, yPos);
-                doc.text(calculator.formatoMoneda(utilidadCalculada), 185, yPos, { align: 'right' });
-                yPos += 6;
-                
-                doc.text('IVA (16%):', 20, yPos);
-                doc.text(calculator.formatoMoneda(ivaCalculado), 185, yPos, { align: 'right' });
-                yPos += 8;
-                
-                // TOTAL FINAL
-                doc.setFillColor(76, 175, 80);
-                doc.rect(15, yPos - 8, 180, 10, 'F');
-                
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(12);
-                doc.setFont('helvetica', 'bold');
-                doc.text('TOTAL FINAL:', 20, yPos - 1);
-                doc.text(calculator.formatoMoneda(totalFinalCalculado), 185, yPos - 1, { align: 'right' });
-                
-            } else {
-                // Usar valores guardados
-                doc.text('Costo Directo:', 20, yPos);
-                doc.text(calculator.formatoMoneda(costoDirecto), 185, yPos, { align: 'right' });
-                yPos += 6;
-                
-                doc.text('Indirectos:', 20, yPos);
-                doc.text(calculator.formatoMoneda(totalIndirectos), 185, yPos, { align: 'right' });
-                yPos += 6;
-                
-                doc.text('Utilidad:', 20, yPos);
-                doc.text(calculator.formatoMoneda(utilidad), 185, yPos, { align: 'right' });
-                yPos += 6;
-                
-                doc.text('IVA (16%):', 20, yPos);
-                doc.text(calculator.formatoMoneda(iva), 185, yPos, { align: 'right' });
-                yPos += 8;
-                
-                // TOTAL FINAL
-                doc.setFillColor(76, 175, 80);
-                doc.rect(15, yPos - 8, 180, 10, 'F');
-                
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(12);
-                doc.setFont('helvetica', 'bold');
-                doc.text('TOTAL FINAL:', 20, yPos - 1);
-                doc.text(calculator.formatoMoneda(totalFinal), 185, yPos - 1, { align: 'right' });
-            }
             
             // ─────────────────────────────────────────────────────────
             // PIE DE PÁGINA
@@ -418,11 +261,11 @@ window.reportes = {
             // ─────────────────────────────────────────────────────────
             // GUARDAR PDF
             // ─────────────────────────────────────────────────────────
-            const nombreArchivo = 'Cotizacion-' + cotizacion.id + '.pdf';
+            const nombreArchivo = 'Cotizacion-' + cotizacion.id + '-' + (cliente ? cliente.nombre.replace(/[^a-z0-9]/gi, '_') : 'SinCliente') + '.pdf';
             doc.save(nombreArchivo);
             
             console.log('✅ PDF generado:', nombreArchivo);
-            alert('✅ PDF generado exitosamente');
+            alert('✅ Cotización PDF generada exitosamente');
             
         } catch (error) {
             console.error('❌ Error generando PDF:', error);
@@ -431,7 +274,7 @@ window.reportes = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // GENERAR PDF DE APU (ANALISIS DE PRECIOS UNITARIOS)
+    // GENERAR PDF DE APU (ANÁLISIS DE PRECIOS UNITARIOS)
     // ─────────────────────────────────────────────────────────────────
     generarAPUPDF: async function(conceptoId) {
         try {
@@ -468,14 +311,14 @@ window.reportes = {
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(16);
             doc.setFont('helvetica', 'bold');
-            doc.text('ANALISIS DE PRECIOS UNITARIOS', 105, 18, { align: 'center' });
+            doc.text('ANÁLISIS DE PRECIOS UNITARIOS', 105, 18, { align: 'center' });
             
             doc.setFontSize(10);
-            doc.setFont('courier', 'italic'); 
+            doc.setFont('helvetica', 'normal'); 
             doc.text('SmartCot v2.0 - Cotizador Industrial', 105, 25, { align: 'center' });
             
             // ─────────────────────────────────────────────────────────
-            // INFORMACION DEL CONCEPTO
+            // INFORMACIÓN DEL CONCEPTO
             // ─────────────────────────────────────────────────────────
             let yPos = 40;
             
@@ -485,7 +328,7 @@ window.reportes = {
             
             yPos += 6;
             doc.setFontSize(9);
-            doc.text('Descripcion: ' + (concepto.descripcion_corta || 'Sin descripcion'), 15, yPos);
+            doc.text('Descripción: ' + (concepto.descripcion || concepto.descripcion_corta || 'Sin descripción'), 15, yPos);
             
             yPos += 5;
             doc.text('Unidad: ' + (concepto.unidad || 'N/A'), 15, yPos);
@@ -561,69 +404,65 @@ window.reportes = {
             // ─────────────────────────────────────────────────────────
             // MANO DE OBRA
             // ─────────────────────────────────────────────────────────
-            if (cotizacion.conceptosCatalogo && cotizacion.conceptosCatalogo.length > 0) {
-                // Extraer toda la mano de obra de los conceptos
-                const manoDeObraTotal = [];
+            yPos += 8;
+            
+            doc.setFillColor(76, 175, 80);
+            doc.rect(15, yPos - 4, 180, 4, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(9);
+            doc.text('MANO DE OBRA', 20, yPos - 1);
+            
+            yPos += 6;
+            doc.setTextColor(26, 26, 26);
+            doc.setFontSize(8);
+            
+            const manoObra = concepto.recursos?.mano_obra || [];
+            if (manoObra.length > 0) {
+                const headers = ['Puesto', 'Horas/Jornada', 'Salario/Hora', 'Importe'];
+                const colWidths = [80, 35, 35, 30];
+                let xPos = 20;
                 
-                cotizacion.conceptosCatalogo.forEach(function(c) {
-                    if (c.recursos?.mano_obra) {
-                        c.recursos.mano_obra.forEach(function(mo) {
-                            manoDeObraTotal.push({
-                                conceptoCodigo: c.codigo || '',
-                                conceptoDescripcion: c.descripcion_corta || c.descripcion || '',  // ✅ USAR DESCRIPCIÓN COMPLETA
-                                cantidad: c.cantidad || 1,  // ✅ AGREGAR CANTIDAD
-                                puesto: mo.puesto || 'Sin nombre',
-                                jornadas: (mo.horas_jornada || 0) * (c.cantidad || 1),
-                                costoJornada: (mo.salario_hora || 0) * 8,
-                                importe: (mo.salario_hora || 0) * 8 * (mo.horas_jornada || 0) * (c.cantidad || 1)
-                            });
-                        });
+                headers.forEach(function(header, index) {
+                    doc.text(header, xPos, yPos);
+                    xPos += colWidths[index];
+                });
+                
+                yPos += 2;
+                doc.setDrawColor(200);
+                doc.line(15, yPos, 195, yPos);
+                yPos += 4;
+                
+                doc.setFontSize(7);
+                
+                let totalManoObra = 0;
+                manoObra.forEach(function(mo) {
+                    totalManoObra += (mo.importe || 0);
+                    
+                    doc.text((mo.puesto || 'Sin nombre').substring(0, 35), 20, yPos);
+                    doc.text((mo.horas_jornada || 0).toFixed(4), 105, yPos);
+                    doc.text(calculator.formatoMoneda(mo.salario_hora || 0), 145, yPos);
+                    doc.text(calculator.formatoMoneda(mo.importe || 0), 185, yPos, { align: 'right' });
+                    
+                    yPos += 4;
+                    
+                    if (yPos > 260) {
+                        doc.addPage();
+                        yPos = 20;
                     }
                 });
                 
-                // Mostrar en reporte
-                if (manoDeObraTotal.length > 0) {
-                    yPos += 10;
-                    doc.setFillColor(76, 175, 80);
-                    doc.rect(15, yPos - 5, 180, 5, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(10);
-                    doc.text('👷 MANO DE OBRA', 20, yPos);
-                    
-                    yPos += 8;
-                    doc.setTextColor(26, 26, 26);
-                    doc.setFontSize(8);
-                    
-                    // Encabezados
-                    doc.setFont('helvetica', 'bold');
-                    doc.text('Concepto', 20, yPos);
-                    doc.text('Cant.', 70, yPos);
-                    doc.text('Puesto', 85, yPos);
-                    doc.text('Jornadas', 130, yPos);
-                    doc.text('Importe', 170, yPos);
-                    
-                    yPos += 2;
-                    doc.setDrawColor(200);
-                    doc.line(15, yPos, 195, yPos);
-                    yPos += 5;
-                    
-                    doc.setFont('helvetica', 'normal');
-                    
-                    manoDeObraTotal.forEach(function(mo) {
-                        doc.text(mo.conceptoCodigo + ' - ' + mo.conceptoDescripcion.substring(0, 25), 20, yPos);
-                        doc.text(mo.cantidad.toString(), 70, yPos);
-                        doc.text(mo.puesto.substring(0, 20), 85, yPos);
-                        doc.text(mo.jornadas.toFixed(2), 130, yPos);
-                        doc.text(calculator.formatoMoneda(mo.importe), 170, yPos, { align: 'right' });
-                        
-                        yPos += 5;
-                        
-                        if (yPos > 270) {
-                            doc.addPage();
-                            yPos = 20;
-                        }
-                    });
-                }
+                yPos += 2;
+                doc.setDrawColor(200);
+                doc.line(15, yPos, 195, yPos);
+                yPos += 4;
+                
+                doc.setFontSize(8);
+                doc.text('Subtotal Mano de Obra:', 150, yPos);
+                doc.text(calculator.formatoMoneda(totalManoObra), 185, yPos, { align: 'right' });
+            } else {
+                doc.setTextColor(150, 150, 150);
+                doc.text('No hay mano de obra', 20, yPos);
             }
             
             // ─────────────────────────────────────────────────────────
@@ -770,7 +609,7 @@ window.reportes = {
             let yPos = 40;
             doc.setTextColor(26, 26, 26);
             doc.setFontSize(10);
-            doc.text('Cotizacion #' + cotizacionId, 15, yPos);
+            doc.text('Cotización #' + cotizacionId, 15, yPos);
             yPos += 6;
             doc.text('Fecha: ' + new Date().toLocaleDateString('es-MX'), 15, yPos);
             
