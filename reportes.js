@@ -112,8 +112,18 @@ window.reportes = {
             doc.setFont('helvetica', 'bold');
             doc.text('Proyecto:', 15, yPos);
             doc.setFont('helvetica', 'normal');
-            // ⚠️ USAR DESCRIPCION LARGA (descripcion en vez de descripcion_corta)
-            doc.text(cotizacion.descripcion || 'Sin descripcion', 50, yPos);
+            
+            // ⚠️ USAR descripcion_tecnica (LA COMPLETA DEL EXCEL)
+            let descripcion = '';
+            if (c.descripcion_tecnica && c.descripcion_tecnica.trim() !== '') {
+                descripcion = c.descripcion_tecnica.substring(0, 37);  // ✅ descripcion_tecnica
+            } else if (c.descripcion && c.descripcion.trim() !== '') {
+                descripcion = c.descripcion.substring(0, 37);
+            } else if (c.descripcion_corta && c.descripcion_corta.trim() !== '') {
+                descripcion = c.descripcion_corta.substring(0, 37);
+            } else {
+                descripcion = 'Sin descripcion';
+            }
             
             yPos += 8;
             doc.setFont('helvetica', 'bold');
