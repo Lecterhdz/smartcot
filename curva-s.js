@@ -905,21 +905,6 @@ window.curvaS = {
             }
             
             // ─────────────────────────────────────────────────────────
-            // ENCABEZADO
-            // ─────────────────────────────────────────────────────────
-            doc.setFillColor(26, 26, 26);
-            doc.rect(0, 0, 210, 30, 'F');
-            
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(16);
-            doc.setFont('helvetica', 'bold');
-            doc.text('CURVA S - SEGUIMIENTO DE OBRA', 105, 18, { align: 'center' });
-            
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text('SmartCot v2.0 - Reporte de Avance', 105, 25, { align: 'center' });
-            
-            // ─────────────────────────────────────────────────────────
             // INFORMACIÓN DE LA COTIZACIÓN
             // ─────────────────────────────────────────────────────────
             let yPos = 40;
@@ -933,12 +918,20 @@ window.curvaS = {
             yPos += 6;
             doc.text('Total Proyecto: ' + calculator.formatoMoneda(cotizacion.totalFinal || 0), 15, yPos);
             yPos += 6;
-            // ⚠️ AGREGAR DESCRIPCION DEL PROYECTO (ANTES DE "INCLUYE")
+            // ⚠️ AGREGAR DESCRIPCIÓN DEL PROYECTO (2-3 LÍNEAS)
             if (cotizacion.descripcion && cotizacion.descripcion.trim() !== '') {
-                const descProyecto = cotizacion.descripcion.substring(0, 80);
-                doc.text('Proyecto: ' + descProyecto, 15, yPos);
-                yPos += 6;
-            }            
+                const descLineas = [];
+                const maxCaracteres = 90;
+                for (let i = 0; i < cotizacion.descripcion.length; i += maxCaracteres) {
+                    descLineas.push(cotizacion.descripcion.substring(i, i + maxCaracteres));
+                }
+                doc.text('Proyecto:', 15, yPos);
+                yPos += 5;
+                descLineas.forEach(function(linea) {
+                    doc.text(linea, 20, yPos);
+                    yPos += 5;
+                });
+            }          
             // ─────────────────────────────────────────────────────────────────
             // INDICADORES DE DESEMPEÑO (CORREGIDO - DENTRO DEL MARGEN)
             // ─────────────────────────────────────────────────────────────────
