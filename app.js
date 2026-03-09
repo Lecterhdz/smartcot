@@ -1513,9 +1513,10 @@ window.app = {
                         const costo = (mo.salario_hora || 0) * 8 * jornadas;
                         
                         manoDeObraTotal.push({
-                            concepto: concepto.codigo + ' - ' + (mo.puesto || 'Sin nombre'),
+                            conceptoCodigo: concepto.codigo || '',
+                            conceptoDescripcion: concepto.descripcion_corta || concepto.descripcion || '',
+                            cantidad: concepto.cantidad || 1,
                             puesto: mo.puesto || 'Sin nombre',
-                            codigoConcepto: concepto.codigo,
                             jornadas: jornadas,
                             costoJornada: (mo.salario_hora || 0) * 8,
                             importe: costo
@@ -1532,30 +1533,37 @@ window.app = {
                 return;
             }
             
-            // Mostrar resumen en modal
+            // ✅ MOSTRAR RESUMEN COMPLETO EN MODAL
             const resumenDiv = document.getElementById('resumen-mano-obra-extraer');
             if (resumenDiv) {
                 resumenDiv.innerHTML = 
                     '<div style="margin-bottom:15px;">' +
                     '<div style="font-weight:700;color:#1a1a1a;margin-bottom:10px;">Mano de Obra a Extraer (' + manoDeObraTotal.length + ' puestos)</div>' +
                     manoDeObraTotal.map(function(mo) {
-                        return '<div style="display:flex;justify-content:space-between;padding:8px;background:white;border-radius:6px;margin-bottom:5px;font-size:13px;">' +
-                            '<div>' +
-                            '<div style="font-weight:600;">' + mo.concepto + '</div>' +
-                            '<div style="color:#666;font-size:11px;">' + mo.jornadas + ' jornadas × ' + calculator.formatoMoneda(mo.costoJornada) + '</div>' +
+                        return '<div style="display:flex;justify-content:space-between;padding:8px;background:white;border-radius:6px;margin-bottom:5px;font-size:12px;">' +
+                            '<div style="flex:1;">' +
+                            '<div style="font-weight:600;color:#1a1a1a;">' + mo.conceptoCodigo + ' - ' + mo.conceptoDescripcion.substring(0, 40) + '</div>' +
+                            '<div style="color:#666;font-size:11px;">' + mo.puesto + ' | Cant: ' + mo.cantidad + '</div>' +
+                            '<div style="color:#666;font-size:11px;">' + mo.jornadas.toFixed(2) + ' jornadas × ' + calculator.formatoMoneda(mo.costoJornada) + '/jornada</div>' +
                             '</div>' +
                             '<div style="font-weight:700;color:#FF9800;">' + calculator.formatoMoneda(mo.importe) + '</div>' +
                             '</div>';
                     }).join('') +
                     '</div>' +
                     '<div style="border-top:2px solid #ddd;padding-top:10px;">' +
-                    '<div style="display:flex;justify-content:space-between;font-weight:700;font-size:16px;">' +
-                    '<span>Subtotal Mano de Obra:</span>' +
-                    '<span style="color:#FF9800;">' + calculator.formatoMoneda(costoTotalMO) + '</span>' +
+                    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">' +
+                    '<div>' +
+                    '<div style="font-size:11px;color:#666;">Total Jornadas</div>' +
+                    '<div style="font-size:16px;font-weight:700;color:#2196F3;">' + totalJornadas.toFixed(2) + ' jor</div>' +
                     '</div>' +
-                    '<div style="display:flex;justify-content:space-between;font-size:13px;color:#666;margin-top:5px;">' +
-                    '<span>Total Jornadas:</span>' +
-                    '<span>' + totalJornadas + ' jornadas</span>' +
+                    '<div>' +
+                    '<div style="font-size:11px;color:#666;">Tiempo Estimado</div>' +
+                    '<div style="font-size:16px;font-weight:700;color:#4CAF50;">' + Math.ceil(totalJornadas / 8) + ' días</div>' +
+                    '</div>' +
+                    '<div>' +
+                    '<div style="font-size:11px;color:#666;">Subtotal MO</div>' +
+                    '<div style="font-size:16px;font-weight:700;color:#FF9800;">' + calculator.formatoMoneda(costoTotalMO) + '</div>' +
+                    '</div>' +
                     '</div>' +
                     '</div>';
             }
@@ -2236,6 +2244,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
