@@ -149,7 +149,7 @@ window.reportes = {
             
             // ⚠️ ENCABEZADOS DE COLUMNA
             const headers = ['Codigo', 'Descripcion', 'Cant.', 'Unidad', 'Costo Unit.', 'Importe'];
-            const colWidths = [25, 75, 15, 15, 30, 35];
+            const colWidths = [25, 80, 15, 15, 30, 35];
             let xPos = 15;
             
             doc.rect(15, yPos - 5, 180, 8, 'F');
@@ -166,44 +166,65 @@ window.reportes = {
             
             let totalConceptos = 0;
             
-            // ⚠️ VERIFICAR SI HAY CONCEPTOS - CORREGIDO SCOPE DE VARIABLE
             if (cotizacion.conceptosCatalogo && cotizacion.conceptosCatalogo.length > 0) {
-                cotizacion.conceptosCatalogo.forEach(function(concepto) {
-                    const importe = (concepto.costos_base?.costo_directo_total || 0) * (concepto.cantidad || 1);
+                cotizacion.conceptosCatalogo.forEach(function(c) {
+                    const importe = (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
                     totalConceptos += importe;
                     
-                    // ⚠️ MARCAR CONCEPTOS CON PRECIO EDITADO
-                    let codigo = concepto.codigo || '';
-                    if (concepto.precioEditado) {
+                    let codigo = c.codigo || '';
+                    if (c.precioEditado) {
                         codigo = 'E' + codigo;
                     }
                     
-                    // ⚠️ USAR descripcion_tecnica (LA COMPLETA DEL EXCEL)
+                    // ⚠️ OBTENER DESCRIPCIÓN COMPLETA (descripcion_tecnica)
                     let descripcion = '';
-                    if (concepto.descripcion_tecnica && concepto.descripcion_tecnica.trim() !== '') {
-                        descripcion = concepto.descripcion_tecnica.substring(0, 37);
-                    } else if (concepto.descripcion && concepto.descripcion.trim() !== '') {
-                        descripcion = concepto.descripcion.substring(0, 37);
-                    } else if (concepto.descripcion_corta && concepto.descripcion_corta.trim() !== '') {
-                        descripcion = concepto.descripcion_corta.substring(0, 37);
+                    if (c.descripcion_tecnica && c.descripcion_tecnica.trim() !== '') {
+                        descripcion = c.descripcion_tecnica;  // ✅ COMPLETA SIN CORTAR
+                    } else if (c.descripcion && c.descripcion.trim() !== '') {
+                        descripcion = c.descripcion;
+                    } else if (c.descripcion_corta && c.descripcion_corta.trim() !== '') {
+                        descripcion = c.descripcion_corta;
                     } else {
                         descripcion = 'Sin descripcion';
                     }
                     
+                    // ⚠️ DIVIDIR DESCRIPCIÓN EN LÍNEAS DE 80 CARACTERES
+                    const lineas = [];
+                    const maxCaracteresPorLinea = 80;
+                    for (let i = 0; i < descripcion.length; i += maxCaracteresPorLinea) {
+                        lineas.push(descripcion.substring(i, i + maxCaracteresPorLinea));
+                    }
+                    
+                    // ⚠️ PRIMERA LÍNEA: CÓDIGO + PRIMERA LÍNEA DE DESCRIPCIÓN
                     doc.text(codigo.substring(0, 12), 15, yPos);
-                    doc.text(descripcion, 42, yPos);
-                    doc.text((concepto.cantidad || 1).toString(), 125, yPos);
-                    doc.text(concepto.unidad || '', 142, yPos);
-                    doc.text(calculator.formatoMoneda(concepto.costos_base?.costo_directo_total || 0), 160, yPos);
+                    doc.text(lineas[0] || '', 42, yPos);
+                    doc.text((c.cantidad || 1).toString(), 125, yPos);
+                    doc.text(c.unidad || '', 142, yPos);
+                    doc.text(calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0), 160, yPos);
                     doc.text(calculator.formatoMoneda(importe), 185, yPos, { align: 'right' });
                     
-                    yPos += 6;
+                    yPos += 5;
+                    
+                    // ⚠️ LÍNEAS ADICIONALES DE DESCRIPCIÓN (SI HAY MÁS)
+                    for (let i = 1; i < lineas.length; i++) {
+                        doc.text(lineas[i], 42, yPos);
+                        yPos += 5;
+                        
+                        if (yPos > 260) {
+                            doc.addPage();
+                            yPos = 20;
+                        }
+                    }
+                    
+                    // ⚠️ ESPACIO ADICIONAL DESPUÉS DEL CONCEPTO
+                    yPos += 2;
                     
                     if (yPos > 260) {
                         doc.addPage();
                         yPos = 20;
                     }
                 });
+
             } else {
                 doc.text('No hay conceptos del catalogo', 15, yPos);
                 yPos += 10;
