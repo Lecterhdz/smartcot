@@ -1903,7 +1903,6 @@ comprarPlan: function(plan) {
         '💰 Precio: $' + info.precio + ' MXN\n' +
         '📅 Duración: ' + info.dias + ' días\n\n' +
         'Contacta a lecterhdz@gmail.com para generar tu clave de licencia.\n\n' +
-        'O genera tu clave en: https://lecterhdz.github.io/smartcot/generador-licencias.html';
     alert(mensaje);
 },
 
@@ -1998,3 +1997,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
