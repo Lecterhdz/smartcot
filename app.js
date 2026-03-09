@@ -1889,7 +1889,7 @@ window.app = {
     crearCotizacionEstandar: function() {
         // Cierra el modal y deja el formulario estándar
         this.cerrarModalSoloManoObra();
-    }    
+    },    
     
     // ─────────────────────────────────────────────────────────────────
     // APLICAR COSTOS DE MANO DE OBRA A CONCEPTOS
@@ -2034,6 +2034,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
