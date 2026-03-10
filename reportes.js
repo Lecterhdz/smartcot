@@ -215,6 +215,197 @@ window.reportes = {
                 doc.text('No hay conceptos del catalogo', 15, yPos);
                 yPos += 8;
             }
+
+            // ─────────────────────────────────────────────────────────────────
+            // RECURSOS ADICIONALES (NUEVO - DESPUÉS DE CONCEPTOS)
+            // ─────────────────────────────────────────────────────────────────
+            
+            // ⚠️ MATERIALES ADICIONALES
+            if (cotizacion.materialesAdicionales && cotizacion.materialesAdicionales.length > 0) {
+                yPos += 10;
+                doc.setFillColor(33, 150, 243);
+                doc.rect(15, yPos - 4, 180, 5, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text('MATERIALES ADICIONALES', 20, yPos + 1);
+                
+                yPos += 8;
+                doc.setTextColor(26, 26, 26);
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                
+                // Encabezados
+                doc.setFont('helvetica', 'bold');
+                doc.text('Codigo', 20, yPos);
+                doc.text('Descripcion', 50, yPos);
+                doc.text('Cant.', 140, yPos);
+                doc.text('Precio Unit.', 160, yPos);
+                doc.text('Importe', 185, yPos, { align: 'right' });
+                
+                yPos += 2;
+                doc.setDrawColor(200);
+                doc.line(15, yPos, 195, yPos);
+                yPos += 4;
+                doc.setFont('helvetica', 'normal');
+                
+                cotizacion.materialesAdicionales.forEach(function(mat, index) {
+                    const codigo = 'MA-' + (index + 1).toString().padStart(3, '0');
+                    const importe = (mat.cantidad || 1) * (mat.precioUnitario || 0);
+                    
+                    doc.text(codigo, 20, yPos);
+                    doc.text((mat.nombre || 'Sin nombre').substring(0, 28), 50, yPos);
+                    doc.text((mat.cantidad || 1).toString(), 140, yPos);
+                    doc.text(calculator.formatoMoneda(mat.precioUnitario || 0), 160, yPos);
+                    doc.text(calculator.formatoMoneda(importe), 185, yPos, { align: 'right' });
+                    
+                    yPos += 5;
+                    
+                    if (yPos > 250) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                });
+            }
+            
+            // ⚠️ MANO DE OBRA ADICIONAL
+            if (cotizacion.manoObraAdicional && cotizacion.manoObraAdicional.length > 0) {
+                yPos += 10;
+                doc.setFillColor(76, 175, 80);
+                doc.rect(15, yPos - 4, 180, 5, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text('MANO DE OBRA ADICIONAL', 20, yPos + 1);
+                
+                yPos += 8;
+                doc.setTextColor(26, 26, 26);
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                
+                // Encabezados
+                doc.setFont('helvetica', 'bold');
+                doc.text('Codigo', 20, yPos);
+                doc.text('Puesto/Concepto', 50, yPos);
+                doc.text('Jornadas', 140, yPos);
+                doc.text('Costo/Jor', 165, yPos);
+                doc.text('Importe', 185, yPos, { align: 'right' });
+                
+                yPos += 2;
+                doc.setDrawColor(200);
+                doc.line(15, yPos, 195, yPos);
+                yPos += 4;
+                doc.setFont('helvetica', 'normal');
+                
+                cotizacion.manoObraAdicional.forEach(function(mo, index) {
+                    const codigo = 'MO-' + (index + 1).toString().padStart(3, '0');
+                    const importe = (mo.jornadas || 0) * (mo.costoJornada || 0);
+                    
+                    doc.text(codigo, 20, yPos);
+                    doc.text((mo.concepto || mo.puesto || 'Sin puesto').substring(0, 28), 50, yPos);
+                    doc.text((mo.jornadas || 0).toFixed(2), 140, yPos);
+                    doc.text(calculator.formatoMoneda(mo.costoJornada || 0), 165, yPos);
+                    doc.text(calculator.formatoMoneda(importe), 185, yPos, { align: 'right' });
+                    
+                    yPos += 5;
+                    
+                    if (yPos > 250) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                });
+            }
+            
+            // ⚠️ EQUIPOS ADICIONALES
+            if (cotizacion.equiposAdicionales && cotizacion.equiposAdicionales.length > 0) {
+                yPos += 10;
+                doc.setFillColor(255, 152, 0);
+                doc.rect(15, yPos - 4, 180, 5, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text('EQUIPOS ADICIONALES', 20, yPos + 1);
+                
+                yPos += 8;
+                doc.setTextColor(26, 26, 26);
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                
+                // Encabezados
+                doc.setFont('helvetica', 'bold');
+                doc.text('Codigo', 20, yPos);
+                doc.text('Equipo', 50, yPos);
+                doc.text('Horas', 140, yPos);
+                doc.text('Costo Unit.', 160, yPos);
+                doc.text('Importe', 185, yPos, { align: 'right' });
+                
+                yPos += 2;
+                doc.setDrawColor(200);
+                doc.line(15, yPos, 195, yPos);
+                yPos += 4;
+                doc.setFont('helvetica', 'normal');
+                
+                cotizacion.equiposAdicionales.forEach(function(eq, index) {
+                    const codigo = 'EQ-' + (index + 1).toString().padStart(3, '0');
+                    const importe = (eq.horas || 0) * (eq.costoUnitario || 0);
+                    
+                    doc.text(codigo, 20, yPos);
+                    doc.text((eq.nombre || 'Sin nombre').substring(0, 28), 50, yPos);
+                    doc.text((eq.horas || 0).toString(), 140, yPos);
+                    doc.text(calculator.formatoMoneda(eq.costoUnitario || 0), 160, yPos);
+                    doc.text(calculator.formatoMoneda(importe), 185, yPos, { align: 'right' });
+                    
+                    yPos += 5;
+                    
+                    if (yPos > 250) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                });
+            }
+            
+            // ⚠️ INDIRECTOS ADICIONALES
+            if (cotizacion.indirectosAdicionales && cotizacion.indirectosAdicionales.length > 0) {
+                yPos += 10;
+                doc.setFillColor(156, 39, 176);
+                doc.rect(15, yPos - 4, 180, 5, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text('INDIRECTOS ADICIONALES', 20, yPos + 1);
+                
+                yPos += 8;
+                doc.setTextColor(26, 26, 26);
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                
+                // Encabezados
+                doc.setFont('helvetica', 'bold');
+                doc.text('Codigo', 20, yPos);
+                doc.text('Concepto', 50, yPos);
+                doc.text('Importe', 185, yPos, { align: 'right' });
+                
+                yPos += 2;
+                doc.setDrawColor(200);
+                doc.line(15, yPos, 195, yPos);
+                yPos += 4;
+                doc.setFont('helvetica', 'normal');
+                
+                cotizacion.indirectosAdicionales.forEach(function(ind, index) {
+                    const codigo = 'IA-' + (index + 1).toString().padStart(3, '0');
+                    
+                    doc.text(codigo, 20, yPos);
+                    doc.text((ind.concepto || 'Sin concepto').substring(0, 60), 50, yPos);
+                    doc.text(calculator.formatoMoneda(ind.monto || 0), 185, yPos, { align: 'right' });
+                    
+                    yPos += 5;
+                    
+                    if (yPos > 250) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                });
+            }
             
             // ─────────────────────────────────────────────────────────
             // MANO DE OBRA (SI APLICA)
