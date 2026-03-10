@@ -222,7 +222,7 @@ window.reportes = {
             if (cotizacion.tipo === 'solo-mano-obra-extraida' && cotizacion.manoObraExtraida) {
                 yPos += 5;
                 doc.setFillColor(76, 175, 80);
-                doc.rect(15, yPos - 1, 180, 5, 'F');
+                doc.rect(15, yPos - 3, 180, 5, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
