@@ -174,11 +174,11 @@ window.reportes = {
             // ⚠️ CONCEPTOS
             if (cotizacion.conceptosCatalogo && cotizacion.conceptosCatalogo.length > 0) {
                 cotizacion.conceptosCatalogo.forEach(function(concepto) {
-                    const importe = (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
+                    const importe = (concepto.costos_base?.costo_directo_total || 0) * (conpceto.cantidad || 1);
                     totalConceptos += importe;
                     
-                    let codigo = c.codigo || '';
-                    if (c.precioEditado) {
+                    let codigo = concepto.codigo || '';
+                    if (cencepto.precioEditado) {
                         codigo = 'E' + codigo;
                     }
                     
@@ -200,7 +200,7 @@ window.reportes = {
                     doc.text(lineas, 34, yPos);
                     doc.text((concepto.cantidad || 1).toString(), 128, yPos);
                     doc.text(concepto.unidad || '', 140, yPos);
-                    doc.text(calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0), 167, yPos, { align: 'right' });
+                    doc.text(calculator.formatoMoneda(concepto.costos_base?.costo_directo_total || 0), 167, yPos, { align: 'right' });
                     doc.text(calculator.formatoMoneda(importe), 193, yPos, { align: 'right' });
                     
                     // ⚠️ ESPACIO ADICIONAL POR CADA LÍNEA DE DESCRIPCIÓN
@@ -241,7 +241,7 @@ window.reportes = {
                     descripcion = mo.descripcion_tecnica;
                 } else if (mo.concepto && mo.concepto.trim().length > 0) {
                     descripcion = mo.concepto;
-                } else if (mo.conceptoCodigo && c.mo.conceptoCodigo.trim().length > 0) {
+                } else if (mo.conceptoCodigo && mo.conceptoCodigo.trim().length > 0) {
                     descripcion = mo.conceptoCodigo;
                 } else {
                     descripcion = 'Sin descripcion';
