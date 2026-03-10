@@ -199,7 +199,7 @@ window.reportes = {
                     doc.text(codigo.substring(0, 10), 15, yPos);
                     doc.text(lineas, 42, yPos);
                     doc.text((c.cantidad || 1).toString(), 130, yPos);
-                    doc.text(c.unidad || '', 138, yPos);
+                    doc.text(c.unidad || '', 140, yPos);
                     doc.text(calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0), 170, yPos, { align: 'right' });
                     doc.text(calculator.formatoMoneda(importe), 195, yPos, { align: 'right' });
                     
