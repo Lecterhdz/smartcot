@@ -249,7 +249,7 @@ window.reportes = {
                     const lineasConcepto = doc.splitTextToSize(descripcion, 120);
                    
                     doc.setFont('helvetica', 'normal');
-                    doc.text('Concepto: ' + descripcion.substring(0, 120), 20, yPos);
+                    doc.text('Concepto: ' + descripcion.substring(0, 150), 20, yPos);
                     yPos += (lineasConcepto.length * 5);
 
                     doc.text('  Puesto: ' + (mo.puesto || 'Sin puesto'), 140, yPos);
