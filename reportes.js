@@ -235,17 +235,17 @@ window.reportes = {
                 
                 cotizacion.manoObraExtraida.forEach(function(mo) {
            
-                // ⚠️ PRIORIDAD: descripcion_tecnica > descripcion > descripcion_corta
-                let descripcion = '';
-                if (mo.descripcion_tecnica && mo.descripcion_tecnica.trim().length > 0) {
-                    descripcion = mo.descripcion_tecnica;
-                } else if (mo.concepto && mo.concepto.trim().length > 0) {
-                    descripcion = mo.concepto;
-                } else if (mo.conceptoCodigo && mo.conceptoCodigo.trim().length > 0) {
-                    descripcion = mo.conceptoCodigo;
-                } else {
-                    descripcion = 'Sin descripcion';
-                }
+                    // ✅ ACCEDER CORRECTAMENTE A conceptoDescripcion
+                    let descripcion = '';
+                    if (mo.conceptoDescripcion && typeof mo.conceptoDescripcion === 'string' && mo.conceptoDescripcion.trim().length > 0) {
+                        descripcion = mo.conceptoDescripcion;  // ✅ ESTE ES EL CAMPO QUE GUARDAMOS
+                    } else if (mo.concepto && typeof mo.concepto === 'string' && mo.concepto.trim().length > 0) {
+                        descripcion = mo.concepto;
+                    } else if (mo.conceptoCodigo && typeof mo.conceptoCodigo === 'string' && mo.conceptoCodigo.trim().length > 0) {
+                        descripcion = mo.conceptoCodigo;
+                    } else {
+                        descripcion = 'Sin descripcion';
+                    }
                     const lineasConcepto = doc.splitTextToSize(descripcion, 170);
                    
                     doc.setFont('helvetica', 'normal');
