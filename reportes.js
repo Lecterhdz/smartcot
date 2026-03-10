@@ -234,9 +234,10 @@ window.reportes = {
                 doc.setFont('helvetica', 'normal');
                 
                 cotizacion.manoObraExtraida.forEach(function(mo) {
-                    const conceptoInfo = (mo.concepto || mo.conceptoCodigo || 'Sin concepto');
+                    const conceptoInfo = mo.conceptoDescripcion || mo.concepto || mo.conceptoCodigo || 'Sin concepto';
                     const lineasConcepto = doc.splitTextToSize(conceptoInfo, 180);
-                    
+                   
+                    doc.setFont('helvetica', 'bold');
                     doc.text(lineasConcepto, 20, yPos);
                     yPos += (lineasConcepto.length * 5);
                     
