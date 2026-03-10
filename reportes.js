@@ -250,7 +250,7 @@ window.reportes = {
                     descripcion = 'Sin descripcion';
                     console.log('⚠️ Sin descripción disponible');
                 }
-                    const lineasConcepto = doc.splitTextToSize(descripcion_tecnica, 180);
+                    const lineasConcepto = doc.splitTextToSize(descripcion, 90);
                    
                     doc.setFont('helvetica', 'normal');
                     doc.text(lineasConcepto, 20, yPos);
