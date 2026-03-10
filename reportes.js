@@ -153,7 +153,7 @@ window.reportes = {
             doc.setFont('helvetica', 'bold');
             
             // ⚠️ COLUMNAS CORREGIDAS (ANCHOS AJUSTADOS)
-            const colWidths = [34, 86, 12, 15, 25, 25];
+            const colWidths = [20, 90, 12, 15, 25, 26];
             const headers = ['Codigo', 'Descripcion', 'Cant.', 'Unidad', 'Costo Unit.', 'Importe'];
             let xPos = 15;
             
