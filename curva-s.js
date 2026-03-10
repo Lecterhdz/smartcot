@@ -573,6 +573,9 @@ window.curvaS = {
             return;
         }
         
+        // ⚠️ LIMPIAR VALORES ANTERIORES
+        this.limpiarValoresEVM();
+        
         // Mostrar sección avanzada
         const seccionAvanzada = document.getElementById('curva-s-avanzada-seccion');
         if (seccionAvanzada) {
@@ -883,14 +886,36 @@ window.curvaS = {
                 } else {
                     el.textContent = '$0.00';
                 }
+                // ⚠️ RESETEAR COLORES
+                el.style.color = '#1a1a1a';
             }
         });
         
-        // También limpiar indicadores de Curva S básica
+        // ⚠️ LIMPIAR INDICADORES DE CURVA S BÁSICA
         const elVariacionTiempo = document.getElementById('variacion-tiempo');
         const elIndiceTiempo = document.getElementById('indice-tiempo');
-        if (elVariacionTiempo) elVariacionTiempo.textContent = '0.0%';
-        if (elIndiceTiempo) elIndiceTiempo.textContent = '0.00';
+        if (elVariacionTiempo) {
+            elVariacionTiempo.textContent = '0.0%';
+            elVariacionTiempo.style.color = '#1a1a1a';
+        }
+        if (elIndiceTiempo) {
+            elIndiceTiempo.textContent = '0.00';
+            elIndiceTiempo.style.color = '#1a1a1a';
+        }
+        
+        // ⚠️ LIMPIAR PROYECCIÓN DE FECHA
+        const elSemanasRestantes = document.getElementById('proyeccion-semanas-restantes');
+        const elFechaEstimada = document.getElementById('proyeccion-fecha-estimada');
+        const elVelocidad = document.getElementById('proyeccion-velocidad');
+        if (elSemanasRestantes) elSemanasRestantes.textContent = '-';
+        if (elFechaEstimada) elFechaEstimada.textContent = '-';
+        if (elVelocidad) elVelocidad.textContent = '-';
+        
+        // ⚠️ LIMPIAR CURVA DE INVERSIÓN
+        const elInversionTotal = document.getElementById('curva-inversion-total');
+        if (elInversionTotal) elInversionTotal.textContent = '$0.00';
+        
+        console.log('✅ Valores EVM limpiados');
     },
     // ─────────────────────────────────────────────────────────────────
     // EXPORTAR REPORTE PDF (PROFESIONAL - CORREGIDO)
