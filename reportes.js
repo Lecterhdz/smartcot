@@ -135,13 +135,64 @@ window.reportes = {
             doc.text('Numero:', 15, yPos);
             doc.setFont('helvetica', 'normal');
             doc.text('#' + cotizacion.id, 50, yPos);
+
+            // ─────────────────────────────────────────────────────────────────
+            // FACTORES DE AJUSTE (SI APLICAN)
+            // ─────────────────────────────────────────────────────────────────
+            if (cotizacion.factoresAjuste && cotizacion.factoresAjuste.total > 1) {
+                yPos += 10;
+                doc.setFillColor(255, 243, 224);
+                doc.rect(15, yPos - 4, 180, 5, 'F');
+                doc.setTextColor(230, 81, 0);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text(this.normalizarTexto('🔧 FACTORES DE AJUSTE APLICADOS'), 20, yPos + 1);
+                
+                yPos += 8;
+                doc.setTextColor(26, 26, 26);
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                
+                const factores = cotizacion.factoresAjuste;
+                let factoresText = [];
+                
+                if (factores.altura > 1) factoresText.push('Altura: ' + factores.altura.toFixed(2) + 'x');
+                if (factores.clima > 1) factoresText.push('Clima: ' + factores.clima.toFixed(2) + 'x');
+                if (factores.acceso > 1) factoresText.push('Acceso: ' + factores.acceso.toFixed(2) + 'x');
+                if (factores.seguridad > 1) factoresText.push('Seguridad: ' + factores.seguridad.toFixed(2) + 'x');
+                
+                doc.text(this.normalizarTexto('Factor Total: ' + (factores.total || 1).toFixed(2) + 'x'), 20, yPos);
+                yPos += 5;
+                
+                if (cotizacion.tiempoEjecucion) {
+                    doc.text(this.normalizarTexto('Tiempo Original: ' + cotizacion.tiempoEjecucion.diasHabiles + ' días'), 20, yPos);
+                    yPos += 5;
+                    const diasAjustados = Math.ceil((cotizacion.tiempoEjecucion.diasHabiles || 0) * (factores.total || 1));
+                    doc.text(this.normalizarTexto('Tiempo Ajustado: ' + diasAjustados + ' días'), 20, yPos);
+                    yPos += 5;
+                }
+                
+                if (cotizacion.impactoFactores && cotizacion.impactoFactores.costoTiempoExtendido > 0) {
+                    doc.text(this.normalizarTexto('Costo por Tiempo Extendido: ' + calculator.formatoMoneda(cotizacion.impactoFactores.costoTiempoExtendido)), 20, yPos);
+                    yPos += 5;
+                }
+            }
             
-            // ─────────────────────────────────────────────────────────
-            // TABLA DE CONCEPTOS
-            // ─────────────────────────────────────────────────────────
+            // ─────────────────────────────────────────────────────────────────
+            // TABLA DE CONCEPTOS (CORREGIDO - CON INDIRECTOS Y UTILIDAD DISTRIBUIDOS)
+            // ─────────────────────────────────────────────────────────────────
             yPos += 10;
             
-            // Encabezado de tabla
+            // ⚠️ CALCULAR FACTORES DE DISTRIBUCIÓN
+            const costoDirectoTotal = cotizacion.costoDirecto || 0;
+            const totalIndirectos = cotizacion.totalIndirectos || 0;
+            const utilidad = cotizacion.utilidad || 0;
+            const iva = cotizacion.iva || 0;
+            const totalFinal = cotizacion.totalFinal || 0;
+            
+            // Factor para distribuir indirectos + utilidad sobre cada concepto
+            const factorIndirectosUtilidad = costoDirectoTotal > 0 ? (costoDirectoTotal + totalIndirectos + utilidad) / costoDirectoTotal : 1;
+            
             if (licencia?.tipo === 'ENTERPRISE' && colorCorporativo) {
                 doc.setFillColor(colorCorporativo);
             } else {
@@ -152,7 +203,6 @@ window.reportes = {
             doc.setFontSize(9);
             doc.setFont('helvetica', 'bold');
             
-            // ⚠️ COLUMNAS CORREGIDAS (ANCHOS AJUSTADOS)
             const colWidths = [20, 90, 12, 15, 25, 26];
             const headers = ['Codigo', 'Descripcion', 'Cant.', 'Unidad', 'Costo Unit.', 'Importe'];
             let xPos = 15;
@@ -160,59 +210,65 @@ window.reportes = {
             doc.rect(15, yPos - 4, 180, 6, 'F');
             
             headers.forEach(function(header, index) {
-                doc.text(header, xPos, yPos + 1);
+                doc.text(this.normalizarTexto(header), xPos, yPos + 1);
                 xPos += colWidths[index];
-            });
+            }.bind(this));
             
             yPos += 5;
             doc.setTextColor(26, 26, 26);
             doc.setFontSize(8);
             doc.setFont('helvetica', 'normal');
             
-            let totalConceptos = 0;
+            let sumaConceptos = 0;
             
-            // ⚠️ CONCEPTOS
+            // ⚠️ CONCEPTOS (CORREGIDO - PRECIO INCLUYE INDIRECTOS Y UTILIDAD)
             if (cotizacion.conceptosCatalogo && cotizacion.conceptosCatalogo.length > 0) {
-                cotizacion.conceptosCatalogo.forEach(function(concepto) {
-                    const importe = (concepto.costos_base?.costo_directo_total || 0) * (concepto.cantidad || 1);
-                    totalConceptos += importe;
+                for (let i = 0; i < cotizacion.conceptosCatalogo.length; i++) {
+                    const concepto = cotizacion.conceptosCatalogo[i];
+                    
+                    // ⚠️ CALCULAR PRECIO CON INDIRECTOS Y UTILIDAD DISTRIBUIDOS
+                    const costoDirectoConcepto = concepto.costos_base?.costo_directo_total || 0;
+                    const cantidad = concepto.cantidad || 1;
+                    
+                    // Precio unitario con indirectos y utilidad distribuidos
+                    const precioUnitarioConIndirectos = costoDirectoConcepto * factorIndirectosUtilidad;
+                    const importeConIndirectos = precioUnitarioConIndirectos * cantidad;
+                    
+                    sumaConceptos += importeConIndirectos;
                     
                     let codigo = concepto.codigo || '';
                     if (concepto.precioEditado) {
                         codigo = 'E' + codigo;
                     }
                     
-                    // ⚠️ DESCRIPCIÓN EN MÚLTIPLES LÍNEAS (MAX 45 CARACTERES POR LÍNEA)
+                    // ⚠️ OBTENER Y LIMPIAR DESCRIPCIÓN
                     let descripcion = '';
-                    if (concepto.descripcion_tecnica && concepto.descripcion_tecnica.trim() !== '') {
-                        descripcion = concepto.descripcion_tecnica;
-                    } else if (concepto.descripcion && concepto.descripcion.trim() !== '') {
-                        descripcion = concepto.descripcion;
-                    } else if (concepto.descripcion_corta && concepto.descripcion_corta.trim() !== '') {
-                        descripcion = concepto.descripcion_corta;
+                    if (concepto.descripcion_tecnica && concepto.descripcion_tecnica.trim().length > 0) {
+                        descripcion = this.limpiarDescripcion(concepto.descripcion_tecnica);
+                    } else if (concepto.descripcion && concepto.descripcion.trim().length > 0) {
+                        descripcion = this.limpiarDescripcion(concepto.descripcion);
                     } else {
-                        descripcion = 'Sin descripcion';
+                        descripcion = this.limpiarDescripcion(concepto.descripcion_corta || 'Sin descripcion');
                     }
                     
-                    const lineas = doc.splitTextToSize(descripcion, 87);
+                    const lineas = doc.splitTextToSize(this.normalizarTexto(descripcion), 87);
                     
                     doc.text(codigo.substring(0, 10), 15, yPos);
                     doc.text(lineas, 34, yPos);
-                    doc.text((concepto.cantidad || 1).toString(), 128, yPos);
-                    doc.text(concepto.unidad || '', 140, yPos);
-                    doc.text(calculator.formatoMoneda(concepto.costos_base?.costo_directo_total || 0), 167, yPos, { align: 'right' });
-                    doc.text(calculator.formatoMoneda(importe), 193, yPos, { align: 'right' });
+                    doc.text(cantidad.toString(), 128, yPos);
+                    doc.text(this.normalizarTexto(concepto.unidad || ''), 140, yPos);
+                    doc.text(calculator.formatoMoneda(precioUnitarioConIndirectos), 167, yPos, { align: 'right' });  // ✅ PRECIO CON INDIRECTOS
+                    doc.text(calculator.formatoMoneda(importeConIndirectos), 193, yPos, { align: 'right' });  // ✅ IMPORTE CON INDIRECTOS
                     
-                    // ⚠️ ESPACIO ADICIONAL POR CADA LÍNEA DE DESCRIPCIÓN
                     yPos += (5 + (lineas.length * 4));
                     
                     if (yPos > 250) {
                         doc.addPage();
                         yPos = 20;
                     }
-                });
+                }
             } else {
-                doc.text('No hay conceptos del catalogo', 15, yPos);
+                doc.text(this.normalizarTexto('No hay conceptos del catalogo'), 15, yPos);
                 yPos += 8;
             }
 
@@ -487,26 +543,25 @@ window.reportes = {
                 });
             }
             
-            // ─────────────────────────────────────────────────────────
-            // TOTALES (CORREGIDO - QUE QUEPA TODO)
-            // ─────────────────────────────────────────────────────────
+            // ─────────────────────────────────────────────────────────────────
+            // TOTALES (CORREGIDO - QUE CUAADRE LA SUMA)
+            // ─────────────────────────────────────────────────────────────────
             yPos += 8;
             
-            // Subtotal
+            // ⚠️ MOSTRAR SUBTOTAL (YA INCLUYE INDIRECTOS Y UTILIDAD DISTRIBUIDOS)
             doc.setFont('helvetica', 'bold');
-            doc.text('Subtotal:', 140, yPos);
+            doc.text(this.normalizarTexto('Subtotal:'), 140, yPos);
             doc.setFont('helvetica', 'normal');
-            doc.text(calculator.formatoMoneda(cotizacion.costoDirecto || totalConceptos), 195, yPos, { align: 'right' });
+            doc.text(calculator.formatoMoneda(sumaConceptos), 195, yPos, { align: 'right' });  // ✅ USA LA SUMA DE CONCEPTOS
             
             yPos += 6;
             doc.setFont('helvetica', 'bold');
-            doc.text('IVA (16%):', 140, yPos);
+            doc.text(this.normalizarTexto('IVA (16%):'), 140, yPos);
             doc.setFont('helvetica', 'normal');
-            doc.text(calculator.formatoMoneda(cotizacion.iva || 0), 195, yPos, { align: 'right' });
+            doc.text(calculator.formatoMoneda(iva), 195, yPos, { align: 'right' });
             
             yPos += 10;
             
-            // ⚠️ RECTÁNGULO DE TOTAL MÁS GRANDE
             if (licencia?.tipo === 'ENTERPRISE' && colorCorporativo) {
                 doc.setFillColor(colorCorporativo);
                 doc.setTextColor(255, 255, 255);
@@ -515,18 +570,21 @@ window.reportes = {
                 doc.setTextColor(255, 255, 255);
             }
             
-            // ⚠️ RECTÁNGULO MÁS ANCHO Y ALTO
             doc.rect(140, yPos - 3, 60, 12, 'F');
             
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
-            doc.text('TOTAL:', 170, yPos + 1, { align: 'center' });
+            doc.text(this.normalizarTexto('TOTAL:'), 170, yPos + 1, { align: 'center' });
             
-            // ⚠️ VALOR EN SEGUNDO RENGLÓN (DENTRO DEL RECTÁNGULO)
             yPos += 7;
             doc.setFontSize(13);
-            doc.text(calculator.formatoMoneda(cotizacion.totalFinal || 0), 170, yPos, { align: 'center' });
+            doc.text(calculator.formatoMoneda(totalFinal), 170, yPos, { align: 'center' });
             
+            // ⚠️ VERIFICAR QUE CUAADRE
+            const diferencia = Math.abs((sumaConceptos + iva) - totalFinal);
+            if (diferencia > 1) {  // Si hay diferencia mayor a $1
+                console.warn('⚠️ Diferencia en totales:', diferencia);
+            }    
             // ─────────────────────────────────────────────────────────
             // PIE DE PÁGINA
             // ─────────────────────────────────────────────────────────
