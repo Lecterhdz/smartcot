@@ -197,11 +197,11 @@ window.reportes = {
                     const lineas = doc.splitTextToSize(descripcion, 80);
                     
                     doc.text(codigo.substring(0, 10), 15, yPos);
-                    doc.text(lineas, 30, yPos);
-                    doc.text((c.cantidad || 1).toString(), 130, yPos);
+                    doc.text(lineas, 34, yPos);
+                    doc.text((c.cantidad || 1).toString(), 128, yPos);
                     doc.text(c.unidad || '', 140, yPos);
                     doc.text(calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0), 170, yPos, { align: 'right' });
-                    doc.text(calculator.formatoMoneda(importe), 195, yPos, { align: 'right' });
+                    doc.text(calculator.formatoMoneda(importe), 193, yPos, { align: 'right' });
                     
                     // ⚠️ ESPACIO ADICIONAL POR CADA LÍNEA DE DESCRIPCIÓN
                     yPos += (5 + (lineas.length * 4));
