@@ -234,7 +234,17 @@ window.reportes = {
                 doc.setFont('helvetica', 'normal');
                 
                 cotizacion.manoObraExtraida.forEach(function(mo) {
-                    const conceptoInfo = mo.conceptoDescripcion || mo.concepto || mo.conceptoCodigo || 'Sin concepto';
+                // ⚠️ USAR conceptoDescripcion SI EXISTE (DESCRIPCIÓN COMPLETA)
+                let conceptoInfo = '';
+                if (mo.conceptoDescripcion && mo.conceptoDescripcion.trim() !== '') {
+                    conceptoInfo = mo.conceptoCodigo + ' - ' + mo.conceptoDescripcion;  // ✅ CÓDIGO + DESCRIPCIÓN COMPLETA
+                } else if (mo.concepto && mo.concepto.trim() !== '') {
+                    conceptoInfo = mo.concepto;
+                } else if (mo.conceptoCodigo && mo.conceptoCodigo.trim() !== '') {
+                    conceptoInfo = mo.conceptoCodigo;
+                } else {
+                    conceptoInfo = 'Sin concepto';
+                }
                     const lineasConcepto = doc.splitTextToSize(conceptoInfo, 180);
                    
                     doc.setFont('helvetica', 'normal');
