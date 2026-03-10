@@ -174,7 +174,7 @@ window.reportes = {
             // ⚠️ CONCEPTOS
             if (cotizacion.conceptosCatalogo && cotizacion.conceptosCatalogo.length > 0) {
                 cotizacion.conceptosCatalogo.forEach(function(concepto) {
-                    const importe = (concepto.costos_base?.costo_directo_total || 0) * (conpceto.cantidad || 1);
+                    const importe = (concepto.costos_base?.costo_directo_total || 0) * (concepto.cantidad || 1);
                     totalConceptos += importe;
                     
                     let codigo = concepto.codigo || '';
