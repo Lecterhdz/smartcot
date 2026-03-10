@@ -173,7 +173,7 @@ window.reportes = {
             
             // ⚠️ CONCEPTOS
             if (cotizacion.conceptosCatalogo && cotizacion.conceptosCatalogo.length > 0) {
-                cotizacion.conceptosCatalogo.forEach(function(c) {
+                cotizacion.conceptosCatalogo.forEach(function(concepto) {
                     const importe = (c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1);
                     totalConceptos += importe;
                     
