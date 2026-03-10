@@ -945,7 +945,7 @@ window.curvaS = {
             // ─────────────────────────────────────────────────────────
             yPos += 10;
             doc.setFillColor(227, 242, 253);
-            doc.rect(15, yPos - 5, 180, 28, 'F');
+            doc.rect(15, yPos - 4, 180, 28, 'F');
             doc.setTextColor(21, 101, 192);
             doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
@@ -968,7 +968,7 @@ window.curvaS = {
             // ─────────────────────────────────────────────────────────
             yPos += 15;
             doc.setFillColor(245, 245, 245);
-            doc.rect(15, yPos - 5, 180, 5, 'F');
+            doc.rect(15, yPos - 4, 180, 5, 'F');
             doc.setTextColor(26, 26, 26);
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
@@ -1019,7 +1019,7 @@ window.curvaS = {
             // ─────────────────────────────────────────────────────────
             yPos += 10;
             doc.setFillColor(227, 242, 253);
-            doc.rect(15, yPos - 5, 180, 5, 'F');
+            doc.rect(15, yPos - 4, 180, 5, 'F');
             doc.setTextColor(21, 101, 192);
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
@@ -1044,7 +1044,7 @@ window.curvaS = {
             // ─────────────────────────────────────────────────────────
             yPos += 10;
             doc.setFillColor(255, 243, 224);
-            doc.rect(15, yPos - 3, 180, 5, 'F');
+            doc.rect(15, yPos - 4, 180, 5, 'F');
             doc.setTextColor(230, 81, 0);
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
@@ -1095,7 +1095,7 @@ window.curvaS = {
                 yPos = 20;
             }
             doc.setFillColor(232, 245, 233);
-            doc.rect(15, yPos - 5, 180, 5, 'F');
+            doc.rect(15, yPos - 4, 180, 5, 'F');
             doc.setTextColor(46, 125, 50);
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
