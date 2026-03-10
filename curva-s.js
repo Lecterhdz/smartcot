@@ -949,12 +949,11 @@ window.curvaS = {
             doc.setTextColor(21, 101, 192);
             doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
-            doc.text('INDICADORES DE DESEMPEÑO', 20, yPos);
+            doc.text('INDICADORES DE DESEMPENO', 20, yPos);
             
             yPos += 8;
             doc.setTextColor(26, 26, 26);
             doc.setFontSize(9);
-            
             this.calcularVariaciones();
             const variacion = this.ultimaVariacion || 0;
             const indice = this.ultimoIndice || 0;
@@ -962,8 +961,103 @@ window.curvaS = {
             
             doc.text('Semana Actual: ' + semana, 20, yPos);
             doc.text('Desviacion: ' + (variacion >= 0 ? '+' : '') + variacion.toFixed(1) + '%', 90, yPos);
-            doc.text('Indice (SPI): ' + indice.toFixed(2), 145, yPos);
+            doc.text('Indice Desempeno (SPI): ' + indice.toFixed(2), 150, yPos);
             
+            // ─────────────────────────────────────────────────────────
+            // VALOR GANADO (EVM) - NUEVA SECCION
+            // ─────────────────────────────────────────────────────────
+            yPos += 15;
+            doc.setFillColor(245, 245, 245);
+            doc.rect(15, yPos - 5, 180, 5, 'F');
+            doc.setTextColor(26, 26, 26);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('VALOR GANADO (EVM)', 20, yPos);
+            
+            yPos += 8;
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            
+            // Obtener valores de los elementos HTML
+            const elPV = document.getElementById('evm-pv');
+            const elEV = document.getElementById('evm-ev');
+            const elAC = document.getElementById('evm-ac');
+            const elCV = document.getElementById('evm-cv');
+            const elSV = document.getElementById('evm-sv');
+            const elCPI = document.getElementById('evm-cpi');
+            const elSPI = document.getElementById('evm-spi');
+            const elEAC = document.getElementById('evm-eac');
+            const elETC = document.getElementById('evm-etc');
+            const elVAC = document.getElementById('evm-vac');
+            
+            // Fila 1
+            doc.text('PV (Valor Planificado): ' + (elPV ? elPV.textContent : '$0.00'), 20, yPos);
+            doc.text('EV (Valor Ganado): ' + (elEV ? elEV.textContent : '$0.00'), 110, yPos);
+            yPos += 5;
+            
+            // Fila 2
+            doc.text('AC (Costo Actual): ' + (elAC ? elAC.textContent : '$0.00'), 20, yPos);
+            doc.text('CV (Variacion Costo): ' + (elCV ? elCV.textContent : '$0.00'), 110, yPos);
+            yPos += 5;
+            
+            // Fila 3
+            doc.text('SV (Variacion Tiempo): ' + (elSV ? elSV.textContent : '$0.00'), 20, yPos);
+            doc.text('CPI (Indice Costo): ' + (elCPI ? elCPI.textContent : '0.00'), 110, yPos);
+            yPos += 5;
+            
+            // Fila 4
+            doc.text('SPI (Indice Tiempo): ' + (elSPI ? elSPI.textContent : '0.00'), 20, yPos);
+            doc.text('EAC (Estimado Final): ' + (elEAC ? elEAC.textContent : '$0.00'), 110, yPos);
+            yPos += 5;
+            
+            // Fila 5
+            doc.text('ETC (Por Completar): ' + (elETC ? elETC.textContent : '$0.00'), 20, yPos);
+            doc.text('VAC (Variacion Final): ' + (elVAC ? elVAC.textContent : '$0.00'), 110, yPos);
+            
+            // ─────────────────────────────────────────────────────────
+            // PROYECCION DE FECHA - NUEVA SECCION
+            // ─────────────────────────────────────────────────────────
+            yPos += 10;
+            doc.setFillColor(227, 242, 253);
+            doc.rect(15, yPos - 5, 180, 5, 'F');
+            doc.setTextColor(21, 101, 192);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('PROYECCION DE TERMINACION', 20, yPos);
+            
+            yPos += 8;
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(26, 26, 26);
+            
+            const elSemanasRestantes = document.getElementById('proyeccion-semanas-restantes');
+            const elFechaEstimada = document.getElementById('proyeccion-fecha-estimada');
+            const elVelocidad = document.getElementById('proyeccion-velocidad');
+            
+            doc.text('Semanas Restantes: ' + (elSemanasRestantes ? elSemanasRestantes.textContent : 'N/A'), 20, yPos);
+            doc.text('Fecha Estimada: ' + (elFechaEstimada ? elFechaEstimada.textContent : 'N/A'), 110, yPos);
+            yPos += 5;
+            doc.text('Velocidad: ' + (elVelocidad ? elVelocidad.textContent : 'N/A'), 20, yPos);
+            
+            // ─────────────────────────────────────────────────────────
+            // CURVA DE INVERSION - NUEVA SECCION
+            // ─────────────────────────────────────────────────────────
+            yPos += 10;
+            doc.setFillColor(255, 243, 224);
+            doc.rect(15, yPos - 5, 180, 5, 'F');
+            doc.setTextColor(230, 81, 0);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('CURVA DE INVERSION', 20, yPos);
+            
+            yPos += 8;
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(26, 26, 26);
+            
+            const elInversionTotal = document.getElementById('curva-inversion-total');
+            doc.text('Inversion Total Acumulada: ' + (elInversionTotal ? elInversionTotal.textContent : '$0.00'), 20, yPos);
+                        
             yPos += 7;
             let interpretacion = '';
             if (indice >= 1.0) {
