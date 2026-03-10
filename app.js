@@ -1382,7 +1382,7 @@ guardarCotizacion: async function() {
             },
             
             // ⚠️ TOTALES CALCULADOS
-            costoDirecto: subtotal,
+            costoDirecto: costoDirect,
             totalIndirectos: totalIndirectos,
             utilidad: utilidad,
             iva: iva,
@@ -2307,6 +2307,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
