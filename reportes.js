@@ -178,7 +178,7 @@ window.reportes = {
                     totalConceptos += importe;
                     
                     let codigo = concepto.codigo || '';
-                    if (cencepto.precioEditado) {
+                    if (concepto.precioEditado) {
                         codigo = 'E' + codigo;
                     }
                     
