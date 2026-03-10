@@ -184,12 +184,12 @@ window.reportes = {
                     
                     // ⚠️ DESCRIPCIÓN EN MÚLTIPLES LÍNEAS (MAX 45 CARACTERES POR LÍNEA)
                     let descripcion = '';
-                    if (c.descripcion_tecnica && c.descripcion_tecnica.trim() !== '') {
-                        descripcion = c.descripcion_tecnica;
-                    } else if (c.descripcion && c.descripcion.trim() !== '') {
-                        descripcion = c.descripcion;
-                    } else if (c.descripcion_corta && c.descripcion_corta.trim() !== '') {
-                        descripcion = c.descripcion_corta;
+                    if (concepto.descripcion_tecnica && concepto.descripcion_tecnica.trim() !== '') {
+                        descripcion = concepto.descripcion_tecnica;
+                    } else if (concepto.descripcion && concepto.descripcion.trim() !== '') {
+                        descripcion = concepto.descripcion;
+                    } else if (concepto.descripcion_corta && concepto.descripcion_corta.trim() !== '') {
+                        descripcion = concepto.descripcion_corta;
                     } else {
                         descripcion = 'Sin descripcion';
                     }
@@ -198,8 +198,8 @@ window.reportes = {
                     
                     doc.text(codigo.substring(0, 10), 15, yPos);
                     doc.text(lineas, 34, yPos);
-                    doc.text((c.cantidad || 1).toString(), 128, yPos);
-                    doc.text(c.unidad || '', 140, yPos);
+                    doc.text((concepto.cantidad || 1).toString(), 128, yPos);
+                    doc.text(concepto.unidad || '', 140, yPos);
                     doc.text(calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0), 167, yPos, { align: 'right' });
                     doc.text(calculator.formatoMoneda(importe), 193, yPos, { align: 'right' });
                     
@@ -237,23 +237,19 @@ window.reportes = {
            
                 // ⚠️ PRIORIDAD: descripcion_tecnica > descripcion > descripcion_corta
                 let descripcion = '';
-                if (c.descripcion_tecnica && c.descripcion_tecnica.trim().length > 0) {
-                    descripcion = c.descripcion_tecnica;
-                    console.log('✅ Usando descripcion_tecnica:', descripcion.substring(0, 50));
-                } else if (c.descripcion && c.descripcion.trim().length > 0) {
-                    descripcion = c.descripcion;
-                    console.log('✅ Usando descripcion:', descripcion.substring(0, 50));
-                } else if (c.descripcion_corta && c.descripcion_corta.trim().length > 0) {
-                    descripcion = c.descripcion_corta;
-                    console.log('✅ Usando descripcion_corta:', descripcion.substring(0, 50));
+                if (mo.descripcion_tecnica && mo.descripcion_tecnica.trim().length > 0) {
+                    descripcion = mo.descripcion_tecnica;
+                } else if (mo.concepto && mo.concepto.trim().length > 0) {
+                    descripcion = mo.concepto;
+                } else if (mo.conceptoCodigo && c.mo.conceptoCodigo.trim().length > 0) {
+                    descripcion = mo.conceptoCodigo;
                 } else {
                     descripcion = 'Sin descripcion';
-                    console.log('⚠️ Sin descripción disponible');
                 }
                     const lineasConcepto = doc.splitTextToSize(descripcion, 90);
                    
                     doc.setFont('helvetica', 'normal');
-                    doc.text(lineasConcepto, 20, yPos);
+                    doc.text('Concepto: ' + descripcion.substring(0, 90), 20, yPos);
                     yPos += (lineasConcepto.length * 5);
 
                     doc.text('  Puesto: ' + (mo.puesto || 'Sin puesto'), 140, yPos);
