@@ -1044,7 +1044,7 @@ window.curvaS = {
             // ─────────────────────────────────────────────────────────
             yPos += 10;
             doc.setFillColor(255, 243, 224);
-            doc.rect(15, yPos - 5, 180, 5, 'F');
+            doc.rect(15, yPos - 3, 180, 5, 'F');
             doc.setTextColor(230, 81, 0);
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
@@ -1088,6 +1088,12 @@ window.curvaS = {
             // TABLA DE AVANCE POR SEMANA
             // ─────────────────────────────────────────────────────────
             yPos += 5;
+
+            // ⚠️ VERIFICAR SI HAY ESPACIO SUFICIENTE (MÍNIMO 40mm)
+            if (yPos > 240) {  // ✅ SI ESTÁ MUY CERCA DEL FINAL, NUEVA PÁGINA
+                doc.addPage();
+                yPos = 20;
+            }
             doc.setFillColor(232, 245, 233);
             doc.rect(15, yPos - 5, 180, 5, 'F');
             doc.setTextColor(46, 125, 50);
