@@ -246,7 +246,7 @@ window.reportes = {
                     } else {
                         descripcion = 'Sin descripcion';
                     }
-                    const lineasConcepto = doc.splitTextToSize(descripcion, 140);
+                    const lineasConcepto = doc.splitTextToSize(descripcion, 110);
                    
                     doc.setFont('helvetica', 'normal');
                     doc.text(lineasConcepto, 20, yPos);
@@ -258,14 +258,20 @@ window.reportes = {
                         yPos = 20;
                     }
 
-                    doc.text('  Puesto: ' + (mo.puesto || 'Sin puesto'), 140, yPos);
-                    yPos += 5;
-                    doc.text('  Jornadas: ' + (mo.jornadas ? mo.jornadas.toFixed(2) : '0') + ' jor', 140, yPos);
-                    yPos += 5;
-                    doc.text('  Costo/Jornada: ' + (mo.costoJornada ? calculator.formatoMoneda(mo.costoJornada) : '$0.00'), 140, yPos);
-                    yPos += 5;
-                    doc.text('  Importe: ' + (mo.importe ? calculator.formatoMoneda(mo.importe) : '$0.00'), 140, yPos);
-                    yPos += 8;
+                    // ⚠️ FONDO GRIS PARA LA FILA
+                    doc.setFillColor(245, 245, 245);
+                    doc.rect(15, yPos - 3, 180, 8, 'F');
+                    
+                    // ⚠️ TEXTO EN UNA SOLA LÍNEA
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(8);
+                    doc.text((mo.puesto || 'Sin puesto'), 20, yPos);
+                    doc.text((mo.jornadas ? mo.jornadas.toFixed(2) : '0') + ' jor', 80, yPos);
+                    doc.text((mo.costoJornada ? calculator.formatoMoneda(mo.costoJornada) : '$0.00'), 120, yPos);
+                    doc.text((mo.importe ? calculator.formatoMoneda(mo.importe) : '$0.00'), 180, yPos, { align: 'right' });
+                    
+                    yPos += 10;  // ⚠️ MÁS ESPACIO POR EL FONDO     
+
                     
                     if (yPos > 250) {
                         doc.addPage();
