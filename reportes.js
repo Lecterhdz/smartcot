@@ -246,7 +246,13 @@ window.reportes = {
                     } else {
                         descripcion = 'Sin descripcion';
                     }
-                    const lineasConcepto = doc.splitTextToSize(descripcion, 110);
+
+                    // ⚠️ AGREGAR CÓDIGO AL INICIO SI EXISTE
+                    if (mo.conceptoCodigo && mo.conceptoCodigo.trim().length > 0) {
+                        descripcion = mo.conceptoCodigo + ' - ' + descripcion;  // ✅ CONCATENAR CÓDIGO + DESCRIPCIÓN
+                    }
+                    
+                    const lineasConcepto = doc.splitTextToSize(descripcion, 160);
                    
                     doc.setFont('helvetica', 'normal');
                     doc.text(lineasConcepto, 20, yPos);
@@ -260,7 +266,7 @@ window.reportes = {
 
                     // ⚠️ FONDO GRIS PARA LA FILA
                     doc.setFillColor(245, 245, 245);
-                    doc.rect(15, yPos - 3, 180, 8, 'F');
+                    doc.rect(15, yPos - 2, 180, 8, 'F');
                     
                     // ⚠️ TEXTO EN UNA SOLA LÍNEA
                     doc.setFont('helvetica', 'normal');
@@ -270,7 +276,7 @@ window.reportes = {
                     doc.text((mo.costoJornada ? calculator.formatoMoneda(mo.costoJornada) : '$0.00'), 120, yPos);
                     doc.text((mo.importe ? calculator.formatoMoneda(mo.importe) : '$0.00'), 180, yPos, { align: 'right' });
                     
-                    yPos += 10;  // ⚠️ MÁS ESPACIO POR EL FONDO     
+                    yPos += 8;  // ⚠️ MÁS ESPACIO POR EL FONDO     
 
                     
                     if (yPos > 250) {
