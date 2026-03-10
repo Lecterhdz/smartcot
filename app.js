@@ -1666,8 +1666,47 @@ cancelarExtraerManoDeObra: function() {
     this._totalJornadas = 0;
 },
 
+
 // ─────────────────────────────────────────────────────────────────
-// ACTUALIZAR DISPLAY DE COSTOS (EN TIEMPO REAL)
+// CARGAR COSTOS DE MANO DE OBRA (CORREGIDO)
+// ─────────────────────────────────────────────────────────────────
+cargarCostosManoObra: async function() {
+    try {
+        console.log('💰 Cargando costos de mano de obra...');
+        
+        // ⚠️ VERIFICAR QUE LOS ELEMENTOS EXISTAN
+        const elAyudante = document.getElementById('costo-ayudante');
+        const elOficial = document.getElementById('costo-oficial');
+        const elTecnico = document.getElementById('costo-tecnico');
+        const elSupervisor = document.getElementById('costo-supervisor');
+        
+        if (!elAyudante || !elOficial || !elTecnico || !elSupervisor) {
+            console.log('⚠️ Elementos del formulario no encontrados (aún no se renderiza Configuración)');
+            return;  // ✅ SALIR SI NO EXISTEN LOS ELEMENTOS
+        }
+        
+        const costos = await window.db.configuracion.get('costos_mano_obra');
+        
+        if (costos) {
+            console.log('✅ Costos encontrados:', costos);
+            elAyudante.value = costos.ayudante || 0;
+            elOficial.value = costos.oficial || 0;
+            elTecnico.value = costos.tecnico || 0;
+            elSupervisor.value = costos.supervisor || 0;
+        } else {
+            console.log('⚠️ No hay costos guardados en BD, usando valores por defecto');
+            // ⚠️ VALORES POR DEFECTO SI NO HAY NADA GUARDADO
+            elAyudante.value = 250;  // Ayudante
+            elOficial.value = 350;   // Oficial
+            elTecnico.value = 450;   // Técnico
+            elSupervisor.value = 550; // Supervisor
+        }
+    } catch (error) {
+        console.error('❌ Error cargando costos:', error);
+    }
+},
+// ─────────────────────────────────────────────────────────────────
+// ACTUALIZAR DISPLAY DE COSTOS (NUEVA FUNCIÓN)
 // ─────────────────────────────────────────────────────────────────
 actualizarDisplayCostos: function() {
     const ayudante = parseFloat(document.getElementById('costo-ayudante')?.value) || 0;
@@ -1684,31 +1723,6 @@ actualizarDisplayCostos: function() {
     if (elOficial) elOficial.textContent = calculator.formatoMoneda(oficial);
     if (elTecnico) elTecnico.textContent = calculator.formatoMoneda(tecnico);
     if (elSupervisor) elSupervisor.textContent = calculator.formatoMoneda(supervisor);
-},
-
-// ─────────────────────────────────────────────────────────────────
-// CARGAR COSTOS DE MANO DE OBRA (MEJORADO)
-// ─────────────────────────────────────────────────────────────────
-cargarCostosManoObra: async function() {
-    try {
-        const costos = await window.db.configuracion.get('costos_mano_obra');
-        if (costos) {
-            const elAyudante = document.getElementById('costo-ayudante');
-            const elOficial = document.getElementById('costo-oficial');
-            const elTecnico = document.getElementById('costo-tecnico');
-            const elSupervisor = document.getElementById('costo-supervisor');
-            
-            if (elAyudante) elAyudante.value = costos.ayudante || 0;
-            if (elOficial) elOficial.value = costos.oficial || 0;
-            if (elTecnico) elTecnico.value = costos.tecnico || 0;
-            if (elSupervisor) elSupervisor.value = costos.supervisor || 0;
-            
-            // ⚠️ ACTUALIZAR DISPLAY
-            this.actualizarDisplayCostos();
-        }
-    } catch (error) {
-        console.error('❌ Error cargando costos:', error);
-    }
 },
     
 // ─────────────────────────────────────────────────────────────────
@@ -2214,6 +2228,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
