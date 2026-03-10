@@ -194,7 +194,7 @@ window.reportes = {
                         descripcion = 'Sin descripcion';
                     }
                     
-                    const lineas = doc.splitTextToSize(descripcion, 90);
+                    const lineas = doc.splitTextToSize(descripcion, 87);
                     
                     doc.text(codigo.substring(0, 10), 15, yPos);
                     doc.text(lineas, 34, yPos);
