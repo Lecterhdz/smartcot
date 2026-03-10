@@ -1033,6 +1033,64 @@ window.curvaS = {
                     yPos = 20;
                 }
             }.bind(this));
+
+
+            // ─────────────────────────────────────────────────────────
+            // MANO DE OBRA (SI ES COTIZACIÓN SOLO MO)
+            // ─────────────────────────────────────────────────────────
+            if (cotizacion.tipo === 'solo-mano-obra-extraida' && cotizacion.manoObraExtraida) {
+                yPos += 10;
+                doc.setFillColor(76, 175, 80);
+                doc.rect(15, yPos - 5, 180, 5, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text('MANO DE OBRA', 20, yPos + 1);
+                
+                yPos += 8;
+                doc.setTextColor(26, 26, 26);
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                
+                cotizacion.manoObraExtraida.forEach(function(mo) {
+                    // ⚠️ USAR conceptoDescripcion SI EXISTE (DESCRIPCIÓN COMPLETA)
+                    let conceptoInfo = '';
+                    if (mo.conceptoDescripcion && mo.conceptoDescripcion.trim() !== '') {
+                        conceptoInfo = mo.conceptoCodigo + ' - ' + mo.conceptoDescripcion;  // ✅ CÓDIGO + DESCRIPCIÓN COMPLETA
+                    } else if (mo.concepto && mo.concepto.trim() !== '') {
+                        conceptoInfo = mo.concepto;
+                    } else if (mo.conceptoCodigo && mo.conceptoCodigo.trim() !== '') {
+                        conceptoInfo = mo.conceptoCodigo;
+                    } else {
+                        conceptoInfo = 'Sin concepto';
+                    }
+                    
+                    // ⚠️ DIVIDIR EN LÍNEAS DE 90 CARACTERES
+                    const lineasConcepto = doc.splitTextToSize(conceptoInfo, 90);
+                    
+                    // ⚠️ ESCRIBIR DESCRIPCIÓN DEL CONCEPTO
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(lineasConcepto, 20, yPos);
+                    yPos += (lineasConcepto.length * 5);
+                    
+                    // ⚠️ DATOS EN LÍNEAS SEPARADAS
+                    doc.setFont('helvetica', 'normal');
+                    yPos += 2;
+                    doc.text('Puesto: ' + (mo.puesto || 'Sin puesto'), 20, yPos);
+                    yPos += 5;
+                    doc.text('Jornadas: ' + (mo.jornadas ? mo.jornadas.toFixed(2) : '0') + ' jor', 20, yPos);
+                    yPos += 5;
+                    doc.text('Costo/Jornada: ' + (mo.costoJornada ? calculator.formatoMoneda(mo.costoJornada) : '$0.00'), 20, yPos);
+                    yPos += 5;
+                    doc.text('Importe: ' + (mo.importe ? calculator.formatoMoneda(mo.importe) : '$0.00'), 20, yPos);
+                    yPos += 8;
+                    
+                    if (yPos > 250) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                });
+            }
             
             // ─────────────────────────────────────────────────────────
             // PIE DE PÁGINA
