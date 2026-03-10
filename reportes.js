@@ -249,8 +249,14 @@ window.reportes = {
                     const lineasConcepto = doc.splitTextToSize(descripcion, 170);
                    
                     doc.setFont('helvetica', 'normal');
-                    doc.text('Concepto: ' + descripcion.substring(0, 170), 20, yPos);
+                    doc.text('Concepto: ' + lineasConcepto, 20, yPos);
                     yPos += (lineasConcepto.length * 5);
+
+                    // Verificar si necesita nueva página
+                    if (yPos > 250) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
 
                     doc.text('  Puesto: ' + (mo.puesto || 'Sin puesto'), 140, yPos);
                     yPos += 5;
