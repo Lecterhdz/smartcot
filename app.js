@@ -58,10 +58,13 @@ factorAjusteActual: 1,
 init: async function() {
     try {
         console.log('🏭 SmartCot v2.0 iniciando...');
+        
         await this.esperarDB();
         this.estado.dbLista = true;
         console.log('✅ Base de datos lista');
+        
         const licencia = window.licencia.cargar();
+        
         const verificacion = await window.licencia.verificarLicenciaRevocada(licencia?.clave);
         if (verificacion.revocada) {
             console.error('❌ Licencia revocada:', verificacion.razon);
@@ -72,12 +75,14 @@ init: async function() {
         this.estado.licenciaActiva = licencia && !licencia.expirada;
         this.actualizarInfoLicencia(licencia);
         this.actualizarInfoLicenciaUI();
+        
         await this.cargarConfiguracion();
-        await this.cargarCostosManoObra();
+        // ⚠️ REMOVIDO: await this.cargarCostosManoObra();  ← NO CARGAR AQUÍ
         await this.cargarEstadisticas();
         await this.cargarClientesSelect();
         await this.cargarActividadReciente();
         await this.cargarCatalogoBase();
+        
         this.inicializarFormularios();
         console.log('✅ SmartCot v2.0 listo');
         this.notificacion('¡Bienvenido a SmartCot v2.0!', 'exito');
@@ -164,6 +169,11 @@ mostrarPantalla: async function(id) {
                 setTimeout(function() { curvaS.init(); }, 300);
             }
             break;
+        // ⚠️ AGREGAR ESTE CASO PARA CONFIGURACIÓN
+        case 'configuracion-screen':
+            await this.cargarConfiguracion();
+            await this.cargarCostosManoObra();  // ✅ CARGAR COSTOS AL ABRIR
+            break;            
         case 'historial-cotizaciones-screen':
             if (window.historialCotizaciones) {
                 setTimeout(function() { historialCotizaciones.cargar(); }, 300);
@@ -1911,16 +1921,33 @@ guardarCostosManoObra: async function() {
 
 cargarCostosManoObra: async function() {
     try {
+        
+       // ⚠️ VERIFICAR QUE LOS ELEMENTOS EXISTAN
+        const elAyudante = document.getElementById('costo-ayudante');
+        const elOficial = document.getElementById('costo-oficial');
+        const elTecnico = document.getElementById('costo-tecnico');
+        const elSupervisor = document.getElementById('costo-supervisor');
+        
+        if (!elAyudante || !elOficial || !elTecnico || !elSupervisor) {
+            console.log('⚠️ Elementos del formulario no encontrados, esperando...');
+            return;  // ✅ SALIR SI NO EXISTEN LOS ELEMENTOS
+        }        
+        
         const costos = await window.db.configuracion.get('costos_mano_obra');
+        
         if (costos) {
-            const elAyudante = document.getElementById('costo-ayudante');
-            const elOficial = document.getElementById('costo-oficial');
-            const elTecnico = document.getElementById('costo-tecnico');
-            const elSupervisor = document.getElementById('costo-supervisor');
-            if (elAyudante) elAyudante.value = costos.ayudante || 0;
-            if (elOficial) elOficial.value = costos.oficial || 0;
-            if (elTecnico) elTecnico.value = costos.tecnico || 0;
-            if (elSupervisor) elSupervisor.value = costos.supervisor || 0;
+            console.log('✅ Costos encontrados:', costos);
+            elAyudante.value = costos.ayudante || 0;
+            elOficial.value = costos.oficial || 0;
+            elTecnico.value = costos.tecnico || 0;
+            elSupervisor.value = costos.supervisor || 0;
+        } else {
+            console.log('⚠️ No hay costos guardados en BD, usando valores por defecto');
+            // ⚠️ VALORES POR DEFECTO SI NO HAY NADA GUARDADO
+            elAyudante.value = 250;  // Ayudante
+            elOficial.value = 350;   // Oficial
+            elTecnico.value = 450;   // Técnico
+            elSupervisor.value = 550; // Supervisor
         }
     } catch (error) {
         console.error('❌ Error cargando costos:', error);
@@ -2187,6 +2214,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
