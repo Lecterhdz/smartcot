@@ -246,10 +246,10 @@ window.reportes = {
                 } else {
                     descripcion = 'Sin descripcion';
                 }
-                    const lineasConcepto = doc.splitTextToSize(descripcion, 90);
+                    const lineasConcepto = doc.splitTextToSize(descripcion, 120);
                    
                     doc.setFont('helvetica', 'normal');
-                    doc.text('Concepto: ' + descripcion.substring(0, 90), 20, yPos);
+                    doc.text('Concepto: ' + descripcion.substring(0, 120), 20, yPos);
                     yPos += (lineasConcepto.length * 5);
 
                     doc.text('  Puesto: ' + (mo.puesto || 'Sin puesto'), 140, yPos);
