@@ -471,12 +471,35 @@ window.curvaS = {
                 return;
             }
             
-            const semana = parseInt(document.getElementById('avance-semana')?.value);
-            const porcentaje = parseFloat(document.getElementById('avance-porcentaje')?.value);
-            const monto = parseFloat(document.getElementById('avance-monto')?.value);
+            // ⚠️ OBTENER VALORES COMO STRING PRIMERO
+            const semanaInput = document.getElementById('avance-semana')?.value;
+            const porcentajeInput = document.getElementById('avance-porcentaje')?.value;
+            const montoInput = document.getElementById('avance-monto')?.value;
             
-            if (!semana || porcentaje === undefined) {
-                alert('⚠️ Completa semana y porcentaje');
+            // ⚠️ VALIDAR QUE LOS CAMPOS NO ESTÉN VACÍOS
+            if (!semanaInput || semanaInput.trim() === '') {
+                alert('⚠️ Completa el campo "Semana"');
+                return;
+            }
+            
+            if (!porcentajeInput || porcentajeInput.trim() === '') {
+                alert('⚠️ Completa el campo "Avance Ejecutado (%)"');
+                return;
+            }
+            
+            // ⚠️ CONVERTIR DESPUÉS DE VALIDAR
+            const semana = parseInt(semanaInput);
+            const porcentaje = parseFloat(porcentajeInput);
+            const monto = montoInput ? parseFloat(montoInput) : 0;
+            
+            // ⚠️ VALIDAR RANGOS (PERMITE 0 A 100 CON DECIMALES)
+            if (isNaN(semana) || semana <= 0) {
+                alert('⚠️ La semana debe ser un número mayor a 0');
+                return;
+            }
+            
+            if (isNaN(porcentaje) || porcentaje < 0 || porcentaje > 100) {
+                alert('⚠️ El porcentaje debe ser entre 0 y 100 (ej: 45.5)');
                 return;
             }
             
@@ -938,7 +961,7 @@ window.curvaS = {
             doc.setTextColor(21, 101, 192);
             doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
-            doc.text('📊 INDICADORES DE DESEMPEÑO', 20, yPos);
+            doc.text('INDICADORES DE DESEMPEÑO', 20, yPos);
             
             yPos += 8;
             doc.setTextColor(26, 26, 26);
@@ -951,18 +974,18 @@ window.curvaS = {
             
             doc.text('Semana Actual: ' + semana, 20, yPos);
             doc.text('Desviacion: ' + (variacion >= 0 ? '+' : '') + variacion.toFixed(1) + '%', 90, yPos);
-            doc.text('Indice Desempeno (SPI): ' + indice.toFixed(2), 150, yPos);
+            doc.text('Indice (SPI): ' + indice.toFixed(2), 145, yPos);
             
             yPos += 7;
             let interpretacion = '';
             if (indice >= 1.0) {
-                interpretacion = '✅ Proyecto adelantado o en tiempo';
+                interpretacion = '✅ Proyecto: En tiempo';
                 doc.setTextColor(76, 175, 80);
             } else if (indice >= 0.9) {
-                interpretacion = '⚠️ Proyecto ligeramente atrasado';
+                interpretacion = '⚠️ Proyecto: Ligeramente atrasado';
                 doc.setTextColor(255, 152, 0);
             } else {
-                interpretacion = '🚨 Proyecto atrasado - Accion requerida';
+                interpretacion = '🚨 Proyecto: Atrasado - Accion requerida';
                 doc.setTextColor(244, 67, 54);
             }
             doc.setFontSize(8);
@@ -988,7 +1011,7 @@ window.curvaS = {
             doc.setTextColor(46, 125, 50);
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
-            doc.text('📈 AVANCE POR SEMANA', 20, yPos);
+            doc.text('AVANCE POR SEMANA', 20, yPos);
             
             yPos += 8;
             doc.setTextColor(26, 26, 26);
