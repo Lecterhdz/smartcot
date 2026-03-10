@@ -1294,15 +1294,32 @@ guardarCotizacion: async function() {
             return;
         }
         
-        // Calcular totales
+        // Calcular totales PRIMERO
         this.calcularTotalConConceptos();
+        const cotizacion = {
+        // ⚠️ OBTENER VALORES DE VARIABLES (NO DEL DOM)
+        const subtotal = this.datosCotizacion.conceptosSeleccionados.reduce(function(sum, c) {
+            return sum + ((c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1));
+        }, 0) + 
+        this.datosCotizacion.materiales.reduce(function(sum, m) { return sum + ((m.cantidad || 0) * (m.precioUnitario || 0)); }, 0) +
+        this.datosCotizacion.manoObra.reduce(function(sum, m) { return sum + ((m.jornadas || 0) * (m.costoJornada || 0)); }, 0) +
+        this.datosCotizacion.equipos.reduce(function(sum, e) { return sum + ((e.horas || 0) * (e.costoUnitario || 0)); }, 0);
         
-        // ⚠️ OBTENER VALORES DEL DOM
-        const costoDirecto = parseFloat(document.getElementById('resumen-costo-directo')?.textContent.replace(/[^0-9.-]+/g, '')) || 0;
-        const totalIndirectos = parseFloat(document.getElementById('resumen-sobrecosto-monto')?.textContent.replace(/[^0-9.-]+/g, '')) || 0;
-        const utilidad = parseFloat(document.getElementById('resumen-utilidad')?.textContent.replace(/[^0-9.-]+/g, '')) || 0;
-        const iva = parseFloat(document.getElementById('resumen-iva')?.textContent.replace(/[^0-9.-]+/g, '')) || 0;
-        const totalFinal = parseFloat(document.getElementById('resumen-total')?.textContent.replace(/[^0-9.-]+/g, '')) || 0;
+        const indirectosManuales = this.datosCotizacion.indirectos.reduce(function(sum, i) { return sum + (i.monto || 0); }, 0);
+        const indirectosOficinaPorcentaje = parseFloat(document.getElementById('cot-indirectos-oficina')?.value) || 5;
+        const indirectosCampoPorcentaje = parseFloat(document.getElementById('cot-indirectos-campo')?.value) || 15;
+        const financiamientoPorcentaje = parseFloat(document.getElementById('cot-financiamiento')?.value) || 0.85;
+        
+        const indirectosOficina = subtotal * (indirectosOficinaPorcentaje / 100);
+        const indirectosCampo = subtotal * (indirectosCampoPorcentaje / 100);
+        const financiamiento = subtotal * (financiamientoPorcentaje / 100);
+        const totalIndirectos = indirectosOficina + indirectosCampo + financiamiento + indirectosManuales;
+        
+        const baseConIndirectos = subtotal + totalIndirectos;
+        const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
+        const utilidad = baseConIndirectos * (utilidadPorcentaje / 100);
+        const iva = (baseConIndirectos + utilidad) * 0.16;
+        const totalFinal = baseConIndirectos + utilidad + iva; 
         
         // ⚠️ CALCULAR TIEMPO DE EJECUCIÓN DESDE MANO DE OBRA ADICIONAL
         let totalJOR = 0;
@@ -1365,14 +1382,26 @@ guardarCotizacion: async function() {
             },
             
             // ⚠️ TOTALES CALCULADOS
-            costoDirecto: costoDirecto,
+            costoDirecto: subtotal,
             totalIndirectos: totalIndirectos,
             utilidad: utilidad,
             iva: iva,
             totalFinal: totalFinal,
             fecha: new Date().toISOString(),
             estado: 'pendiente',
-            
+            // ⚠️ AGREGAR DESGLOSE PARA AUDITORÍA
+            desgloseTotales: {
+                subtotal: subtotal,
+                indirectosOficina: indirectosOficina,
+                indirectosCampo: indirectosCampo,
+                financiamiento: financiamiento,
+                indirectosManuales: indirectosManuales,
+                baseConIndirectos: baseConIndirectos,
+                utilidadPorcentaje: utilidadPorcentaje,
+                utilidadMonto: utilidad,
+                ivaPorcentaje: 16,
+                ivaMonto: iva
+            },
             // ⚠️ TIPO DE COTIZACIÓN
             tipo: hayConceptos ? 'estandar' : 'solo-recursos-adicionales'
         };
@@ -1723,6 +1752,56 @@ actualizarDisplayCostos: function() {
     if (elOficial) elOficial.textContent = calculator.formatoMoneda(oficial);
     if (elTecnico) elTecnico.textContent = calculator.formatoMoneda(tecnico);
     if (elSupervisor) elSupervisor.textContent = calculator.formatoMoneda(supervisor);
+},
+
+// ─────────────────────────────────────────────────────────────────
+// AUDITORÍA DE TOTALES (NUEVA FUNCIÓN PARA DEBUG)
+// ─────────────────────────────────────────────────────────────────
+auditoriaTotales: function() {
+    console.log('📊 === AUDITORÍA DE TOTALES ===');
+    
+    const subtotal = this.datosCotizacion.conceptosSeleccionados.reduce(function(sum, c) {
+        return sum + ((c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1));
+    }, 0) + 
+    this.datosCotizacion.materiales.reduce(function(sum, m) { return sum + ((m.cantidad || 0) * (m.precioUnitario || 0)); }, 0) +
+    this.datosCotizacion.manoObra.reduce(function(sum, m) { return sum + ((m.jornadas || 0) * (m.costoJornada || 0)); }, 0) +
+    this.datosCotizacion.equipos.reduce(function(sum, e) { return sum + ((e.horas || 0) * (e.costoUnitario || 0)); }, 0);
+    
+    const indirectosManuales = this.datosCotizacion.indirectos.reduce(function(sum, i) { return sum + (i.monto || 0); }, 0);
+    const indirectosOficinaPorcentaje = parseFloat(document.getElementById('cot-indirectos-oficina')?.value) || 5;
+    const indirectosCampoPorcentaje = parseFloat(document.getElementById('cot-indirectos-campo')?.value) || 15;
+    const financiamientoPorcentaje = parseFloat(document.getElementById('cot-financiamiento')?.value) || 0.85;
+    
+    const indirectosOficina = subtotal * (indirectosOficinaPorcentaje / 100);
+    const indirectosCampo = subtotal * (indirectosCampoPorcentaje / 100);
+    const financiamiento = subtotal * (financiamientoPorcentaje / 100);
+    const totalIndirectos = indirectosOficina + indirectosCampo + financiamiento + indirectosManuales;
+    
+    const baseConIndirectos = subtotal + totalIndirectos;
+    const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
+    const utilidad = baseConIndirectos * (utilidadPorcentaje / 100);
+    const iva = (baseConIndirectos + utilidad) * 0.16;
+    const totalFinal = baseConIndirectos + utilidad + iva;
+    
+    console.log('📦 Costo Directo:', calculator.formatoMoneda(subtotal));
+    console.log('🏢 Indirectos Oficina (' + indirectosOficinaPorcentaje + '%):', calculator.formatoMoneda(indirectosOficina));
+    console.log('🚧 Indirectos Campo (' + indirectosCampoPorcentaje + '%):', calculator.formatoMoneda(indirectosCampo));
+    console.log('💰 Financiamiento (' + financiamientoPorcentaje + '%):', calculator.formatoMoneda(financiamiento));
+    console.log('📋 Indirectos Manuales:', calculator.formatoMoneda(indirectosManuales));
+    console.log('📊 Total Indirectos:', calculator.formatoMoneda(totalIndirectos));
+    console.log('📈 Base con Indirectos:', calculator.formatoMoneda(baseConIndirectos));
+    console.log('💵 Utilidad (' + utilidadPorcentaje + '%):', calculator.formatoMoneda(utilidad));
+    console.log('🧾 IVA (16%):', calculator.formatoMoneda(iva));
+    console.log('💰 TOTAL FINAL:', calculator.formatoMoneda(totalFinal));
+    console.log('===============================');
+    
+    return {
+        subtotal: subtotal,
+        totalIndirectos: totalIndirectos,
+        utilidad: utilidad,
+        iva: iva,
+        totalFinal: totalFinal
+    };
 },
     
 // ─────────────────────────────────────────────────────────────────
@@ -2228,6 +2307,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
