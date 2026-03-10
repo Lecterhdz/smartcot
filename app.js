@@ -1646,6 +1646,51 @@ cancelarExtraerManoDeObra: function() {
 },
 
 // ─────────────────────────────────────────────────────────────────
+// ACTUALIZAR DISPLAY DE COSTOS (EN TIEMPO REAL)
+// ─────────────────────────────────────────────────────────────────
+actualizarDisplayCostos: function() {
+    const ayudante = parseFloat(document.getElementById('costo-ayudante')?.value) || 0;
+    const oficial = parseFloat(document.getElementById('costo-oficial')?.value) || 0;
+    const tecnico = parseFloat(document.getElementById('costo-tecnico')?.value) || 0;
+    const supervisor = parseFloat(document.getElementById('costo-supervisor')?.value) || 0;
+    
+    const elAyudante = document.getElementById('display-ayudante');
+    const elOficial = document.getElementById('display-oficial');
+    const elTecnico = document.getElementById('display-tecnico');
+    const elSupervisor = document.getElementById('display-supervisor');
+    
+    if (elAyudante) elAyudante.textContent = calculator.formatoMoneda(ayudante);
+    if (elOficial) elOficial.textContent = calculator.formatoMoneda(oficial);
+    if (elTecnico) elTecnico.textContent = calculator.formatoMoneda(tecnico);
+    if (elSupervisor) elSupervisor.textContent = calculator.formatoMoneda(supervisor);
+},
+
+// ─────────────────────────────────────────────────────────────────
+// CARGAR COSTOS DE MANO DE OBRA (MEJORADO)
+// ─────────────────────────────────────────────────────────────────
+cargarCostosManoObra: async function() {
+    try {
+        const costos = await window.db.configuracion.get('costos_mano_obra');
+        if (costos) {
+            const elAyudante = document.getElementById('costo-ayudante');
+            const elOficial = document.getElementById('costo-oficial');
+            const elTecnico = document.getElementById('costo-tecnico');
+            const elSupervisor = document.getElementById('costo-supervisor');
+            
+            if (elAyudante) elAyudante.value = costos.ayudante || 0;
+            if (elOficial) elOficial.value = costos.oficial || 0;
+            if (elTecnico) elTecnico.value = costos.tecnico || 0;
+            if (elSupervisor) elSupervisor.value = costos.supervisor || 0;
+            
+            // ⚠️ ACTUALIZAR DISPLAY
+            this.actualizarDisplayCostos();
+        }
+    } catch (error) {
+        console.error('❌ Error cargando costos:', error);
+    }
+},
+    
+// ─────────────────────────────────────────────────────────────────
 // CLIENTES
 // ─────────────────────────────────────────────────────────────────
 cargarClientesSelect: async function() {
@@ -2131,6 +2176,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
