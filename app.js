@@ -1462,6 +1462,17 @@ extraerSoloManoDeObra: async function() {
                     } else {
                         descripcionConcepto = 'Sin descripción';
                     }
+
+                    // ⚠️ ELIMINAR PALABRA "SUMINISTRO" (NUEVO)
+                    descripcionConcepto = descripcionConcepto
+                        .replace(/suministro/gi, '')  // ✅ Elimina "suministro"
+                        .replace(/suministros/gi, '')  // ✅ Elimina "suministros"
+                        .replace(/incluye:\s*,/gi, 'Incluye:')  // ✅ Limpia comas dobles
+                        .replace(/,\s*,/g, ',')  // ✅ Limpia comas repetidas
+                        .replace(/^\s*,\s*/, '')  // ✅ Elimina coma al inicio
+                        .replace(/\s*,\s*$/g, '')  // ✅ Elimina coma al final
+                        .replace(/\s+/g, ' ')  // ✅ Limpia espacios dobles
+                        .trim();
                     
                     manoDeObraTotal.push({
                         // ⚠️ GUARDAR DESCRIPCION COMPLETA PARA EL REPORTE
@@ -2176,6 +2187,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
