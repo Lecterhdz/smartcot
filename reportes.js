@@ -285,7 +285,7 @@ window.reportes = {
             }
             
             // ⚠️ RECTÁNGULO MÁS ANCHO Y ALTO
-            doc.rect(140, yPos - 4, 60, 12, 'F');
+            doc.rect(140, yPos - 3, 60, 12, 'F');
             
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
