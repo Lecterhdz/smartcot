@@ -1465,9 +1465,9 @@ extraerSoloManoDeObra: async function() {
                     
                     manoDeObraTotal.push({
                         // ⚠️ GUARDAR DESCRIPCION COMPLETA PARA EL REPORTE
-                        concepto: concepto.codigo + ' - ' + descripcionCompleta,  // ← CAMBIO AQUÍ
+                        concepto: concepto.codigo + ' - ' + descripcionConcepto,  // ← CAMBIO AQUÍ
                         conceptoCodigo: concepto.codigo || 'N/A',
-                        conceptoDescripcion: descripcionCompleta,  // ← NUEVO CAMPO
+                        conceptoDescripcion: descripcionConcepto,  // ← NUEVO CAMPO
                         puesto: mo.puesto || 'Sin nombre',
                         jornadas: jornadas,
                         costoJornada: (mo.salario_hora || 0) * 8,
@@ -2131,6 +2131,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
