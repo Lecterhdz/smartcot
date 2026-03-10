@@ -222,7 +222,7 @@ window.reportes = {
             if (cotizacion.tipo === 'solo-mano-obra-extraida' && cotizacion.manoObraExtraida) {
                 yPos += 5;
                 doc.setFillColor(76, 175, 80);
-                doc.rect(15, yPos - 2, 180, 5, 'F');
+                doc.rect(15, yPos - 1, 180, 5, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
@@ -266,7 +266,7 @@ window.reportes = {
 
                     // ⚠️ FONDO GRIS PARA LA FILA
                     doc.setFillColor(245, 245, 245);
-                    doc.rect(15, yPos + 2, 180, 8, 'F');
+                    doc.rect(15, yPos - 5, 180, 8, 'F');
                     
                     // ⚠️ TEXTO EN UNA SOLA LÍNEA
                     doc.setFont('helvetica', 'normal');
@@ -276,7 +276,7 @@ window.reportes = {
                     doc.text((mo.costoJornada ? calculator.formatoMoneda(mo.costoJornada) : '$0.00'), 120, yPos);
                     doc.text((mo.importe ? calculator.formatoMoneda(mo.importe) : '$0.00'), 180, yPos, { align: 'right' });
                     
-                    yPos += 8;  // ⚠️ MÁS ESPACIO POR EL FONDO     
+                    yPos += 7;  // ⚠️ MÁS ESPACIO POR EL FONDO     
 
                     
                     if (yPos > 250) {
