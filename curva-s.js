@@ -880,7 +880,7 @@ window.curvaS = {
         if (elIndiceTiempo) elIndiceTiempo.textContent = '0.00';
     },
     // ─────────────────────────────────────────────────────────────────
-    // EXPORTAR REPORTE PDF (CORREGIDO - INCLUYE DESVIACIÓN E ÍNDICE)
+    // EXPORTAR REPORTE PDF (PROFESIONAL - CORREGIDO)
     // ─────────────────────────────────────────────────────────────────
     exportarReportePDF: async function() {
         try {
@@ -888,7 +888,6 @@ window.curvaS = {
                 alert('⚠️ jsPDF no está cargado. Verifica que el script esté incluido.');
                 return;
             }
-            
             if (!this.datos.cotizacionId) {
                 alert('⚠️ Primero carga una cotización');
                 return;
@@ -897,12 +896,24 @@ window.curvaS = {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Obtener cotización
             const cotizacion = await window.db.cotizaciones.get(parseInt(this.datos.cotizacionId));
             if (!cotizacion) {
                 alert('❌ Cotización no encontrada');
                 return;
             }
+            
+            // ─────────────────────────────────────────────────────────
+            // ENCABEZADO
+            // ─────────────────────────────────────────────────────────
+            doc.setFillColor(26, 26, 26);
+            doc.rect(0, 0, 210, 30, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(15);
+            doc.setFont('helvetica', 'bold');
+            doc.text('CURVA S - SEGUIMIENTO DE OBRA', 105, 17, { align: 'center' });
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text('SmartCot v2.0 - Reporte de Avance', 105, 25, { align: 'center' });
             
             // ─────────────────────────────────────────────────────────
             // INFORMACIÓN DE LA COTIZACIÓN
@@ -917,29 +928,13 @@ window.curvaS = {
             doc.text('Fecha de Reporte: ' + new Date().toLocaleDateString('es-MX'), 15, yPos);
             yPos += 6;
             doc.text('Total Proyecto: ' + calculator.formatoMoneda(cotizacion.totalFinal || 0), 15, yPos);
-            yPos += 6;
-            // ⚠️ AGREGAR DESCRIPCIÓN DEL PROYECTO (2-3 LÍNEAS)
-            if (cotizacion.descripcion && cotizacion.descripcion.trim() !== '') {
-                const descLineas = [];
-                const maxCaracteres = 90;
-                for (let i = 0; i < cotizacion.descripcion.length; i += maxCaracteres) {
-                    descLineas.push(cotizacion.descripcion.substring(i, i + maxCaracteres));
-                }
-                doc.text('Proyecto:', 15, yPos);
-                yPos += 5;
-                descLineas.forEach(function(linea) {
-                    doc.text(linea, 20, yPos);
-                    yPos += 5;
-                });
-            }          
-            // ─────────────────────────────────────────────────────────────────
-            // INDICADORES DE DESEMPEÑO (CORREGIDO - DENTRO DEL MARGEN)
-            // ─────────────────────────────────────────────────────────────────
+            
+            // ─────────────────────────────────────────────────────────
+            // INDICADORES DE DESEMPEÑO
+            // ─────────────────────────────────────────────────────────
             yPos += 10;
-            
             doc.setFillColor(227, 242, 253);
-            doc.rect(15, yPos - 5, 180, 25, 'F');  // ← Altura aumentada de 20 a 25
-            
+            doc.rect(15, yPos - 5, 180, 28, 'F');
             doc.setTextColor(21, 101, 192);
             doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
@@ -947,22 +942,18 @@ window.curvaS = {
             
             yPos += 8;
             doc.setTextColor(26, 26, 26);
-            doc.setFontSize(9);  // ← Tamaño reducido de 10 a 9
+            doc.setFontSize(9);
             
-            // Calcular variación e índice actuales
             this.calcularVariaciones();
-            
             const variacion = this.ultimaVariacion || 0;
             const indice = this.ultimoIndice || 0;
             const semana = this.ultimaSemana || 0;
             
-            // Primera fila
             doc.text('Semana Actual: ' + semana, 20, yPos);
             doc.text('Desviacion: ' + (variacion >= 0 ? '+' : '') + variacion.toFixed(1) + '%', 90, yPos);
             doc.text('Indice Desempeno (SPI): ' + indice.toFixed(2), 150, yPos);
             
-            // Segunda fila (interpretación) - MOVIDA HACIA ABAJO
-            yPos += 6;
+            yPos += 7;
             let interpretacion = '';
             if (indice >= 1.0) {
                 interpretacion = '✅ Proyecto adelantado o en tiempo';
@@ -974,14 +965,13 @@ window.curvaS = {
                 interpretacion = '🚨 Proyecto atrasado - Accion requerida';
                 doc.setTextColor(244, 67, 54);
             }
-            doc.setFontSize(8);  // ← Tamaño más pequeño
+            doc.setFontSize(8);
             doc.text(interpretacion, 20, yPos);
             
             // ─────────────────────────────────────────────────────────
             // GRÁFICA
             // ─────────────────────────────────────────────────────────
             yPos += 15;
-            
             const canvas = document.getElementById('curva-s-chart');
             if (canvas) {
                 const imgData = canvas.toDataURL('image/png');
@@ -993,10 +983,8 @@ window.curvaS = {
             // TABLA DE AVANCE POR SEMANA
             // ─────────────────────────────────────────────────────────
             yPos += 5;
-            
             doc.setFillColor(232, 245, 233);
             doc.rect(15, yPos - 5, 180, 5, 'F');
-            
             doc.setTextColor(46, 125, 50);
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
@@ -1007,27 +995,23 @@ window.curvaS = {
             doc.setFontSize(8);
             doc.setFont('helvetica', 'normal');
             
-            // Encabezados de tabla
             doc.setFont('helvetica', 'bold');
             doc.text('Semana', 20, yPos);
-            doc.text('Programado', 60, yPos);
-            doc.text('Ejecutado', 100, yPos);
-            doc.text('Desviacion', 140, yPos);
-            doc.text('Estado', 180, yPos);
+            doc.text('Programado', 65, yPos);
+            doc.text('Ejecutado', 105, yPos);
+            doc.text('Desviacion', 145, yPos);
+            doc.text('Estado', 175, yPos);
             
             yPos += 2;
             doc.setDrawColor(200);
             doc.line(15, yPos, 195, yPos);
             yPos += 5;
-            
             doc.setFont('helvetica', 'normal');
             
-            // Filas de la tabla
             this.datos.semanas.forEach(function(semana, index) {
                 const programado = this.datos.avanceProgramado[index] || 0;
                 const ejecutado = this.datos.avanceEjecutado[index] || 0;
                 const desviacion = ejecutado - programado;
-                
                 let estado = '';
                 if (ejecutado === 0 && programado === 0) {
                     estado = 'Pendiente';
@@ -1038,16 +1022,12 @@ window.curvaS = {
                 } else {
                     estado = 'Atrasado';
                 }
-                
                 doc.text(semana.replace('Sem ', 'S'), 20, yPos);
-                doc.text(programado.toFixed(1) + '%', 60, yPos);
-                doc.text(ejecutado.toFixed(1) + '%', 100, yPos);
-                doc.text((desviacion >= 0 ? '+' : '') + desviacion.toFixed(1) + '%', 140, yPos);
-                doc.text(estado, 180, yPos);
-                
+                doc.text(programado.toFixed(1) + '%', 65, yPos);
+                doc.text(ejecutado.toFixed(1) + '%', 105, yPos);
+                doc.text((desviacion >= 0 ? '+' : '') + desviacion.toFixed(1) + '%', 145, yPos);
+                doc.text(estado, 175, yPos);
                 yPos += 5;
-                
-                // Verificar si necesita nueva página
                 if (yPos > 270) {
                     doc.addPage();
                     yPos = 20;
@@ -1060,11 +1040,9 @@ window.curvaS = {
             const pageCount = doc.internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
-                
                 doc.setFontSize(8);
                 doc.setTextColor(150, 150, 150);
                 doc.text('Pagina ' + i + ' de ' + pageCount, 105, 290, { align: 'center' });
-                
                 doc.text('Generado por SmartCot v2.0 - ' + new Date().toLocaleDateString('es-MX'), 15, 295);
             }
             
@@ -1081,7 +1059,7 @@ window.curvaS = {
             console.error('❌ Error exportando reporte PDF:', error);
             alert('❌ Error al exportar reporte: ' + error.message);
         }
-    }
+    },
 };
 
 console.log('✅ curva-s.js listo');
