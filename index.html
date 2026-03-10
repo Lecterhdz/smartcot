@@ -657,30 +657,72 @@ body { font-family: 'Segoe UI', 'Roboto', sans-serif; background: linear-gradien
 <input type="number" id="config-utilidad" placeholder="Utilidad %" value="15" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
 </div>
 </div>
+<!-- COSTOS DE MANO DE OBRA (MEJORADO) -->
 <div class="form-group" id="config-costos-mano-obra" style="margin-top:30px;">
-<h4 style="color:#1a1a1a;margin-bottom:15px;">💰 Costos de Mano de Obra</h4>
-<div style="background:#FFF3E0;padding:15px;border-radius:10px;margin-bottom:15px;border-left:4px solid #FF9800;">
-<p style="color:#E65100;font-size:13px;margin:0;">ℹ️ Estos costos se aplicarán automáticamente a todos los conceptos (PRO/ENTERPRISE)</p>
-</div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
-<div>
-<label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">👷 Ayudante</label>
-<input type="number" id="costo-ayudante" placeholder="$ por jornada" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
-</div>
-<div>
-<label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">🔧 Oficial</label>
-<input type="number" id="costo-oficial" placeholder="$ por jornada" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
-</div>
-<div>
-<label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">⚡ Técnico</label>
-<input type="number" id="costo-tecnico" placeholder="$ por jornada" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
-</div>
-<div>
-<label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">📋 Supervisor</label>
-<input type="number" id="costo-supervisor" placeholder="$ por jornada" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;">
-</div>
-</div>
-<button onclick="app.guardarCostosManoObra()" style="margin-top:20px;background:#4CAF50;color:white;border:none;padding:14px 30px;border-radius:10px;cursor:pointer;font-weight:600;">💾 Guardar Costos de Mano de Obra</button>
+    <h4 style="color:#1a1a1a;margin-bottom:15px;">💰 Costos de Mano de Obra</h4>
+    
+    <div style="background:#E3F2FD;padding:15px;border-radius:10px;margin-bottom:15px;border-left:4px solid #2196F3;">
+        <p style="color:#1565C0;font-size:13px;margin:0;">
+            ℹ️ Estos costos se aplicarán automáticamente a todos los conceptos (PRO/ENTERPRISE)
+            <br><strong>Los cambios se guardan inmediatamente y se pueden editar en cualquier momento.</strong>
+        </p>
+    </div>
+    
+    <!-- ⚠️ MOSTRAR COSTOS ACTUALES -->
+    <div id="costos-actuales-display" style="background:#f5f7fa;padding:15px;border-radius:10px;margin-bottom:15px;">
+        <div style="font-weight:600;color:#1a1a1a;margin-bottom:10px;">📊 Costos Actuales (por jornada de 8 horas)</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
+            <div style="background:white;padding:10px;border-radius:8px;">
+                <div style="font-size:12px;color:#666;">👷 Ayudante</div>
+                <div style="font-size:18px;font-weight:700;color:#1a1a1a;" id="display-ayudante">$0.00</div>
+            </div>
+            <div style="background:white;padding:10px;border-radius:8px;">
+                <div style="font-size:12px;color:#666;">🔧 Oficial</div>
+                <div style="font-size:18px;font-weight:700;color:#1a1a1a;" id="display-oficial">$0.00</div>
+            </div>
+            <div style="background:white;padding:10px;border-radius:8px;">
+                <div style="font-size:12px;color:#666;">⚡ Técnico</div>
+                <div style="font-size:18px;font-weight:700;color:#1a1a1a;" id="display-tecnico">$0.00</div>
+            </div>
+            <div style="background:white;padding:10px;border-radius:8px;">
+                <div style="font-size:12px;color:#666;">📋 Supervisor</div>
+                <div style="font-size:18px;font-weight:700;color:#1a1a1a;" id="display-supervisor">$0.00</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ⚠️ EDITAR COSTOS -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
+        <div>
+            <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">👷 Ayudante ($/jornada)</label>
+            <input type="number" id="costo-ayudante" placeholder="$ por jornada" 
+                   style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;"
+                   onchange="app.actualizarDisplayCostos()">
+        </div>
+        <div>
+            <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">🔧 Oficial ($/jornada)</label>
+            <input type="number" id="costo-oficial" placeholder="$ por jornada" 
+                   style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;"
+                   onchange="app.actualizarDisplayCostos()">
+        </div>
+        <div>
+            <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">⚡ Técnico ($/jornada)</label>
+            <input type="number" id="costo-tecnico" placeholder="$ por jornada" 
+                   style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;"
+                   onchange="app.actualizarDisplayCostos()">
+        </div>
+        <div>
+            <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;">📋 Supervisor ($/jornada)</label>
+            <input type="number" id="costo-supervisor" placeholder="$ por jornada" 
+                   style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;"
+                   onchange="app.actualizarDisplayCostos()">
+        </div>
+    </div>
+    
+    <button onclick="app.guardarCostosManoObra()" 
+            style="margin-top:20px;background:#4CAF50;color:white;border:none;padding:14px 30px;border-radius:10px;cursor:pointer;font-weight:600;">
+        💾 Guardar Costos de Mano de Obra
+    </button>
 </div>
 <div class="form-group" id="config-color-group" style="display:none;margin-top:20px;">
 <label style="font-size:14px;color:#666;display:block;margin-bottom:10px;">🎨 Color Corporativo</label>
@@ -1075,5 +1117,6 @@ navigator.serviceWorker.register('sw.js')
 
 </body>
 </html>
+
 
 
