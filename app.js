@@ -696,7 +696,7 @@ actualizarConceptosSeleccionadosUI: function() {
         } else {
             btnExtraerMO.style.display = 'none';
         }
-    },
+    }
 },
 
 actualizarCantidadConcepto: function(index, cantidad) {
@@ -2131,6 +2131,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
