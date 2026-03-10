@@ -237,11 +237,10 @@ window.reportes = {
                     const conceptoInfo = mo.conceptoDescripcion || mo.concepto || mo.conceptoCodigo || 'Sin concepto';
                     const lineasConcepto = doc.splitTextToSize(conceptoInfo, 180);
                    
-                    doc.setFont('helvetica', 'bold');
+                    doc.setFont('helvetica', 'normal');
                     doc.text(lineasConcepto, 20, yPos);
                     yPos += (lineasConcepto.length * 5);
 
-                    doc.setFont('arial', 'normal');
                     doc.text('  Puesto: ' + (mo.puesto || 'Sin puesto'), 140, yPos);
                     yPos += 5;
                     doc.text('  Jornadas: ' + (mo.jornadas ? mo.jornadas.toFixed(2) : '0') + ' jor', 140, yPos);
