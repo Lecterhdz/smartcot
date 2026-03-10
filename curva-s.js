@@ -624,13 +624,12 @@ window.curvaS = {
                 return;
             }
             
-            // ⚠️ FILTRAR AVANCES CON DATOS VÁLIDOS
-            const avancesValidos = avances.filter(a => 
-                a.porcentaje !== undefined && 
-                a.porcentaje !== null && 
-                !isNaN(parseFloat(a.porcentaje)) &&
-                parseFloat(a.porcentaje) >= 0
+            // ⚠️ FILTRAR AVANCES CON DATOS VÁLIDOS (CORREGIDO - USAR NOMBRES CORRECTOS)
+            const avancesValidos = avances.filter(a =>
+                (a.porcentajeEjecutado !== undefined && a.porcentajeEjecutado !== null) ||
+                (a.porcentaje !== undefined && a.porcentaje !== null)
             );
+            console.log('📊 Avances válidos:', avancesValidos);  // ⚠️ DEBUG
             
             if (avancesValidos.length === 0) {
                 alert('⚠️ Los avances registrados no tienen porcentaje válido.\n\nEdita los avances y agrega porcentaje de avance (0-100).');
@@ -660,8 +659,10 @@ window.curvaS = {
                 const porcentajeEjecutado = parseFloat(avance.porcentaje) || 0;
                 EV += (porcentajeEjecutado / 100) * totalProyecto;
                 
-                // AC = Monto ejecutado real
-                AC += parseFloat(avance.monto) || 0;
+                // ⚠️ AC = Monto ejecutado real (CORREGIDO)
+                const monto = parseFloat(avance.montoEjecutado || avance.monto || 0);
+                console.log('  Monto Ejecutado:', monto);  // ⚠️ DEBUG
+                AC += monto;
             });
             
             // ⚠️ CALCULAR INDICADORES (EVITAR DIVISIÓN POR CERO)
