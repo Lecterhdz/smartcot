@@ -251,6 +251,16 @@ window.reportes = {
                     if (mo.conceptoCodigo && mo.conceptoCodigo.trim().length > 0) {
                         descripcion = mo.conceptoCodigo + ' - ' + descripcion;  // ✅ CONCATENAR CÓDIGO + DESCRIPCIÓN
                     }
+                    // ⚠️ ELIMINAR PALABRA "SUMINISTRO" (NUEVO)
+                    descripcion = descripcion
+                        .replace(/suministro/gi, '')
+                        .replace(/suministros/gi, '')
+                        .replace(/incluye:\s*,/gi, 'Incluye:')
+                        .replace(/,\s*,/g, ',')
+                        .replace(/^\s*,\s*/, '')
+                        .replace(/\s*,\s*$/g, '')
+                        .replace(/\s+/g, ' ')
+                        .trim();    
                     
                     const lineasConcepto = doc.splitTextToSize(descripcion, 160);
                    
