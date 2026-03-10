@@ -1451,14 +1451,14 @@ extraerSoloManoDeObra: async function() {
                     const jornadas = (mo.horas_jornada || 0) * (concepto.cantidad || 1);
                     const costo = (mo.salario_hora || 0) * 8 * jornadas;
                     
-                    // ⚠️ USAR DESCRIPCION COMPLETA DEL CONCEPTO (CORREGIDO)
+                    // ⚠️ USAR DESCRIPCION COMPLETA DEL CONCEPTO (SIN TRUNCAR)
                     let descripcionConcepto = '';
                     if (concepto.descripcion_tecnica && concepto.descripcion_tecnica.trim() !== '') {
-                        descripcionConcepto = concepto.descripcion_tecnica.substring(0, 50);
+                        descripcionConcepto = concepto.descripcion_tecnica;  // ✅ COMPLETA SIN LIMITES
                     } else if (concepto.descripcion && concepto.descripcion.trim() !== '') {
-                        descripcionConcepto = concepto.descripcion.substring(0, 50);
+                        descripcionConcepto = concepto.descripcion;  // ✅ COMPLETA
                     } else if (concepto.descripcion_corta && concepto.descripcion_corta.trim() !== '') {
-                        descripcionConcepto = concepto.descripcion_corta.substring(0, 50);
+                        descripcionConcepto = concepto.descripcion_corta;  // ✅ COMPLETA
                     } else {
                         descripcionConcepto = 'Sin descripción';
                     }
@@ -2131,6 +2131,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
