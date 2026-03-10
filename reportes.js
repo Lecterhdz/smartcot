@@ -200,7 +200,7 @@ window.reportes = {
                     doc.text(lineas, 34, yPos);
                     doc.text((c.cantidad || 1).toString(), 128, yPos);
                     doc.text(c.unidad || '', 140, yPos);
-                    doc.text(calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0), 170, yPos, { align: 'right' });
+                    doc.text(calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0), 167, yPos, { align: 'right' });
                     doc.text(calculator.formatoMoneda(importe), 193, yPos, { align: 'right' });
                     
                     // ⚠️ ESPACIO ADICIONAL POR CADA LÍNEA DE DESCRIPCIÓN
