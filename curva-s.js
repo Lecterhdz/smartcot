@@ -95,7 +95,9 @@ window.curvaS = {
                 alert('⚠️ Selecciona una cotización');
                 return;
             }
-            
+
+            // ⚠️ LIMPIAR VALORES ANTERIORES ANTES DE CARGAR NUEVA COTIZACIÓN
+            this.limpiarValoresEVM();
             const cotizacion = await window.db.cotizaciones.get(parseInt(cotizacionId));
             
             if (!cotizacion) {
