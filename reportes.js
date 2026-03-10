@@ -153,7 +153,7 @@ window.reportes = {
             doc.setFont('helvetica', 'bold');
             
             // ⚠️ COLUMNAS CORREGIDAS (ANCHOS AJUSTADOS)
-            const colWidths = [26, 86, 12, 15, 25, 25];
+            const colWidths = [24, 86, 12, 15, 25, 25];
             const headers = ['Codigo', 'Descripcion', 'Cant.', 'Unidad', 'Costo Unit.', 'Importe'];
             let xPos = 15;
             
@@ -197,7 +197,7 @@ window.reportes = {
                     const lineas = doc.splitTextToSize(descripcion, 80);
                     
                     doc.text(codigo.substring(0, 10), 15, yPos);
-                    doc.text(lineas, 42, yPos);
+                    doc.text(lineas, 35, yPos);
                     doc.text((c.cantidad || 1).toString(), 130, yPos);
                     doc.text(c.unidad || '', 140, yPos);
                     doc.text(calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0), 170, yPos, { align: 'right' });
