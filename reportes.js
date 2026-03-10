@@ -198,8 +198,8 @@ window.reportes = {
                     
                     doc.text(codigo.substring(0, 10), 15, yPos);
                     doc.text(lineas, 42, yPos);
-                    doc.text((c.cantidad || 1).toString(), 135, yPos);
-                    doc.text(c.unidad || '', 155, yPos);
+                    doc.text((c.cantidad || 1).toString(), 130, yPos);
+                    doc.text(c.unidad || '', 140, yPos);
                     doc.text(calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0), 175, yPos, { align: 'right' });
                     doc.text(calculator.formatoMoneda(importe), 202, yPos, { align: 'right' });
                     
