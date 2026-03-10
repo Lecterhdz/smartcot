@@ -153,7 +153,7 @@ window.reportes = {
             doc.setFont('helvetica', 'bold');
             
             // ⚠️ COLUMNAS CORREGIDAS (ANCHOS AJUSTADOS)
-            const colWidths = [27, 85, 12, 15, 25, 25];
+            const colWidths = [26, 86, 12, 15, 25, 25];
             const headers = ['Codigo', 'Descripcion', 'Cant.', 'Unidad', 'Costo Unit.', 'Importe'];
             let xPos = 15;
             
@@ -199,9 +199,9 @@ window.reportes = {
                     doc.text(codigo.substring(0, 10), 15, yPos);
                     doc.text(lineas, 42, yPos);
                     doc.text((c.cantidad || 1).toString(), 130, yPos);
-                    doc.text(c.unidad || '', 135, yPos);
-                    doc.text(calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0), 172, yPos, { align: 'right' });
-                    doc.text(calculator.formatoMoneda(importe), 198, yPos, { align: 'right' });
+                    doc.text(c.unidad || '', 138, yPos);
+                    doc.text(calculator.formatoMoneda(c.costos_base?.costo_directo_total || 0), 170, yPos, { align: 'right' });
+                    doc.text(calculator.formatoMoneda(importe), 195, yPos, { align: 'right' });
                     
                     // ⚠️ ESPACIO ADICIONAL POR CADA LÍNEA DE DESCRIPCIÓN
                     yPos += (5 + (lineas.length * 4));
