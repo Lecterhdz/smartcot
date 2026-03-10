@@ -1355,6 +1355,50 @@ guardarCotizacion: async function() {
             ubicacion: ubicacion || '',
             fechaInicio: fechaInicio || new Date().toISOString(),
             fechaFinSolicitada: fechaFinSolicitada || null,
+            conceptosCatalogo: this.datosCotizacion.conceptosSeleccionados,
+            materialesAdicionales: this.datosCotizacion.materiales,
+            manoObraAdicional: this.datosCotizacion.manoObra,
+            equiposAdicionales: this.datosCotizacion.equipos,
+            herramientaAdicional: this.datosCotizacion.herramienta,
+            indirectosAdicionales: this.datosCotizacion.indirectos,
+            porcentajes: {
+                indirectosOficina: indirectosOficinaPorcentaje,
+                indirectosCampo: indirectosCampoPorcentaje,
+                financiamiento: financiamientoPorcentaje,
+                utilidad: utilidadPorcentaje
+            },
+            factoresAjuste: this.factoresAjuste,
+            tiempoEjecucion: {
+                jornadas: totalJOR.toFixed(2),
+                diasHabiles: diasHabiles,
+                semanas: semanas,
+                meses: meses
+            },
+            // ⚠️ TOTALES CALCULADOS
+            costoDirecto: subtotal,
+            totalIndirectos: totalIndirectos,
+            utilidad: utilidad,
+            iva: iva,
+            totalFinal: totalFinal,
+            fecha: new Date().toISOString(),
+            estado: 'pendiente',
+            tipo: hayConceptos ? 'estandar' : 'solo-recursos-adicionales',
+            // ⚠️ AGREGAR DESGLOSE PARA AUDITORÍA Y REPORTES
+            desgloseTotales: {
+                subtotal: subtotal,
+                indirectosOficina: indirectosOficina,
+                indirectosCampo: indirectosCampo,
+                financiamiento: financiamiento,
+                indirectosManuales: indirectosManuales,
+                baseConIndirectos: baseConIndirectos,
+                utilidadPorcentaje: utilidadPorcentaje,
+                utilidadMonto: utilidad,
+                ivaPorcentaje: 16,
+                ivaMonto: iva,
+                factorAjusteTotal: this.factoresAjuste.total || 1,
+                costoTiempoExtendido: this.impactoFactores?.costoTiempoExtendido || 0
+            }
+        };
             
             // ⚠️ GUARDAR TODOS LOS RECURSOS
             conceptosCatalogo: this.datosCotizacion.conceptosSeleccionados,
@@ -1381,27 +1425,6 @@ guardarCotizacion: async function() {
                 meses: meses
             },
             
-            // ⚠️ TOTALES CALCULADOS
-            costoDirecto: costoDirect,
-            totalIndirectos: totalIndirectos,
-            utilidad: utilidad,
-            iva: iva,
-            totalFinal: totalFinal,
-            fecha: new Date().toISOString(),
-            estado: 'pendiente',
-            // ⚠️ AGREGAR DESGLOSE PARA AUDITORÍA
-            desgloseTotales: {
-                subtotal: subtotal,
-                indirectosOficina: indirectosOficina,
-                indirectosCampo: indirectosCampo,
-                financiamiento: financiamiento,
-                indirectosManuales: indirectosManuales,
-                baseConIndirectos: baseConIndirectos,
-                utilidadPorcentaje: utilidadPorcentaje,
-                utilidadMonto: utilidad,
-                ivaPorcentaje: 16,
-                ivaMonto: iva
-            },
             // ⚠️ TIPO DE COTIZACIÓN
             tipo: hayConceptos ? 'estandar' : 'solo-recursos-adicionales'
         };
@@ -2307,6 +2330,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
