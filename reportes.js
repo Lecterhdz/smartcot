@@ -234,18 +234,23 @@ window.reportes = {
                 doc.setFont('helvetica', 'normal');
                 
                 cotizacion.manoObraExtraida.forEach(function(mo) {
-                // ⚠️ USAR conceptoDescripcion SI EXISTE (DESCRIPCIÓN COMPLETA)
-                let conceptoInfo = '';
-                if (mo.conceptoDescripcion && mo.conceptoDescripcion.trim() !== '') {
-                    conceptoInfo = mo.conceptoCodigo + ' - ' + mo.conceptoDescripcion;  // ✅ CÓDIGO + DESCRIPCIÓN COMPLETA
-                } else if (mo.concepto && mo.concepto.trim() !== '') {
-                    conceptoInfo = mo.concepto;
-                } else if (mo.conceptoCodigo && mo.conceptoCodigo.trim() !== '') {
-                    conceptoInfo = mo.conceptoCodigo;
+           
+                // ⚠️ PRIORIDAD: descripcion_tecnica > descripcion > descripcion_corta
+                let descripcion = '';
+                if (c.descripcion_tecnica && c.descripcion_tecnica.trim().length > 0) {
+                    descripcion = c.descripcion_tecnica;
+                    console.log('✅ Usando descripcion_tecnica:', descripcion.substring(0, 50));
+                } else if (c.descripcion && c.descripcion.trim().length > 0) {
+                    descripcion = c.descripcion;
+                    console.log('✅ Usando descripcion:', descripcion.substring(0, 50));
+                } else if (c.descripcion_corta && c.descripcion_corta.trim().length > 0) {
+                    descripcion = c.descripcion_corta;
+                    console.log('✅ Usando descripcion_corta:', descripcion.substring(0, 50));
                 } else {
-                    conceptoInfo = 'Sin concepto';
+                    descripcion = 'Sin descripcion';
+                    console.log('⚠️ Sin descripción disponible');
                 }
-                    const lineasConcepto = doc.splitTextToSize(conceptoInfo, 180);
+                    const lineasConcepto = doc.splitTextToSize(descripcion, 180);
                    
                     doc.setFont('helvetica', 'normal');
                     doc.text(lineasConcepto, 20, yPos);
