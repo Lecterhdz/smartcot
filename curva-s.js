@@ -591,11 +591,10 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // CALCULAR EVM (CORREGIDO CON VALIDACIÓN)
+    // CALCULAR EVM (CORREGIDO - CAMPOS CORRECTOS)
     // ─────────────────────────────────────────────────────────────────
     calcularEVM: async function() {
         try {
-            // ⚠️ OBTENER DATOS DE LA COTIZACIÓN SELECCIONADA
             const cotizacionId = document.getElementById('curva-s-cotizacion')?.value;
             if (!cotizacionId) {
                 console.warn('⚠️ No hay cotización seleccionada para EVM');
@@ -603,7 +602,6 @@ window.curvaS = {
                 return;
             }
             
-            // Obtener cotización de la BD
             const cotizacion = await window.db.cotizaciones.get(parseInt(cotizacionId));
             if (!cotizacion) {
                 console.warn('⚠️ Cotización no encontrada');
@@ -611,38 +609,40 @@ window.curvaS = {
                 return;
             }
             
-            // Obtener avances registrados
             const avances = await window.db.avanceObra
                 .where('cotizacionId')
                 .equals(parseInt(cotizacionId))
                 .toArray();
             
-            // ⚠️ VALIDAR QUE HAY AVANCES
+            console.log('📊 Avances encontrados:', avances);  // ⚠️ DEBUG
+            
             if (avances.length === 0) {
-                alert('⚠️ No hay avances registrados.\n\nPara ver EVM, registra al menos 2 avances semanales con:\n• Porcentaje de avance\n• Monto ejecutado');
+                alert('⚠️ No hay avances registrados.\nPara ver EVM, registra al menos 2 avances semanales.');
                 this.limpiarValoresEVM();
                 return;
             }
             
-            // ⚠️ FILTRAR AVANCES CON DATOS VÁLIDOS (CORREGIDO - USAR NOMBRES CORRECTOS)
+            // ⚠️ FILTRAR AVANCES CON DATOS VÁLIDOS (CAMPOS CORRECTOS)
             const avancesValidos = avances.filter(a =>
                 (a.porcentajeEjecutado !== undefined && a.porcentajeEjecutado !== null) ||
                 (a.porcentaje !== undefined && a.porcentaje !== null)
             );
+            
             console.log('📊 Avances válidos:', avancesValidos);  // ⚠️ DEBUG
             
             if (avancesValidos.length === 0) {
-                alert('⚠️ Los avances registrados no tienen porcentaje válido.\n\nEdita los avances y agrega porcentaje de avance (0-100).');
+                alert('⚠️ Los avances registrados no tienen porcentaje válido.');
                 this.limpiarValoresEVM();
                 return;
             }
             
             // Calcular métricas EVM
-            let PV = 0; // Planned Value (Valor Planificado)
-            let EV = 0; // Earned Value (Valor Ganado)
-            let AC = 0; // Actual Cost (Costo Actual)
-            
+            let PV = 0;
+            let EV = 0;
+            let AC = 0;
             const totalProyecto = parseFloat(cotizacion.totalFinal) || 0;
+            
+            console.log('💰 Total Proyecto:', totalProyecto);  // ⚠️ DEBUG
             
             if (totalProyecto === 0) {
                 console.warn('⚠️ El total del proyecto es 0');
@@ -651,21 +651,26 @@ window.curvaS = {
             }
             
             avancesValidos.forEach((avance, index) => {
+                console.log('📊 Procesando avance:', avance);  // ⚠️ DEBUG
+                
                 // PV = Porcentaje planificado * Total proyecto
                 const porcentajePlanificado = ((index + 1) / avancesValidos.length) * 100;
                 PV += (porcentajePlanificado / 100) * totalProyecto;
                 
-                // EV = Porcentaje ejecutado * Total proyecto
-                const porcentajeEjecutado = parseFloat(avance.porcentaje) || 0;
+                // ⚠️ EV = Porcentaje ejecutado * Total proyecto (CAMPOS CORREGIDOS)
+                const porcentajeEjecutado = parseFloat(avance.porcentajeEjecutado || avance.porcentaje || 0);
+                console.log('  Porcentaje Ejecutado:', porcentajeEjecutado);  // ⚠️ DEBUG
                 EV += (porcentajeEjecutado / 100) * totalProyecto;
                 
-                // ⚠️ AC = Monto ejecutado real (CORREGIDO)
+                // ⚠️ AC = Monto ejecutado real (CAMPOS CORREGIDOS)
                 const monto = parseFloat(avance.montoEjecutado || avance.monto || 0);
                 console.log('  Monto Ejecutado:', monto);  // ⚠️ DEBUG
                 AC += monto;
             });
             
-            // ⚠️ CALCULAR INDICADORES (EVITAR DIVISIÓN POR CERO)
+            console.log('📊 EVM Calculado:', { PV, EV, AC });  // ⚠️ DEBUG
+            
+            // ⚠️ CALCULAR INDICADORES
             const CV = EV - AC;
             const SV = EV - PV;
             const CPI = AC > 0 ? EV / AC : 0;
@@ -674,7 +679,7 @@ window.curvaS = {
             const ETC = EAC - AC;
             const VAC = totalProyecto - EAC;
             
-            // ⚠️ ACTUALIZAR UI CON VALIDACIÓN DE NaN
+            // ⚠️ ACTUALIZAR UI
             const elPV = document.getElementById('evm-pv');
             const elEV = document.getElementById('evm-ev');
             const elAC = document.getElementById('evm-ac');
@@ -689,7 +694,6 @@ window.curvaS = {
             if (elPV) elPV.textContent = calculator.formatoMoneda(PV);
             if (elEV) elEV.textContent = calculator.formatoMoneda(EV);
             if (elAC) elAC.textContent = calculator.formatoMoneda(AC);
-            
             if (elCV) {
                 elCV.textContent = isNaN(CV) ? '$0.00' : calculator.formatoMoneda(CV);
                 elCV.style.color = CV >= 0 ? '#4CAF50' : '#f44336';
@@ -713,38 +717,34 @@ window.curvaS = {
                 elVAC.style.color = VAC >= 0 ? '#4CAF50' : '#f44336';
             }
             
-            // Actualizar indicadores existentes de Curva S básica
+            // Actualizar indicadores de Curva S básica
             const elVariacionTiempo = document.getElementById('variacion-tiempo');
             const elIndiceTiempo = document.getElementById('indice-tiempo');
-            
             if (elVariacionTiempo) {
                 const variacion = ((SPI - 1) * 100).toFixed(1);
                 elVariacionTiempo.textContent = (variacion >= 0 ? '+' : '') + variacion + '%';
                 elVariacionTiempo.style.color = SPI >= 1 ? '#4CAF50' : '#f44336';
             }
-            
             if (elIndiceTiempo) {
                 elIndiceTiempo.textContent = isNaN(SPI) ? '0.00' : SPI.toFixed(2);
                 elIndiceTiempo.style.color = SPI >= 1 ? '#4CAF50' : '#f44336';
             }
             
-            console.log('📊 EVM Calculado:', { PV, EV, AC, CV, SV, CPI, SPI, EAC, ETC, VAC });
+            console.log('📊 EVM Final:', { PV, EV, AC, CV, SV, CPI, SPI, EAC, ETC, VAC });
             
         } catch (error) {
             console.error('❌ Error calculando EVM:', error);
             this.limpiarValoresEVM();
         }
-    },
-    
+    },    
     // ─────────────────────────────────────────────────────────────────
     // GENERAR CURVA DE INVERSIÓN (CORREGIDO)
     // ─────────────────────────────────────────────────────────────────
     generarCurvaInversion: async function() {
         try {
-            // ⚠️ OBTENER DATOS DE LA COTIZACIÓN SELECCIONADA
             const cotizacionId = document.getElementById('curva-s-cotizacion')?.value;
             if (!cotizacionId) {
-                console.warn('⚠️ No hay cotización seleccionada para Curva de Inversión');
+                console.warn('⚠️ No hay cotización seleccionada');
                 return;
             }
             
@@ -761,15 +761,16 @@ window.curvaS = {
                 return;
             }
             
-            // Calcular inversión acumulada
+            // ⚠️ CALCULAR INVERSIÓN ACUMULADA (CAMPOS CORREGIDOS)
             let inversionAcumulada = 0;
             const datosInversion = avances.map((avance, index) => {
-                const monto = parseFloat(avance.monto) || 0;
+                // ⚠️ USAR montoEjecutado EN VEZ DE monto
+                const monto = parseFloat(avance.montoEjecutado || avance.monto || 0);
                 inversionAcumulada += monto;
                 return {
                     semana: avance.semana || (index + 1),
                     inversion: inversionAcumulada,
-                    avance: parseFloat(avance.porcentaje) || 0
+                    avance: parseFloat(avance.porcentajeEjecutado || avance.porcentaje || 0)
                 };
             });
             
@@ -780,7 +781,6 @@ window.curvaS = {
             }
             
             console.log('💰 Curva de Inversión generada:', datosInversion);
-            
         } catch (error) {
             console.error('❌ Error generando curva de inversión:', error);
         }
@@ -791,10 +791,9 @@ window.curvaS = {
     // ─────────────────────────────────────────────────────────────────
     proyectarFechaTerminacion: async function() {
         try {
-            // ⚠️ OBTENER DATOS DE LA COTIZACIÓN SELECCIONADA
             const cotizacionId = document.getElementById('curva-s-cotizacion')?.value;
             if (!cotizacionId) {
-                console.warn('⚠️ No hay cotización seleccionada para Proyección');
+                console.warn('⚠️ No hay cotización seleccionada');
                 return;
             }
             
@@ -817,12 +816,10 @@ window.curvaS = {
                 return;
             }
             
-            // ⚠️ FILTRAR AVANCES VÁLIDOS
-            const avancesValidos = avances.filter(a => 
-                a.porcentaje !== undefined && 
-                a.porcentaje !== null && 
-                !isNaN(parseFloat(a.porcentaje)) &&
-                parseFloat(a.porcentaje) > 0
+            // ⚠️ FILTRAR AVANCES VÁLIDOS (CAMPOS CORREGIDOS)
+            const avancesValidos = avances.filter(a =>
+                (a.porcentajeEjecutado !== undefined && a.porcentajeEjecutado !== null) ||
+                (a.porcentaje !== undefined && a.porcentaje !== null)
             );
             
             if (avancesValidos.length < 2) {
@@ -832,7 +829,8 @@ window.curvaS = {
             
             // Calcular velocidad de avance
             const ultimoAvance = avancesValidos[avancesValidos.length - 1];
-            const avanceActual = parseFloat(ultimoAvance.porcentaje) || 0;
+            // ⚠️ USAR porcentajeEjecutado EN VEZ DE porcentaje
+            const avanceActual = parseFloat(ultimoAvance.porcentajeEjecutado || ultimoAvance.porcentaje || 0);
             const semanaActual = parseInt(ultimoAvance.semana) || avancesValidos.length;
             
             if (semanaActual === 0 || avanceActual === 0) {
@@ -841,12 +839,9 @@ window.curvaS = {
             }
             
             const velocidad = avanceActual / semanaActual;
-            
-            // Proyectar semanas restantes
             const semanasTotales = velocidad > 0 ? Math.ceil(100 / velocidad) : 0;
             const semanasRestantes = semanasTotales - semanaActual;
             
-            // Calcular fecha estimada de terminación
             const fechaInicio = new Date(cotizacion.fechaInicio || Date.now());
             const fechaEstimada = new Date(fechaInicio);
             fechaEstimada.setDate(fechaInicio.getDate() + (semanasTotales * 7));
@@ -857,25 +852,17 @@ window.curvaS = {
             const elVelocidad = document.getElementById('proyeccion-velocidad');
             
             if (elSemanasRestantes) {
-                elSemanasRestantes.textContent = semanasRestantes + ' semanas';
+                elSemanasRestantes.textContent = (semanasRestantes > 0 ? semanasRestantes : 0) + ' semanas';
                 elSemanasRestantes.style.color = semanasRestantes > 0 ? '#FF9800' : '#4CAF50';
             }
-            
             if (elFechaEstimada) {
                 elFechaEstimada.textContent = fechaEstimada.toLocaleDateString('es-MX');
             }
-            
             if (elVelocidad) {
                 elVelocidad.textContent = velocidad.toFixed(2) + '%/semana';
             }
             
-            console.log('📅 Proyección de fecha calculada:', {
-                semanasTotales,
-                semanasRestantes,
-                fechaEstimada,
-                velocidad
-            });
-            
+            console.log('📅 Proyección calculada:', { semanasTotales, semanasRestantes, fechaEstimada, velocidad });
         } catch (error) {
             console.error('❌ Error proyectando fecha:', error);
         }
