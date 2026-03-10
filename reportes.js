@@ -235,18 +235,18 @@ window.reportes = {
                 
                 cotizacion.manoObraExtraida.forEach(function(mo) {
                     const conceptoInfo = (mo.concepto || mo.conceptoCodigo || 'Sin concepto');
-                    const lineasConcepto = doc.splitTextToSize(conceptoInfo, 90);
+                    const lineasConcepto = doc.splitTextToSize(conceptoInfo, 180);
                     
                     doc.text(lineasConcepto, 20, yPos);
                     yPos += (lineasConcepto.length * 5);
                     
-                    doc.text('  Puesto: ' + (mo.puesto || 'Sin puesto'), 20, yPos);
+                    doc.text('  Puesto: ' + (mo.puesto || 'Sin puesto'), 166, yPos);
                     yPos += 5;
-                    doc.text('  Jornadas: ' + (mo.jornadas ? mo.jornadas.toFixed(2) : '0') + ' jor', 20, yPos);
+                    doc.text('  Jornadas: ' + (mo.jornadas ? mo.jornadas.toFixed(2) : '0') + ' jor', 166, yPos);
                     yPos += 5;
-                    doc.text('  Costo/Jornada: ' + (mo.costoJornada ? calculator.formatoMoneda(mo.costoJornada) : '$0.00'), 20, yPos);
+                    doc.text('  Costo/Jornada: ' + (mo.costoJornada ? calculator.formatoMoneda(mo.costoJornada) : '$0.00'), 166, yPos);
                     yPos += 5;
-                    doc.text('  Importe: ' + (mo.importe ? calculator.formatoMoneda(mo.importe) : '$0.00'), 20, yPos);
+                    doc.text('  Importe: ' + (mo.importe ? calculator.formatoMoneda(mo.importe) : '$0.00'), 166, yPos);
                     yPos += 8;
                     
                     if (yPos > 250) {
