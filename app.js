@@ -1259,7 +1259,7 @@ guardarPreciosEnHistorico: async function(cotizacion) {
 },
 
 // ─────────────────────────────────────────────────────────────────
-// GUARDAR COTIZACIÓN (ACTUALIZADA - CON CONTEXTO SEGURO)
+// GUARDAR COTIZACIÓN (CORREGIDO - GUARDA UTILIDAD Y DESGLOSE)
 // ─────────────────────────────────────────────────────────────────
 guardarCotizacion: async function() {
     try {
@@ -1272,7 +1272,7 @@ guardarCotizacion: async function() {
             return;
         }
         
-        // ⚠️ VALIDAR ELEMENTOS DEL DOM ANTES DE USARLOS
+        // ⚠️ VALIDAR ELEMENTOS DEL DOM
         const elCliente = document.getElementById('cot-cliente');
         const elDescripcion = document.getElementById('cot-descripcion');
         const elUbicacion = document.getElementById('cot-ubicacion');
@@ -1316,7 +1316,7 @@ guardarCotizacion: async function() {
         
         const indirectosManuales = window.app.datosCotizacion.indirectos.reduce(function(sum, i) { return sum + (i.monto || 0); }, 0);
         
-        // ⚠️ VALIDAR ELEMENTOS DE PORCENTAJES ANTES DE USAR
+        // ⚠️ VALIDAR ELEMENTOS DE PORCENTAJES
         const elIndOficina = document.getElementById('cot-indirectos-oficina');
         const elIndCampo = document.getElementById('cot-indirectos-campo');
         const elFinanciamiento = document.getElementById('cot-financiamiento');
@@ -1333,15 +1333,7 @@ guardarCotizacion: async function() {
         
         const baseConIndirectos = subtotal + totalIndirectos;
         const utilidadPorcentaje = parseFloat(elUtilidad?.value) || 10;
-        const utilidad = baseConIndirectos * (utilidadPorcentaje / 100);
-
-        console.log('🔍 Debug utilidad:', {  // ⚠️ AGREGAR ESTO PARA DEBUG
-            subtotal: subtotal,
-            totalIndirectos: totalIndirectos,
-            baseConIndirectos: baseConIndirectos,
-            utilidadPorcentaje: utilidadPorcentaje,
-            utilidad: utilidad
-        });
+        const utilidad = baseConIndirectos * (utilidadPorcentaje / 100);  // ✅ CALCULAR UTILIDAD
         const iva = (baseConIndirectos + utilidad) * 0.16;
         const totalFinal = baseConIndirectos + utilidad + iva;
         
@@ -1362,7 +1354,7 @@ guardarCotizacion: async function() {
         const semanas = Math.ceil(diasHabiles / 5);
         const meses = Math.ceil(semanas / 4.33);
         
-        // ⚠️ CREAR OBJETO DE COTIZACIÓN
+        // ⚠️ CREAR OBJETO DE COTIZACIÓN (UNA SOLA VEZ - SIN CÓDIGO DUPLICADO)
         const cotizacion = {
             clienteId: clienteId,
             descripcion: descripcion,
@@ -1388,14 +1380,16 @@ guardarCotizacion: async function() {
                 semanas: semanas,
                 meses: meses
             },
+            // ⚠️ TOTALES CALCULADOS
             costoDirecto: subtotal,
             totalIndirectos: totalIndirectos,
-            utilidad: utilidad,
+            utilidad: utilidad,  // ✅ AHORA SÍ SE GUARDA
             iva: iva,
             totalFinal: totalFinal,
             fecha: new Date().toISOString(),
             estado: 'pendiente',
             tipo: hayConceptos ? 'estandar' : 'solo-recursos-adicionales',
+            // ⚠️ AGREGAR DESGLOSE PARA AUDITORÍA
             desgloseTotales: {
                 subtotal: subtotal,
                 indirectosOficina: indirectosOficina,
@@ -1404,19 +1398,15 @@ guardarCotizacion: async function() {
                 indirectosManuales: indirectosManuales,
                 baseConIndirectos: baseConIndirectos,
                 utilidadPorcentaje: utilidadPorcentaje,
-                utilidadMonto: utilidad,
+                utilidadMonto: utilidad,  // ✅ ESTE ES EL VALOR QUE DEBE GUARDARSE
                 ivaPorcentaje: 16,
-                ivaMonto: iva,
-                factorAjusteTotal: window.app.factoresAjuste.total || 1,
-                costoTiempoExtendido: window.app.impactoFactores?.costoTiempoExtendido || 0
+                ivaMonto: iva
             }
         };
         
         await window.db.cotizaciones.add(cotizacion);
         
         console.log('✅ Cotización guardada:', cotizacion);
-        
-        // ⚠️ USAR window.app PARA TODAS LAS FUNCIONES (EVITAR PROBLEMAS DE CONTEXTO)
         window.app.notificacion('✅ Cotización guardada exitosamente', 'exito');
         
         const licencia = window.licencia.cargar();
@@ -2282,6 +2272,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
