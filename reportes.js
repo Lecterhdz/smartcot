@@ -350,7 +350,7 @@ window.reportes = {
             if (cotizacion.materialesAdicionales && cotizacion.materialesAdicionales.length > 0) {
                 yPos += 10;
                 doc.setFillColor(33, 150, 243);
-                doc.rect(15, yPos - 4, 180, 5, 'F');
+                doc.rect(15, yPos - 3, 180, 5, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
@@ -371,7 +371,7 @@ window.reportes = {
                 
                 yPos += 2;
                 doc.setDrawColor(200);
-                doc.line(15, yPos, 195, yPos);
+                doc.line(6, yPos, 195, yPos);
                 yPos += 4;
                 doc.setFont('helvetica', 'normal');
                 
@@ -398,7 +398,7 @@ window.reportes = {
             if (cotizacion.manoObraAdicional && cotizacion.manoObraAdicional.length > 0) {
                 yPos += 10;
                 doc.setFillColor(76, 175, 80);
-                doc.rect(15, yPos - 4, 180, 5, 'F');
+                doc.rect(15, yPos - 3, 180, 5, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
@@ -446,7 +446,7 @@ window.reportes = {
             if (cotizacion.equiposAdicionales && cotizacion.equiposAdicionales.length > 0) {
                 yPos += 10;
                 doc.setFillColor(255, 152, 0);
-                doc.rect(15, yPos - 4, 180, 5, 'F');
+                doc.rect(15, yPos - 3, 180, 5, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
@@ -467,7 +467,7 @@ window.reportes = {
                 
                 yPos += 2;
                 doc.setDrawColor(200);
-                doc.line(15, yPos, 195, yPos);
+                doc.line(6, yPos, 195, yPos);
                 yPos += 4;
                 doc.setFont('helvetica', 'normal');
                 
@@ -494,7 +494,7 @@ window.reportes = {
             if (cotizacion.indirectosAdicionales && cotizacion.indirectosAdicionales.length > 0) {
                 yPos += 10;
                 doc.setFillColor(156, 39, 176);
-                doc.rect(15, yPos - 4, 180, 5, 'F');
+                doc.rect(15, yPos - 3, 180, 5, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
@@ -513,7 +513,7 @@ window.reportes = {
                 
                 yPos += 2;
                 doc.setDrawColor(200);
-                doc.line(15, yPos, 195, yPos);
+                doc.line(6, yPos, 195, yPos);
                 yPos += 4;
                 doc.setFont('helvetica', 'normal');
                 
