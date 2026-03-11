@@ -5,6 +5,57 @@
 console.log('📄 reportes.js cargado');
 
 window.reportes = {
+
+    // ─────────────────────────────────────────────────────────────────
+    // NORMALIZAR TEXTO (ELIMINA SÍMBOLOS EXTRAÑOS) - AGREGAR ESTO
+    // ─────────────────────────────────────────────────────────────────
+    normalizarTexto: function(texto) {
+        if (!texto) return '';
+        
+        const mapaCaracteres = {
+            'ñ': 'n', 'Ñ': 'N',
+            'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
+            'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
+            'ü': 'u', 'Ü': 'U'
+        };
+        
+        let textoNormalizado = texto;
+        Object.keys(mapaCaracteres).forEach(function(caracter) {
+            const regex = new RegExp(caracter, 'g');
+            textoNormalizado = textoNormalizado.replace(regex, mapaCaracteres[caracter]);
+        });
+        
+        return textoNormalizado;
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // LIMPIAR DESCRIPCIÓN (ELIMINA "SUMINISTRO") - AGREGAR ESTO
+    // ─────────────────────────────────────────────────────────────────
+    limpiarDescripcion: function(texto) {
+        if (!texto) return '';
+        
+        const palabrasExcluir = [
+            'suministro',
+            'suministros',
+            'suministro y',
+            'suministro,',
+            'incluye suministro'
+        ];
+        
+        let textoLimpio = texto;
+        
+        palabrasExcluir.forEach(function(palabra) {
+            const regex = new RegExp('\\b' + palabra + '\\b', 'gi');
+            textoLimpio = textoLimpio.replace(regex, '');
+        });
+        
+        textoLimpio = textoLimpio.replace(/\s+/g, ' ').trim();
+        textoLimpio = textoLimpio.replace(/\s*,\s*/g, ', ');
+        textoLimpio = textoLimpio.replace(/^,\s*/, '');
+        textoLimpio = textoLimpio.replace(/,\s*$/, '');
+        
+        return textoLimpio;
+    },
     
     // ─────────────────────────────────────────────────────────────────
     // GENERAR PDF DE COTIZACIÓN COMPLETA (CORREGIDO)
@@ -146,7 +197,7 @@ window.reportes = {
                 doc.setTextColor(230, 81, 0);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
-                doc.text(window.reportes.normalizarTexto('🔧 FACTORES DE AJUSTE APLICADOS'), 20, yPos + 1);
+                doc.text(self.normalizarTexto('🔧 FACTORES DE AJUSTE APLICADOS'), 20, yPos + 1);
                 
                 yPos += 8;
                 doc.setTextColor(26, 26, 26);
@@ -161,19 +212,19 @@ window.reportes = {
                 if (factores.acceso > 1) factoresText.push('Acceso: ' + factores.acceso.toFixed(2) + 'x');
                 if (factores.seguridad > 1) factoresText.push('Seguridad: ' + factores.seguridad.toFixed(2) + 'x');
                 
-                doc.text(window.reportes.normalizarTexto('Factor Total: ' + (factores.total || 1).toFixed(2) + 'x'), 20, yPos);
+                doc.text(self.normalizarTexto('Factor Total: ' + (factores.total || 1).toFixed(2) + 'x'), 20, yPos);
                 yPos += 5;
                 
                 if (cotizacion.tiempoEjecucion) {
-                    doc.text(window.reportes.normalizarTexto('Tiempo Original: ' + cotizacion.tiempoEjecucion.diasHabiles + ' días'), 20, yPos);
+                    doc.text(self.normalizarTexto('Tiempo Original: ' + cotizacion.tiempoEjecucion.diasHabiles + ' días'), 20, yPos);
                     yPos += 5;
                     const diasAjustados = Math.ceil((cotizacion.tiempoEjecucion.diasHabiles || 0) * (factores.total || 1));
-                    doc.text(window.reportes.normalizarTexto('Tiempo Ajustado: ' + diasAjustados + ' días'), 20, yPos);
+                    doc.text(self.normalizarTexto('Tiempo Ajustado: ' + diasAjustados + ' días'), 20, yPos);
                     yPos += 5;
                 }
                 
                 if (cotizacion.impactoFactores && cotizacion.impactoFactores.costoTiempoExtendido > 0) {
-                    doc.text(window.reportes.normalizarTexto('Costo por Tiempo Extendido: ' + calculator.formatoMoneda(cotizacion.impactoFactores.costoTiempoExtendido)), 20, yPos);
+                    doc.text(self.normalizarTexto('Costo por Tiempo Extendido: ' + calculator.formatoMoneda(cotizacion.impactoFactores.costoTiempoExtendido)), 20, yPos);
                     yPos += 5;
                 }
             }
@@ -210,9 +261,9 @@ window.reportes = {
             doc.rect(15, yPos - 4, 180, 6, 'F');
             
             // ⚠️ GUARDAR REFERENCIA A this ANTES DEL forEach
-            
+            const self = this;
             headers.forEach(function(header, index) {
-                doc.text(window.reportes.normalizarTexto(header), xPos, yPos + 1);  
+                doc.text(self.normalizarTexto(header), xPos, yPos + 1);  // ✅ USAR self
                 xPos += colWidths[index];
             });
             
@@ -246,19 +297,19 @@ window.reportes = {
                     // ⚠️ OBTENER Y LIMPIAR DESCRIPCIÓN
                     let descripcion = '';
                     if (concepto.descripcion_tecnica && concepto.descripcion_tecnica.trim().length > 0) {
-                        descripcion = window.reportes.limpiarDescripcion(concepto.descripcion_tecnica);
+                        descripcion = self.limpiarDescripcion(concepto.descripcion_tecnica);
                     } else if (concepto.descripcion && concepto.descripcion.trim().length > 0) {
-                        descripcion = window.reportes.limpiarDescripcion(concepto.descripcion);
+                        descripcion = self.limpiarDescripcion(concepto.descripcion);
                     } else {
-                        descripcion = window.reportes.limpiarDescripcion(concepto.descripcion_corta || 'Sin descripcion');
+                        descripcion = self.limpiarDescripcion(concepto.descripcion_corta || 'Sin descripcion');
                     }
                     
-                    const lineas = doc.splitTextToSize(window.reportes.normalizarTexto(descripcion), 87);
+                    const lineas = doc.splitTextToSize(self.normalizarTexto(descripcion), 87);
                     
                     doc.text(codigo.substring(0, 10), 15, yPos);
                     doc.text(lineas, 34, yPos);
                     doc.text(cantidad.toString(), 128, yPos);
-                    doc.text(window.reportes.normalizarTexto(concepto.unidad || ''), 140, yPos);
+                    doc.text(self.normalizarTexto(concepto.unidad || ''), 140, yPos);
                     doc.text(calculator.formatoMoneda(precioUnitarioConIndirectos), 167, yPos, { align: 'right' });  // ✅ PRECIO CON INDIRECTOS
                     doc.text(calculator.formatoMoneda(importeConIndirectos), 193, yPos, { align: 'right' });  // ✅ IMPORTE CON INDIRECTOS
                     
@@ -270,7 +321,7 @@ window.reportes = {
                     }
                 }
             } else {
-                doc.text(window.reportes.normalizarTexto('No hay conceptos del catalogo'), 15, yPos);
+                doc.text(self.normalizarTexto('No hay conceptos del catalogo'), 15, yPos);
                 yPos += 8;
             }
 
@@ -552,13 +603,13 @@ window.reportes = {
             
             // ⚠️ MOSTRAR SUBTOTAL (YA INCLUYE INDIRECTOS Y UTILIDAD DISTRIBUIDOS)
             doc.setFont('helvetica', 'bold');
-            doc.text(window.reportes.normalizarTexto('Subtotal:'), 140, yPos);
+            doc.text(self.normalizarTexto('Subtotal:'), 140, yPos);
             doc.setFont('helvetica', 'normal');
             doc.text(calculator.formatoMoneda(sumaConceptos), 195, yPos, { align: 'right' });  // ✅ USA LA SUMA DE CONCEPTOS
             
             yPos += 6;
             doc.setFont('helvetica', 'bold');
-            doc.text(window.reportes.normalizarTexto('IVA (16%):'), 140, yPos);
+            doc.text(self.normalizarTexto('IVA (16%):'), 140, yPos);
             doc.setFont('helvetica', 'normal');
             doc.text(calculator.formatoMoneda(iva), 195, yPos, { align: 'right' });
             
@@ -576,7 +627,7 @@ window.reportes = {
             
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
-            doc.text(window.reportes.normalizarTexto('TOTAL:'), 170, yPos + 1, { align: 'center' });
+            doc.text(self.normalizarTexto('TOTAL:'), 170, yPos + 1, { align: 'center' });
             
             yPos += 7;
             doc.setFontSize(13);
