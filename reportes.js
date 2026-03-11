@@ -661,9 +661,7 @@ window.reportes = {
             // ⚠️ USAR VALORES DE LA BD COMO RESPALDO (PARA COTIZACIONES SOLO RECURSOS)
             const subtotalBD = (cotizacion.costoDirecto || 0) + (cotizacion.totalIndirectos || 0) + (cotizacion.utilidad || 0);
             const subtotalParaPDF = subtotalCalculado > 0 ? subtotalCalculado : subtotalBD;
-            
-            const totalFinal = cotizacion.totalFinal || 0;
-            
+                       
             // ─────────────────────────────────────────────────────────
             // MOSTRAR TOTALES
             // ─────────────────────────────────────────────────────────
