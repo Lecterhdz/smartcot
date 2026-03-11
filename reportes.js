@@ -371,8 +371,8 @@ window.reportes = {
                 
                 yPos += 2;
                 doc.setDrawColor(200);
-                doc.line(6, yPos, 195, yPos);
-                yPos += 4;
+                doc.line(15, yPos, 195, yPos);
+                yPos += 2;
                 doc.setFont('helvetica', 'normal');
                 
                 cotizacion.materialesAdicionales.forEach(function(mat, index) {
@@ -467,8 +467,8 @@ window.reportes = {
                 
                 yPos += 2;
                 doc.setDrawColor(200);
-                doc.line(6, yPos, 195, yPos);
-                yPos += 4;
+                doc.line(15, yPos, 195, yPos);
+                yPos += 1;
                 doc.setFont('helvetica', 'normal');
                 
                 cotizacion.equiposAdicionales.forEach(function(eq, index) {
@@ -513,7 +513,7 @@ window.reportes = {
                 
                 yPos += 2;
                 doc.setDrawColor(200);
-                doc.line(6, yPos, 195, yPos);
+                doc.line(15, yPos, 195, yPos);
                 yPos += 4;
                 doc.setFont('helvetica', 'normal');
                 
