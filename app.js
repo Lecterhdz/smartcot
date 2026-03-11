@@ -1407,17 +1407,17 @@ guardarCotizacion: async function() {
         await window.db.cotizaciones.add(cotizacion);
         
         console.log('✅ Cotización guardada:', cotizacion);
-        window.app.notificacion('✅ Cotización guardada exitosamente', 'exito');
+        this.notificacion('✅ Cotización guardada exitosamente', 'exito');
         
         const licencia = window.licencia.cargar();
         if (licencia?.tipo === 'ENTERPRISE') {
-            await window.app.guardarPreciosEnHistorico(cotizacion);
+            await this.guardarPreciosEnHistorico(cotizacion);
         }
         
-        window.app.resetearFormulario();
-        await window.app.cargarEstadisticas();
-        await window.app.actualizarContadoresLicencia();
-        window.app.mostrarPantalla('dashboard-screen');
+        this.resetearFormulario();
+        await this.cargarEstadisticas();
+        await this.actualizarContadoresLicencia();
+        this.mostrarPantalla('dashboard-screen');
         
     } catch (error) {
         console.error('❌ Error guardando cotización:', error);
@@ -2277,6 +2277,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
