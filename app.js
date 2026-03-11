@@ -1259,7 +1259,7 @@ guardarPreciosEnHistorico: async function(cotizacion) {
 },
 
 // ─────────────────────────────────────────────────────────────────
-// GUARDAR COTIZACIÓN (CORREGIDO - GUARDA UTILIDAD Y DESGLOSE)
+// GUARDAR COTIZACIÓN (CORREGIDO - SIN ERRORES DE SINTAXIS)
 // ─────────────────────────────────────────────────────────────────
 guardarCotizacion: async function() {
     try {
@@ -1268,7 +1268,7 @@ guardarCotizacion: async function() {
         // ⚠️ VERIFICAR LÍMITE DE COTIZACIONES
         const limite = await window.licencia.verificarLimite('cotizaciones');
         if (!limite.permitido) {
-            window.app.notificacion('❌ ' + limite.razon, 'error');
+            this.notificacion('❌ ' + limite.razon, 'error');
             return;
         }
         
@@ -1280,7 +1280,7 @@ guardarCotizacion: async function() {
         const elFechaFin = document.getElementById('cot-fecha-fin');
         
         if (!elCliente || !elDescripcion) {
-            window.app.notificacion('⚠️ Elementos del formulario no encontrados', 'error');
+            this.notificacion('⚠️ Elementos del formulario no encontrados', 'error');
             return;
         }
         
@@ -1291,40 +1291,34 @@ guardarCotizacion: async function() {
         const fechaFinSolicitada = elFechaFin?.value || null;
         
         if (!clienteId || !descripcion) {
-            window.app.notificacion('⚠️ Completa cliente y descripción', 'error');
+            this.notificacion('⚠️ Completa cliente y descripción', 'error');
             return;
         }
         
         // ⚠️ VALIDAR QUE HAYA AL MENOS UN RECURSO
-        const hayConceptos = window.app.datosCotizacion.conceptosSeleccionados.length > 0;
-        const hayMateriales = window.app.datosCotizacion.materiales.length > 0;
-        const hayManoObra = window.app.datosCotizacion.manoObra.length > 0;
-        const hayEquipos = window.app.datosCotizacion.equipos.length > 0;
+        const hayConceptos = this.datosCotizacion.conceptosSeleccionados.length > 0;
+        const hayMateriales = this.datosCotizacion.materiales.length > 0;
+        const hayManoObra = this.datosCotizacion.manoObra.length > 0;
+        const hayEquipos = this.datosCotizacion.equipos.length > 0;
         
         if (!hayConceptos && !hayMateriales && !hayManoObra && !hayEquipos) {
-            window.app.notificacion('⚠️ Agrega al menos un concepto O recursos adicionales', 'error');
+            this.notificacion('⚠️ Agrega al menos un concepto O recursos adicionales', 'error');
             return;
         }
         
-        // ⚠️ CALCULAR TOTALES PRIMERO (ANTES DEL OBJETO)
-        const subtotal = window.app.datosCotizacion.conceptosSeleccionados.reduce(function(sum, c) {
+        // ⚠️ CALCULAR TOTALES PRIMERO (ANTES DEL OBJETO - FUERA)
+        const subtotal = this.datosCotizacion.conceptosSeleccionados.reduce(function(sum, c) {
             return sum + ((c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1));
         }, 0) +
-        window.app.datosCotizacion.materiales.reduce(function(sum, m) { return sum + ((m.cantidad || 0) * (m.precioUnitario || 0)); }, 0) +
-        window.app.datosCotizacion.manoObra.reduce(function(sum, m) { return sum + ((m.jornadas || 0) * (m.costoJornada || 0)); }, 0) +
-        window.app.datosCotizacion.equipos.reduce(function(sum, e) { return sum + ((e.horas || 0) * (e.costoUnitario || 0)); }, 0);
+        this.datosCotizacion.materiales.reduce(function(sum, m) { return sum + ((m.cantidad || 0) * (m.precioUnitario || 0)); }, 0) +
+        this.datosCotizacion.manoObra.reduce(function(sum, m) { return sum + ((m.jornadas || 0) * (m.costoJornada || 0)); }, 0) +
+        this.datosCotizacion.equipos.reduce(function(sum, e) { return sum + ((e.horas || 0) * (e.costoUnitario || 0)); }, 0);
         
-        const indirectosManuales = window.app.datosCotizacion.indirectos.reduce(function(sum, i) { return sum + (i.monto || 0); }, 0);
+        const indirectosManuales = this.datosCotizacion.indirectos.reduce(function(sum, i) { return sum + (i.monto || 0); }, 0);
         
-        // ⚠️ VALIDAR ELEMENTOS DE PORCENTAJES
-        const elIndOficina = document.getElementById('cot-indirectos-oficina');
-        const elIndCampo = document.getElementById('cot-indirectos-campo');
-        const elFinanciamiento = document.getElementById('cot-financiamiento');
-        const elUtilidad = document.getElementById('cot-utilidad');
-        
-        const indirectosOficinaPorcentaje = parseFloat(elIndOficina?.value) || 5;
-        const indirectosCampoPorcentaje = parseFloat(elIndCampo?.value) || 15;
-        const financiamientoPorcentaje = parseFloat(elFinanciamiento?.value) || 0.85;
+        const indirectosOficinaPorcentaje = parseFloat(document.getElementById('cot-indirectos-oficina')?.value) || 5;
+        const indirectosCampoPorcentaje = parseFloat(document.getElementById('cot-indirectos-campo')?.value) || 15;
+        const financiamientoPorcentaje = parseFloat(document.getElementById('cot-financiamiento')?.value) || 0.85;
         
         const indirectosOficina = subtotal * (indirectosOficinaPorcentaje / 100);
         const indirectosCampo = subtotal * (indirectosCampoPorcentaje / 100);
@@ -1332,21 +1326,21 @@ guardarCotizacion: async function() {
         const totalIndirectos = indirectosOficina + indirectosCampo + financiamiento + indirectosManuales;
         
         const baseConIndirectos = subtotal + totalIndirectos;
-        const utilidadPorcentaje = parseFloat(elUtilidad?.value) || 10;
-        const utilidad = baseConIndirectos * (utilidadPorcentaje / 100);  // ✅ CALCULAR UTILIDAD
+        const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
+        const utilidad = baseConIndirectos * (utilidadPorcentaje / 100);
         const iva = (baseConIndirectos + utilidad) * 0.16;
         const totalFinal = baseConIndirectos + utilidad + iva;
         
         // ⚠️ CALCULAR TIEMPO DE EJECUCIÓN
         let totalJOR = 0;
-        window.app.datosCotizacion.conceptosSeleccionados.forEach(function(c) {
+        this.datosCotizacion.conceptosSeleccionados.forEach(function(c) {
             if (c.recursos?.mano_obra) {
                 c.recursos.mano_obra.forEach(function(mo) {
                     totalJOR += (mo.horas_jornada || 0) * (c.cantidad || 1);
                 });
             }
         });
-        window.app.datosCotizacion.manoObra.forEach(function(mo) {
+        this.datosCotizacion.manoObra.forEach(function(mo) {
             totalJOR += (mo.jornadas || 0);
         });
         
@@ -1354,42 +1348,40 @@ guardarCotizacion: async function() {
         const semanas = Math.ceil(diasHabiles / 5);
         const meses = Math.ceil(semanas / 4.33);
         
-        // ⚠️ CREAR OBJETO DE COTIZACIÓN (UNA SOLA VEZ - SIN CÓDIGO DUPLICADO)
+        // ⚠️ CREAR OBJETO DE COTIZACIÓN (UNA SOLA VEZ - SIN CÁLCULOS DENTRO)
         const cotizacion = {
             clienteId: clienteId,
             descripcion: descripcion,
             ubicacion: ubicacion,
             fechaInicio: fechaInicio,
             fechaFinSolicitada: fechaFinSolicitada,
-            conceptosCatalogo: window.app.datosCotizacion.conceptosSeleccionados,
-            materialesAdicionales: window.app.datosCotizacion.materiales,
-            manoObraAdicional: window.app.datosCotizacion.manoObra,
-            equiposAdicionales: window.app.datosCotizacion.equipos,
-            herramientaAdicional: window.app.datosCotizacion.herramienta,
-            indirectosAdicionales: window.app.datosCotizacion.indirectos,
+            conceptosCatalogo: this.datosCotizacion.conceptosSeleccionados,
+            materialesAdicionales: this.datosCotizacion.materiales,
+            manoObraAdicional: this.datosCotizacion.manoObra,
+            equiposAdicionales: this.datosCotizacion.equipos,
+            herramientaAdicional: this.datosCotizacion.herramienta,
+            indirectosAdicionales: this.datosCotizacion.indirectos,
             porcentajes: {
                 indirectosOficina: indirectosOficinaPorcentaje,
                 indirectosCampo: indirectosCampoPorcentaje,
                 financiamiento: financiamientoPorcentaje,
                 utilidad: utilidadPorcentaje
             },
-            factoresAjuste: window.app.factoresAjuste,
+            factoresAjuste: this.factoresAjuste,
             tiempoEjecucion: {
                 jornadas: totalJOR.toFixed(2),
                 diasHabiles: diasHabiles,
                 semanas: semanas,
                 meses: meses
             },
-            // ⚠️ TOTALES CALCULADOS
             costoDirecto: subtotal,
             totalIndirectos: totalIndirectos,
-            utilidad: utilidad,  // ✅ AHORA SÍ SE GUARDA
+            utilidad: utilidad,
             iva: iva,
             totalFinal: totalFinal,
             fecha: new Date().toISOString(),
             estado: 'pendiente',
             tipo: hayConceptos ? 'estandar' : 'solo-recursos-adicionales',
-            // ⚠️ AGREGAR DESGLOSE PARA AUDITORÍA
             desgloseTotales: {
                 subtotal: subtotal,
                 indirectosOficina: indirectosOficina,
@@ -1398,9 +1390,11 @@ guardarCotizacion: async function() {
                 indirectosManuales: indirectosManuales,
                 baseConIndirectos: baseConIndirectos,
                 utilidadPorcentaje: utilidadPorcentaje,
-                utilidadMonto: utilidad,  // ✅ ESTE ES EL VALOR QUE DEBE GUARDARSE
+                utilidadMonto: utilidad,
                 ivaPorcentaje: 16,
-                ivaMonto: iva
+                ivaMonto: iva,
+                factorAjusteTotal: this.factoresAjuste.total || 1,
+                costoTiempoExtendido: this.impactoFactores?.costoTiempoExtendido || 0
             }
         };
         
@@ -1414,6 +1408,7 @@ guardarCotizacion: async function() {
             await this.guardarPreciosEnHistorico(cotizacion);
         }
         
+        // ⚠️ USAR this CONSISTENTEMENTE (NO window.app)
         this.resetearFormulario();
         await this.cargarEstadisticas();
         await this.actualizarContadoresLicencia();
@@ -1421,7 +1416,7 @@ guardarCotizacion: async function() {
         
     } catch (error) {
         console.error('❌ Error guardando cotización:', error);
-        window.app.notificacion('❌ Error: ' + error.message, 'error');
+        this.notificacion('❌ Error: ' + error.message, 'error');
     }
 },
 
@@ -2277,6 +2272,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
