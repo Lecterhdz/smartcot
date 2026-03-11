@@ -190,6 +190,10 @@ window.reportes = {
             // ─────────────────────────────────────────────────────────────────
             // FACTORES DE AJUSTE (SI APLICAN)
             // ─────────────────────────────────────────────────────────────────
+
+            // ⚠️ GUARDAR REFERENCIA A this ANTES DE CUALQUIER CÁLCULO
+            const self = this;   
+            
             if (cotizacion.factoresAjuste && cotizacion.factoresAjuste.total > 1) {
                 yPos += 10;
                 doc.setFillColor(255, 243, 224);
@@ -233,10 +237,7 @@ window.reportes = {
             // TABLA DE CONCEPTOS (CORREGIDO - CON INDIRECTOS Y UTILIDAD DISTRIBUIDOS)
             // ─────────────────────────────────────────────────────────────────
             yPos += 10;
-             
-            // ⚠️ GUARDAR REFERENCIA A this ANTES DE CUALQUIER CÁLCULO
-            const self = this;           
-           
+                                
             // ⚠️ CALCULAR FACTORES DE DISTRIBUCIÓN
             const costoDirectoTotal = cotizacion.costoDirecto || 0;
             const totalIndirectos = cotizacion.totalIndirectos || 0;
