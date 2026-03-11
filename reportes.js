@@ -601,43 +601,62 @@ window.reportes = {
             }
             
             // ─────────────────────────────────────────────────────────────────
-            // TOTALES (CORREGIDO - QUE CUAADRE LA SUMA)
+            // TOTALES (CORREGIDO - SUBTOTAL INCLUYE TODO)
             // ─────────────────────────────────────────────────────────────────
             yPos += 8;
             
-            // ⚠️ USAR VALORES YA CALCULADOS DE LA COTIZACIÓN
-            const costoDirectoTotal = cotizacion.costoDirecto || 0;
-            const totalIndirectos = cotizacion.totalIndirectos || 0;
-            const utilidad = cotizacion.utilidad || 0;
+            // ⚠️ CALCULAR SUBTOTAL CORRECTAMENTE (INCLUYE CONCEPTOS + RECURSOS ADICIONALES)
+            let subtotalCalculado = 0;
+            
+            // 1. Sumar conceptos del catálogo (ya con factor aplicado)
+            subtotalCalculado += sumaConceptos;
+            
+            // 2. Sumar materiales adicionales
+            if (cotizacion.materialesAdicionales?.length > 0) {
+                const totalMateriales = cotizacion.materialesAdicionales.reduce(function(sum, m) {
+                    return sum + ((m.cantidad || 0) * (m.precioUnitario || 0));
+                }, 0);
+                subtotalCalculado += totalMateriales;
+            }
+            
+            // 3. Sumar mano de obra adicional
+            if (cotizacion.manoObraAdicional?.length > 0) {
+                const totalMO = cotizacion.manoObraAdicional.reduce(function(sum, mo) {
+                    return sum + ((mo.jornadas || 0) * (mo.costoJornada || 0));
+                }, 0);
+                subtotalCalculado += totalMO;
+            }
+            
+            // 4. Sumar equipos adicionales
+            if (cotizacion.equiposAdicionales?.length > 0) {
+                const totalEquipos = cotizacion.equiposAdicionales.reduce(function(sum, e) {
+                    return sum + ((e.horas || 0) * (e.costoUnitario || 0));
+                }, 0);
+                subtotalCalculado += totalEquipos;
+            }
+            
+            // 5. Sumar indirectos adicionales
+            if (cotizacion.indirectosAdicionales?.length > 0) {
+                const totalIndirectosAdic = cotizacion.indirectosAdicionales.reduce(function(sum, ind) {
+                    return sum + (ind.monto || 0);
+                }, 0);
+                subtotalCalculado += totalIndirectosAdic;
+            }
+            
+            // ⚠️ USAR VALORES DE LA BD COMO RESPALDO (PARA COTIZACIONES SOLO RECURSOS)
+            const subtotalBD = (cotizacion.costoDirecto || 0) + (cotizacion.totalIndirectos || 0) + (cotizacion.utilidad || 0);
+            const subtotalParaPDF = subtotalCalculado > 0 ? subtotalCalculado : subtotalBD;
+            
             const iva = cotizacion.iva || 0;
             const totalFinal = cotizacion.totalFinal || 0;
             
-            // ⚠️ AGREGAR RECURSOS ADICIONALES AL SUBTOTAL (SI APLICAN) ← AGREGAR AQUÍ
-            if (cotizacion.tipo === 'solo-recursos-adicionales' || cotizacion.materialesAdicionales?.length > 0) {
-                const materialesAdicionales = (cotizacion.materialesAdicionales || []).reduce(function(sum, m) {
-                    return sum + ((m.cantidad || 0) * (m.precioUnitario || 0));
-                }, 0);
-                const manoObraAdicional = (cotizacion.manoObraAdicional || []).reduce(function(sum, m) {
-                    return sum + ((m.jornadas || 0) * (m.costoJornada || 0));
-                }, 0);
-                const equiposAdicionales = (cotizacion.equiposAdicionales || []).reduce(function(sum, e) {
-                    return sum + ((e.horas || 0) * (e.costoUnitario || 0));
-                }, 0);
-                
-                // Si hay recursos adicionales, ajustar el subtotal
-                if (materialesAdicionales > 0 || manoObraAdicional > 0 || equiposAdicionales > 0) {
-                    console.log('📦 Recursos adicionales detectados:', { materialesAdicionales, manoObraAdicional, equiposAdicionales });
-                }
-            }
-            // ─────────────────────────────────────────────────────────────────            
-            // ⚠️ SUBTOTAL = Costo Directo + Indirectos + Utilidad (VALORES DE LA BD)
-            const subtotalParaPDF = costoDirectoTotal + totalIndirectos + utilidad;
-            
-            // ⚠️ MOSTRAR SUBTOTAL (YA INCLUYE INDIRECTOS Y UTILIDAD DISTRIBUIDOS)
+            // ─────────────────────────────────────────────────────────
+            // MOSTRAR TOTALES
+            // ─────────────────────────────────────────────────────────
             doc.setFont('helvetica', 'bold');
             doc.text(self.normalizarTexto('Subtotal:'), 140, yPos);
             doc.setFont('helvetica', 'normal');
-            doc.text(calculator.formatoMoneda(sumaConceptos), 195, yPos, { align: 'right' });  // ✅ USA LA SUMA DE CONCEPTOS
+            doc.text(calculator.formatoMoneda(subtotalParaPDF), 195, yPos, { align: 'right' });
             
             yPos += 6;
             doc.setFont('helvetica', 'bold');
@@ -665,15 +684,16 @@ window.reportes = {
             doc.setFontSize(13);
             doc.text(calculator.formatoMoneda(totalFinal), 170, yPos, { align: 'center' });
             
-            // ⚠️ VERIFICAR QUE CUAADRE
-            const diferencia = Math.abs((sumaConceptos + iva) - totalFinal);
-            if (diferencia > 1) {  // Si hay diferencia mayor a $1
+            // ⚠️ VERIFICAR QUE CUAADRE (CON TOLERANCIA DE REDONDEO)
+            const diferencia = Math.abs((subtotalParaPDF + iva) - totalFinal);
+            if (diferencia > 1) {  // Tolerancia de $1 por redondeo
                 console.warn('⚠️ Diferencia en totales:', diferencia.toFixed(2));
-                console.log('  Subtotal BD:', subtotalParaPDF);
-                console.log('  IVA BD:', iva);
-                console.log('  Total BD:', totalFinal);
-                console.log('  Suma calculada:', subtotalParaPDF + iva);
-            }   
+                console.log('  Subtotal calculado:', subtotalCalculado);
+                console.log('  Subtotal BD:', subtotalBD);
+                console.log('  IVA:', iva);
+                console.log('  Total Final:', totalFinal);
+                console.log('  Suma:', subtotalParaPDF + iva);
+            }  
             // ─────────────────────────────────────────────────────────
             // PIE DE PÁGINA
             // ─────────────────────────────────────────────────────────
