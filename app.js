@@ -1334,6 +1334,14 @@ guardarCotizacion: async function() {
         const baseConIndirectos = subtotal + totalIndirectos;
         const utilidadPorcentaje = parseFloat(elUtilidad?.value) || 10;
         const utilidad = baseConIndirectos * (utilidadPorcentaje / 100);
+
+        console.log('🔍 Debug utilidad:', {  // ⚠️ AGREGAR ESTO PARA DEBUG
+            subtotal: subtotal,
+            totalIndirectos: totalIndirectos,
+            baseConIndirectos: baseConIndirectos,
+            utilidadPorcentaje: utilidadPorcentaje,
+            utilidad: utilidad
+        });
         const iva = (baseConIndirectos + utilidad) * 0.16;
         const totalFinal = baseConIndirectos + utilidad + iva;
         
@@ -2274,6 +2282,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
