@@ -657,10 +657,7 @@ window.reportes = {
             }
             
             // ⚠️ USAR VALORES DIRECTOS DE LA COTIZACIÓN (CON FALLBACK A DESGLOSE)
-            const costoDirecto = cotizacion.costoDirecto || 0;
-            const totalIndirectos = cotizacion.totalIndirectos || cotizacion.desgloseTotales?.totalIndirectos || 0;
-            const utilidad = cotizacion.utilidad || cotizacion.desgloseTotales?.utilidadMonto || 0;  // ✅ FALLBACK
-            
+            const costoDirecto = cotizacion.costoDirecto || 0;  
             // Subtotal = Costo Directo + Indirectos + Utilidad
             const subtotalParaPDF = costoDirecto + totalIndirectos + utilidad;
                        
