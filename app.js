@@ -1268,7 +1268,7 @@ guardarCotizacion: async function() {
         // ⚠️ VERIFICAR LÍMITE DE COTIZACIONES
         const limite = await window.licencia.verificarLimite('cotizaciones');
         if (!limite.permitido) {
-            window.app.notificacion('❌ ' + limite.razon, 'error');
+            this.notificacion('❌ ' + limite.razon, 'error');
             return;
         }
         
@@ -1280,7 +1280,7 @@ guardarCotizacion: async function() {
         const elFechaFin = document.getElementById('cot-fecha-fin');
         
         if (!elCliente || !elDescripcion) {
-            window.app.notificacion('⚠️ Elementos del formulario no encontrados', 'error');
+            this.notificacion('⚠️ Elementos del formulario no encontrados', 'error');
             return;
         }
         
@@ -1291,30 +1291,30 @@ guardarCotizacion: async function() {
         const fechaFinSolicitada = elFechaFin?.value || null;
         
         if (!clienteId || !descripcion) {
-            window.app.notificacion('⚠️ Completa cliente y descripción', 'error');
+            this.notificacion('⚠️ Completa cliente y descripción', 'error');
             return;
         }
         
         // ⚠️ VALIDAR QUE HAYA AL MENOS UN RECURSO
-        const hayConceptos = window.app.datosCotizacion.conceptosSeleccionados.length > 0;
-        const hayMateriales = window.app.datosCotizacion.materiales.length > 0;
-        const hayManoObra = window.app.datosCotizacion.manoObra.length > 0;
-        const hayEquipos = window.app.datosCotizacion.equipos.length > 0;
+        const hayConceptos = this.datosCotizacion.conceptosSeleccionados.length > 0;
+        const hayMateriales = this.datosCotizacion.materiales.length > 0;
+        const hayManoObra = this.datosCotizacion.manoObra.length > 0;
+        const hayEquipos = this.datosCotizacion.equipos.length > 0;
         
         if (!hayConceptos && !hayMateriales && !hayManoObra && !hayEquipos) {
-            window.app.notificacion('⚠️ Agrega al menos un concepto O recursos adicionales', 'error');
+            this.notificacion('⚠️ Agrega al menos un concepto O recursos adicionales', 'error');
             return;
         }
         
         // ⚠️ CALCULAR TOTALES PRIMERO (ANTES DEL OBJETO)
-        const subtotal = window.app.datosCotizacion.conceptosSeleccionados.reduce(function(sum, c) {
+        const subtotal = this.datosCotizacion.conceptosSeleccionados.reduce(function(sum, c) {
             return sum + ((c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1));
         }, 0) +
-        window.app.datosCotizacion.materiales.reduce(function(sum, m) { return sum + ((m.cantidad || 0) * (m.precioUnitario || 0)); }, 0) +
-        window.app.datosCotizacion.manoObra.reduce(function(sum, m) { return sum + ((m.jornadas || 0) * (m.costoJornada || 0)); }, 0) +
-        window.app.datosCotizacion.equipos.reduce(function(sum, e) { return sum + ((e.horas || 0) * (e.costoUnitario || 0)); }, 0);
+        this.datosCotizacion.materiales.reduce(function(sum, m) { return sum + ((m.cantidad || 0) * (m.precioUnitario || 0)); }, 0) +
+        this.datosCotizacion.manoObra.reduce(function(sum, m) { return sum + ((m.jornadas || 0) * (m.costoJornada || 0)); }, 0) +
+        this.datosCotizacion.equipos.reduce(function(sum, e) { return sum + ((e.horas || 0) * (e.costoUnitario || 0)); }, 0);
         
-        const indirectosManuales = window.app.datosCotizacion.indirectos.reduce(function(sum, i) { return sum + (i.monto || 0); }, 0);
+        const indirectosManuales = this.datosCotizacion.indirectos.reduce(function(sum, i) { return sum + (i.monto || 0); }, 0);
         
         // ⚠️ VALIDAR ELEMENTOS DE PORCENTAJES
         const elIndOficina = document.getElementById('cot-indirectos-oficina');
@@ -1339,14 +1339,14 @@ guardarCotizacion: async function() {
         
         // ⚠️ CALCULAR TIEMPO DE EJECUCIÓN
         let totalJOR = 0;
-        window.app.datosCotizacion.conceptosSeleccionados.forEach(function(c) {
+        this.datosCotizacion.conceptosSeleccionados.forEach(function(c) {
             if (c.recursos?.mano_obra) {
                 c.recursos.mano_obra.forEach(function(mo) {
                     totalJOR += (mo.horas_jornada || 0) * (c.cantidad || 1);
                 });
             }
         });
-        window.app.datosCotizacion.manoObra.forEach(function(mo) {
+        this.datosCotizacion.manoObra.forEach(function(mo) {
             totalJOR += (mo.jornadas || 0);
         });
         
@@ -1361,19 +1361,19 @@ guardarCotizacion: async function() {
             ubicacion: ubicacion,
             fechaInicio: fechaInicio,
             fechaFinSolicitada: fechaFinSolicitada,
-            conceptosCatalogo: window.app.datosCotizacion.conceptosSeleccionados,
-            materialesAdicionales: window.app.datosCotizacion.materiales,
-            manoObraAdicional: window.app.datosCotizacion.manoObra,
-            equiposAdicionales: window.app.datosCotizacion.equipos,
-            herramientaAdicional: window.app.datosCotizacion.herramienta,
-            indirectosAdicionales: window.app.datosCotizacion.indirectos,
+            conceptosCatalogo: this.datosCotizacion.conceptosSeleccionados,
+            materialesAdicionales: this.datosCotizacion.materiales,
+            manoObraAdicional: this.datosCotizacion.manoObra,
+            equiposAdicionales: this.datosCotizacion.equipos,
+            herramientaAdicional: this.datosCotizacion.herramienta,
+            indirectosAdicionales: this.datosCotizacion.indirectos,
             porcentajes: {
                 indirectosOficina: indirectosOficinaPorcentaje,
                 indirectosCampo: indirectosCampoPorcentaje,
                 financiamiento: financiamientoPorcentaje,
                 utilidad: utilidadPorcentaje
             },
-            factoresAjuste: window.app.factoresAjuste,
+            factoresAjuste: this.factoresAjuste,
             tiempoEjecucion: {
                 jornadas: totalJOR.toFixed(2),
                 diasHabiles: diasHabiles,
@@ -1407,21 +1407,21 @@ guardarCotizacion: async function() {
         await window.db.cotizaciones.add(cotizacion);
         
         console.log('✅ Cotización guardada:', cotizacion);
-        window.app.notificacion('✅ Cotización guardada exitosamente', 'exito');
+        this.notificacion('✅ Cotización guardada exitosamente', 'exito');
         
         const licencia = window.licencia.cargar();
         if (licencia?.tipo === 'ENTERPRISE') {
-            await window.app.guardarPreciosEnHistorico(cotizacion);
+            await this.guardarPreciosEnHistorico(cotizacion);
         }
         
-        window.app.resetearFormulario();
-        await window.app.cargarEstadisticas();
-        await window.app.actualizarContadoresLicencia();
-        window.app.mostrarPantalla('dashboard-screen');
+        this.resetearFormulario();
+        await this.cargarEstadisticas();
+        await this.actualizarContadoresLicencia();
+        this.mostrarPantalla('dashboard-screen');
         
     } catch (error) {
         console.error('❌ Error guardando cotización:', error);
-        window.app.notificacion('❌ Error: ' + error.message, 'error');
+        this.notificacion('❌ Error: ' + error.message, 'error');
     }
 },
 
@@ -1636,19 +1636,24 @@ confirmarExtraerManoDeObra: async function() {
         
         await window.db.cotizaciones.add(cotizacion);
         
-        console.log('✅ Cotización solo MO guardada:', cotizacion);
+        console.log('✅ Cotización guardada:', cotizacion);
         
-        // ⚠️ USAR window.app EN VEZ DE this
-        window.app.notificacion('✅ Cotización solo mano de obra guardada (' + (window.app._manoDeObraExtraer?.length || 0) + ' puestos)', 'exito');
-        window.app.cancelarExtraerManoDeObra();
-        window.app.resetearFormulario();  // ✅ CORREGIDO
-        await window.app.cargarEstadisticas();
-        await window.app.actualizarContadoresLicencia();
-        window.app.mostrarPantalla('dashboard-screen');
+        // ⚠️ USAR this CONSISTENTEMENTE (NO window.app)
+        this.notificacion('✅ Cotización guardada exitosamente', 'exito');
+        
+        const licencia = window.licencia.cargar();
+        if (licencia?.tipo === 'ENTERPRISE') {
+            await this.guardarPreciosEnHistorico(cotizacion);
+        }
+        
+        this.resetearFormulario();  // ✅ this, no window.app
+        await this.cargarEstadisticas();
+        await this.actualizarContadoresLicencia();
+        this.mostrarPantalla('dashboard-screen');
         
     } catch (error) {
-        console.error('❌ Error guardando cotización solo MO:', error);
-        this.notificacion('❌ Error: ' + error.message, 'error');
+        console.error('❌ Error guardando cotización:', error);
+        this.notificacion('❌ Error: ' + error.message, 'error');  // ✅ this, no window.app
     }
 },
 
@@ -2272,6 +2277,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
