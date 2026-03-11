@@ -62,6 +62,21 @@ window.reportes = {
     // ─────────────────────────────────────────────────────────────────
     generarCotizacionPDF: async function(cotizacionId) {
         try {
+
+
+            console.log('🔍 Debug cotización #', cotizacionId);
+            console.log('  costoDirecto:', cotizacion.costoDirecto);
+            console.log('  totalIndirectos:', cotizacion.totalIndirectos);
+            console.log('  utilidad:', cotizacion.utilidad);
+            console.log('  iva:', cotizacion.iva);
+            console.log('  totalFinal:', cotizacion.totalFinal);
+            console.log('  conceptos:', cotizacion.conceptosCatalogo?.length);
+            if (cotizacion.conceptosCatalogo?.[0]) {
+                console.log('  Primer concepto:', {
+                    codigo: cotizacion.conceptosCatalogo[0].codigo,
+                    costo_directo: cotizacion.conceptosCatalogo[0].costos_base?.costo_directo_total
+                });
+            }   
             console.log('📄 Generando PDF de cotización #', cotizacionId);
             
             // ⚠️ VERIFICAR LICENCIA
