@@ -107,7 +107,7 @@ window.reportes = {
             console.log('  utilidad:', cotizacion.utilidad);
             console.log('  iva:', cotizacion.iva);
             console.log('  totalFinal:', cotizacion.totalFinal);
-            console.log('  conceptos:', cotizacion.conceptosCatalogo?.length);
+            console.log('  desgloseTotales:', cotizacion.desgloseTotales);
             if (cotizacion.conceptosCatalogo?.[0]) {
                 console.log('  Primer concepto:', {
                     codigo: cotizacion.conceptosCatalogo[0].codigo,
@@ -656,9 +656,11 @@ window.reportes = {
                 subtotalCalculado += totalIndirectosAdic;
             }
             
-            // ⚠️ USAR VALORES DE LA BD COMO RESPALDO (PARA COTIZACIONES SOLO RECURSOS)
-            const subtotalBD = (cotizacion.costoDirecto || 0) + (cotizacion.totalIndirectos || 0) + (cotizacion.utilidad || 0);
-            const subtotalParaPDF = subtotalCalculado > 0 ? subtotalCalculado : subtotalBD;
+            // ⚠️ USAR VALORES DIRECTOS DE LA COTIZACIÓN (BD)
+            // Estos valores ya incluyen indirectos + utilidad
+            const subtotalConUtilidad = cotizacion.costoDirecto + cotizacion.totalIndirectos + (cotizacion.utilidad || 0);
+            const iva = cotizacion.iva || 0;
+            const totalFinal = cotizacion.totalFinal || 0;
                        
             // ─────────────────────────────────────────────────────────
             // MOSTRAR TOTALES
