@@ -286,9 +286,11 @@ window.reportes = {
                     const cantidad = concepto.cantidad || 1;
                     
                     // Precio unitario con indirectos y utilidad distribuidos
-                    const precioUnitarioConIndirectos = costoDirectoConcepto * factorIndirectosUtilidad;
+                    // ✅ USAR FACTOR CORREGIDO (EVITAR NaN)
+                    const precioUnitarioConIndirectos = costoDirectoConcepto > 0 
+                        ? costoDirectoConcepto * factorIndirectosUtilidad 
+                        : costoDirectoConcepto;                   
                     const importeConIndirectos = precioUnitarioConIndirectos * cantidad;
-                    
                     sumaConceptos += importeConIndirectos;
                     
                     let codigo = concepto.codigo || '';
@@ -603,6 +605,34 @@ window.reportes = {
             // ─────────────────────────────────────────────────────────────────
             yPos += 8;
             
+            // ⚠️ USAR VALORES YA CALCULADOS DE LA COTIZACIÓN
+            const costoDirectoTotal = cotizacion.costoDirecto || 0;
+            const totalIndirectos = cotizacion.totalIndirectos || 0;
+            const utilidad = cotizacion.utilidad || 0;
+            const iva = cotizacion.iva || 0;
+            const totalFinal = cotizacion.totalFinal || 0;
+            
+            // ⚠️ AGREGAR RECURSOS ADICIONALES AL SUBTOTAL (SI APLICAN) ← AGREGAR AQUÍ
+            if (cotizacion.tipo === 'solo-recursos-adicionales' || cotizacion.materialesAdicionales?.length > 0) {
+                const materialesAdicionales = (cotizacion.materialesAdicionales || []).reduce(function(sum, m) {
+                    return sum + ((m.cantidad || 0) * (m.precioUnitario || 0));
+                }, 0);
+                const manoObraAdicional = (cotizacion.manoObraAdicional || []).reduce(function(sum, m) {
+                    return sum + ((m.jornadas || 0) * (m.costoJornada || 0));
+                }, 0);
+                const equiposAdicionales = (cotizacion.equiposAdicionales || []).reduce(function(sum, e) {
+                    return sum + ((e.horas || 0) * (e.costoUnitario || 0));
+                }, 0);
+                
+                // Si hay recursos adicionales, ajustar el subtotal
+                if (materialesAdicionales > 0 || manoObraAdicional > 0 || equiposAdicionales > 0) {
+                    console.log('📦 Recursos adicionales detectados:', { materialesAdicionales, manoObraAdicional, equiposAdicionales });
+                }
+            }
+            // ─────────────────────────────────────────────────────────────────            
+            // ⚠️ SUBTOTAL = Costo Directo + Indirectos + Utilidad (VALORES DE LA BD)
+            const subtotalParaPDF = costoDirectoTotal + totalIndirectos + utilidad;
+            
             // ⚠️ MOSTRAR SUBTOTAL (YA INCLUYE INDIRECTOS Y UTILIDAD DISTRIBUIDOS)
             doc.setFont('helvetica', 'bold');
             doc.text(self.normalizarTexto('Subtotal:'), 140, yPos);
@@ -638,8 +668,12 @@ window.reportes = {
             // ⚠️ VERIFICAR QUE CUAADRE
             const diferencia = Math.abs((sumaConceptos + iva) - totalFinal);
             if (diferencia > 1) {  // Si hay diferencia mayor a $1
-                console.warn('⚠️ Diferencia en totales:', diferencia);
-            }    
+                console.warn('⚠️ Diferencia en totales:', diferencia.toFixed(2));
+                console.log('  Subtotal BD:', subtotalParaPDF);
+                console.log('  IVA BD:', iva);
+                console.log('  Total BD:', totalFinal);
+                console.log('  Suma calculada:', subtotalParaPDF + iva);
+            }   
             // ─────────────────────────────────────────────────────────
             // PIE DE PÁGINA
             // ─────────────────────────────────────────────────────────
