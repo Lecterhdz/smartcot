@@ -146,7 +146,7 @@ window.reportes = {
                 doc.setTextColor(230, 81, 0);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
-                doc.text(this.normalizarTexto('🔧 FACTORES DE AJUSTE APLICADOS'), 20, yPos + 1);
+                doc.text(window.reportes.normalizarTexto('🔧 FACTORES DE AJUSTE APLICADOS'), 20, yPos + 1);
                 
                 yPos += 8;
                 doc.setTextColor(26, 26, 26);
@@ -161,19 +161,19 @@ window.reportes = {
                 if (factores.acceso > 1) factoresText.push('Acceso: ' + factores.acceso.toFixed(2) + 'x');
                 if (factores.seguridad > 1) factoresText.push('Seguridad: ' + factores.seguridad.toFixed(2) + 'x');
                 
-                doc.text(this.normalizarTexto('Factor Total: ' + (factores.total || 1).toFixed(2) + 'x'), 20, yPos);
+                doc.text(window.reportes.normalizarTexto('Factor Total: ' + (factores.total || 1).toFixed(2) + 'x'), 20, yPos);
                 yPos += 5;
                 
                 if (cotizacion.tiempoEjecucion) {
-                    doc.text(this.normalizarTexto('Tiempo Original: ' + cotizacion.tiempoEjecucion.diasHabiles + ' días'), 20, yPos);
+                    doc.text(window.reportes.normalizarTexto('Tiempo Original: ' + cotizacion.tiempoEjecucion.diasHabiles + ' días'), 20, yPos);
                     yPos += 5;
                     const diasAjustados = Math.ceil((cotizacion.tiempoEjecucion.diasHabiles || 0) * (factores.total || 1));
-                    doc.text(this.normalizarTexto('Tiempo Ajustado: ' + diasAjustados + ' días'), 20, yPos);
+                    doc.text(window.reportes.normalizarTexto('Tiempo Ajustado: ' + diasAjustados + ' días'), 20, yPos);
                     yPos += 5;
                 }
                 
                 if (cotizacion.impactoFactores && cotizacion.impactoFactores.costoTiempoExtendido > 0) {
-                    doc.text(this.normalizarTexto('Costo por Tiempo Extendido: ' + calculator.formatoMoneda(cotizacion.impactoFactores.costoTiempoExtendido)), 20, yPos);
+                    doc.text(window.reportes.normalizarTexto('Costo por Tiempo Extendido: ' + calculator.formatoMoneda(cotizacion.impactoFactores.costoTiempoExtendido)), 20, yPos);
                     yPos += 5;
                 }
             }
@@ -247,19 +247,19 @@ window.reportes = {
                     // ⚠️ OBTENER Y LIMPIAR DESCRIPCIÓN
                     let descripcion = '';
                     if (concepto.descripcion_tecnica && concepto.descripcion_tecnica.trim().length > 0) {
-                        descripcion = this.limpiarDescripcion(concepto.descripcion_tecnica);
+                        descripcion = window.reportes.limpiarDescripcion(concepto.descripcion_tecnica);
                     } else if (concepto.descripcion && concepto.descripcion.trim().length > 0) {
-                        descripcion = this.limpiarDescripcion(concepto.descripcion);
+                        descripcion = window.reportes.limpiarDescripcion(concepto.descripcion);
                     } else {
-                        descripcion = this.limpiarDescripcion(concepto.descripcion_corta || 'Sin descripcion');
+                        descripcion = window.reportes.limpiarDescripcion(concepto.descripcion_corta || 'Sin descripcion');
                     }
                     
-                    const lineas = doc.splitTextToSize(this.normalizarTexto(descripcion), 87);
+                    const lineas = doc.splitTextToSize(window.reportes.normalizarTexto(descripcion), 87);
                     
                     doc.text(codigo.substring(0, 10), 15, yPos);
                     doc.text(lineas, 34, yPos);
                     doc.text(cantidad.toString(), 128, yPos);
-                    doc.text(this.normalizarTexto(concepto.unidad || ''), 140, yPos);
+                    doc.text(window.reportes.normalizarTexto(concepto.unidad || ''), 140, yPos);
                     doc.text(calculator.formatoMoneda(precioUnitarioConIndirectos), 167, yPos, { align: 'right' });  // ✅ PRECIO CON INDIRECTOS
                     doc.text(calculator.formatoMoneda(importeConIndirectos), 193, yPos, { align: 'right' });  // ✅ IMPORTE CON INDIRECTOS
                     
@@ -271,7 +271,7 @@ window.reportes = {
                     }
                 }
             } else {
-                doc.text(this.normalizarTexto('No hay conceptos del catalogo'), 15, yPos);
+                doc.text(window.reportes.normalizarTexto('No hay conceptos del catalogo'), 15, yPos);
                 yPos += 8;
             }
 
@@ -553,13 +553,13 @@ window.reportes = {
             
             // ⚠️ MOSTRAR SUBTOTAL (YA INCLUYE INDIRECTOS Y UTILIDAD DISTRIBUIDOS)
             doc.setFont('helvetica', 'bold');
-            doc.text(this.normalizarTexto('Subtotal:'), 140, yPos);
+            doc.text(window.reportes.normalizarTexto('Subtotal:'), 140, yPos);
             doc.setFont('helvetica', 'normal');
             doc.text(calculator.formatoMoneda(sumaConceptos), 195, yPos, { align: 'right' });  // ✅ USA LA SUMA DE CONCEPTOS
             
             yPos += 6;
             doc.setFont('helvetica', 'bold');
-            doc.text(this.normalizarTexto('IVA (16%):'), 140, yPos);
+            doc.text(window.reportes.normalizarTexto('IVA (16%):'), 140, yPos);
             doc.setFont('helvetica', 'normal');
             doc.text(calculator.formatoMoneda(iva), 195, yPos, { align: 'right' });
             
@@ -577,7 +577,7 @@ window.reportes = {
             
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
-            doc.text(this.normalizarTexto('TOTAL:'), 170, yPos + 1, { align: 'center' });
+            doc.text(window.reportes.normalizarTexto('TOTAL:'), 170, yPos + 1, { align: 'center' });
             
             yPos += 7;
             doc.setFontSize(13);
