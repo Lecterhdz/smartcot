@@ -1401,18 +1401,18 @@ guardarCotizacion: async function() {
         await window.db.cotizaciones.add(cotizacion);
         
         console.log('✅ Cotización guardada:', cotizacion);
-        this.notificacion('✅ Cotización guardada exitosamente', 'exito');
+        window.app.notificacion('✅ Cotización guardada exitosamente', 'exito');
         
         const licencia = window.licencia.cargar();
         if (licencia?.tipo === 'ENTERPRISE') {
-            await this.guardarPreciosEnHistorico(cotizacion);
+            await window.app.guardarPreciosEnHistorico(cotizacion);
         }
         
         // ⚠️ USAR this CONSISTENTEMENTE (NO window.app)
-        this.resetearFormulario();
-        await this.cargarEstadisticas();
-        await this.actualizarContadoresLicencia();
-        this.mostrarPantalla('dashboard-screen');
+        window.app.resetearFormulario();
+        await window.app.cargarEstadisticas();
+        await window.app.actualizarContadoresLicencia();
+        window.app.mostrarPantalla('dashboard-screen');
         
     } catch (error) {
         console.error('❌ Error guardando cotización:', error);
@@ -2272,6 +2272,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
