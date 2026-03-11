@@ -208,7 +208,9 @@ window.historialCotizaciones = {
                         </div>
                     </div>
                     ` : ''}
-                    
+                    // ─────────────────────────────────────────────────────────
+                    // RESUMEN FINANCIERO (CORREGIDO - LEER CAMPOS CORRECTOS)
+                    // ─────────────────────────────────────────────────────────                    
                     <div style="background:linear-gradient(135deg,#1a1a1a,#333333);padding:20px;border-radius:15px;color:white;">
                         <h4 style="margin:0 0 15px 0;">💰 Resumen Financiero</h4>
                         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;">
@@ -218,15 +220,16 @@ window.historialCotizaciones = {
                             </div>
                             <div>
                                 <div style="font-size:11px;opacity:0.8;">Indirectos</div>
-                                <div style="font-size:18px;font-weight:700;">${calculator.formatoMoneda(cotizacion.totalIndirectos || 0)}</div>
+                                <div style="font-size:18px;font-weight:700;">${calculator.formatoMoneda(cotizacion.totalIndirectos || cotizacion.desgloseTotales?.totalIndirectos || 0)}</div>
                             </div>
                             <div>
                                 <div style="font-size:11px;opacity:0.8;">Utilidad</div>
-                                <div style="font-size:18px;font-weight:700;">${calculator.formatoMoneda(cotizacion.utilidad || 0)}</div>
+                                <!-- ⚠️ CORREGIDO: LEER DE DOS CAMPOS POSIBLES -->
+                                <div style="font-size:18px;font-weight:700;">${calculator.formatoMoneda(cotizacion.utilidad || cotizacion.desgloseTotales?.utilidadMonto || 0)}</div>
                             </div>
                             <div>
                                 <div style="font-size:11px;opacity:0.8;">IVA</div>
-                                <div style="font-size:18px;font-weight:700;">${calculator.formatoMoneda(cotizacion.iva || 0)}</div>
+                                <div style="font-size:18px;font-weight:700;">${calculator.formatoMoneda(cotizacion.iva || cotizacion.desgloseTotales?.ivaMonto || 0)}</div>
                             </div>
                             <div style="grid-column:span 2;">
                                 <div style="font-size:11px;opacity:0.8;">TOTAL FINAL</div>
