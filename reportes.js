@@ -372,7 +372,7 @@ window.reportes = {
                 yPos += 2;
                 doc.setDrawColor(200);
                 doc.line(15, yPos, 195, yPos);
-                yPos += 2;
+                yPos += 4;
                 doc.setFont('helvetica', 'normal');
                 
                 cotizacion.materialesAdicionales.forEach(function(mat, index) {
@@ -468,7 +468,7 @@ window.reportes = {
                 yPos += 2;
                 doc.setDrawColor(200);
                 doc.line(15, yPos, 195, yPos);
-                yPos += 1;
+                yPos += 4;
                 doc.setFont('helvetica', 'normal');
                 
                 cotizacion.equiposAdicionales.forEach(function(eq, index) {
