@@ -1259,7 +1259,7 @@ guardarPreciosEnHistorico: async function(cotizacion) {
 },
 
 // ─────────────────────────────────────────────────────────────────
-// GUARDAR COTIZACIÓN (CORREGIDO - PERMITE SOLO RECURSOS ADICIONALES)
+// GUARDAR COTIZACIÓN (CORREGIDO - SIN ERRORES DE SINTAXIS)
 // ─────────────────────────────────────────────────────────────────
 guardarCotizacion: async function() {
     try {
@@ -1283,24 +1283,21 @@ guardarCotizacion: async function() {
             return;
         }
         
-        // ⚠️ VALIDAR QUE HAYA AL MENOS UN RECURSO (CONCEPTOS O ADICIONALES)
+        // ⚠️ VALIDAR QUE HAYA AL MENOS UN RECURSO
         const hayConceptos = this.datosCotizacion.conceptosSeleccionados.length > 0;
         const hayMateriales = this.datosCotizacion.materiales.length > 0;
         const hayManoObra = this.datosCotizacion.manoObra.length > 0;
         const hayEquipos = this.datosCotizacion.equipos.length > 0;
         
         if (!hayConceptos && !hayMateriales && !hayManoObra && !hayEquipos) {
-            this.notificacion('⚠️ Agrega al menos un concepto O recursos adicionales (materiales, mano de obra o equipos)', 'error');
+            this.notificacion('⚠️ Agrega al menos un concepto O recursos adicionales', 'error');
             return;
         }
         
-        // Calcular totales PRIMERO
-        this.calcularTotalConConceptos();
-        const cotizacion = {
-        // ⚠️ OBTENER VALORES DE VARIABLES (NO DEL DOM)
+        // ⚠️ CALCULAR TOTALES PRIMERO (ANTES DEL OBJETO)
         const subtotal = this.datosCotizacion.conceptosSeleccionados.reduce(function(sum, c) {
             return sum + ((c.costos_base?.costo_directo_total || 0) * (c.cantidad || 1));
-        }, 0) + 
+        }, 0) +
         this.datosCotizacion.materiales.reduce(function(sum, m) { return sum + ((m.cantidad || 0) * (m.precioUnitario || 0)); }, 0) +
         this.datosCotizacion.manoObra.reduce(function(sum, m) { return sum + ((m.jornadas || 0) * (m.costoJornada || 0)); }, 0) +
         this.datosCotizacion.equipos.reduce(function(sum, e) { return sum + ((e.horas || 0) * (e.costoUnitario || 0)); }, 0);
@@ -1319,12 +1316,10 @@ guardarCotizacion: async function() {
         const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
         const utilidad = baseConIndirectos * (utilidadPorcentaje / 100);
         const iva = (baseConIndirectos + utilidad) * 0.16;
-        const totalFinal = baseConIndirectos + utilidad + iva; 
+        const totalFinal = baseConIndirectos + utilidad + iva;
         
-        // ⚠️ CALCULAR TIEMPO DE EJECUCIÓN DESDE MANO DE OBRA ADICIONAL
+        // ⚠️ CALCULAR TIEMPO DE EJECUCIÓN
         let totalJOR = 0;
-        
-        // Jornadas de conceptos del catálogo
         this.datosCotizacion.conceptosSeleccionados.forEach(function(c) {
             if (c.recursos?.mano_obra) {
                 c.recursos.mano_obra.forEach(function(mo) {
@@ -1332,8 +1327,6 @@ guardarCotizacion: async function() {
                 });
             }
         });
-        
-        // ⚠️ Jornadas de mano de obra adicional
         this.datosCotizacion.manoObra.forEach(function(mo) {
             totalJOR += (mo.jornadas || 0);
         });
@@ -1342,13 +1335,7 @@ guardarCotizacion: async function() {
         const semanas = Math.ceil(diasHabiles / 5);
         const meses = Math.ceil(semanas / 4.33);
         
-        // ⚠️ OBTENER PORCENTAJES
-        const indirectosOficinaPorcentaje = parseFloat(document.getElementById('cot-indirectos-oficina')?.value) || 5;
-        const indirectosCampoPorcentaje = parseFloat(document.getElementById('cot-indirectos-campo')?.value) || 15;
-        const financiamientoPorcentaje = parseFloat(document.getElementById('cot-financiamiento')?.value) || 0.85;
-        const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
-        
-        // ⚠️ CREAR OBJETO DE COTIZACIÓN
+        // ⚠️ CREAR OBJETO DE COTIZACIÓN (AHORA SÍ - SIN CÁLCULOS DENTRO)
         const cotizacion = {
             clienteId: clienteId,
             descripcion: descripcion,
@@ -1374,7 +1361,6 @@ guardarCotizacion: async function() {
                 semanas: semanas,
                 meses: meses
             },
-            // ⚠️ TOTALES CALCULADOS
             costoDirecto: subtotal,
             totalIndirectos: totalIndirectos,
             utilidad: utilidad,
@@ -1383,7 +1369,6 @@ guardarCotizacion: async function() {
             fecha: new Date().toISOString(),
             estado: 'pendiente',
             tipo: hayConceptos ? 'estandar' : 'solo-recursos-adicionales',
-            // ⚠️ AGREGAR DESGLOSE PARA AUDITORÍA Y REPORTES
             desgloseTotales: {
                 subtotal: subtotal,
                 indirectosOficina: indirectosOficina,
@@ -1399,42 +1384,12 @@ guardarCotizacion: async function() {
                 costoTiempoExtendido: this.impactoFactores?.costoTiempoExtendido || 0
             }
         };
-            
-            // ⚠️ GUARDAR TODOS LOS RECURSOS
-            conceptosCatalogo: this.datosCotizacion.conceptosSeleccionados,
-            materialesAdicionales: this.datosCotizacion.materiales,
-            manoObraAdicional: this.datosCotizacion.manoObra,
-            equiposAdicionales: this.datosCotizacion.equipos,
-            herramientaAdicional: this.datosCotizacion.herramienta,
-            indirectosAdicionales: this.datosCotizacion.indirectos,
-            
-            porcentajes: {
-                indirectosOficina: indirectosOficinaPorcentaje,
-                indirectosCampo: indirectosCampoPorcentaje,
-                financiamiento: financiamientoPorcentaje,
-                utilidad: utilidadPorcentaje
-            },
-            
-            factoresAjuste: this.factoresAjuste,
-            
-            // ⚠️ TIEMPO DE EJECUCIÓN CALCULADO
-            tiempoEjecucion: {
-                jornadas: totalJOR.toFixed(2),
-                diasHabiles: diasHabiles,
-                semanas: semanas,
-                meses: meses
-            },
-            
-            // ⚠️ TIPO DE COTIZACIÓN
-            tipo: hayConceptos ? 'estandar' : 'solo-recursos-adicionales'
-        };
         
         await window.db.cotizaciones.add(cotizacion);
         
         console.log('✅ Cotización guardada:', cotizacion);
         this.notificacion('✅ Cotización guardada exitosamente', 'exito');
         
-        // ⚠️ GUARDAR PRECIOS EN HISTÓRICO (SOLO ENTERPRISE)
         const licencia = window.licencia.cargar();
         if (licencia?.tipo === 'ENTERPRISE') {
             await this.guardarPreciosEnHistorico(cotizacion);
@@ -1449,39 +1404,6 @@ guardarCotizacion: async function() {
         console.error('❌ Error guardando cotización:', error);
         this.notificacion('❌ Error: ' + error.message, 'error');
     }
-},
-
-resetearFormulario: function() {
-    this.datosCotizacion = {
-        materiales: [],
-        manoObra: [],
-        equipos: [],
-        herramienta: [],
-        indirectos: [],
-        conceptosSeleccionados: []
-    };
-    this.impactoFactores = {
-        factorAltura: 1,
-        factorClima: 1,
-        factorAcceso: 1,
-        factorSeguridad: 1,
-        factorTotal: 1,
-        tiempoOriginal: 0,
-        tiempoAjustado: 0,
-        diasIncremento: 0,
-        porcentajeIncremento: 0,
-        costoTiempoExtendido: 0,
-        aplicado: false
-    };
-    const ids = ['materiales-lista', 'mano-obra-lista', 'equipos-lista', 'indirectos-lista', 'conceptos-seleccionados'];
-    const app = this;
-    ids.forEach(function(id) {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = '';
-    });
-    const seccionImpacto = document.getElementById('seccion-impacto-factores');
-    if (seccionImpacto) seccionImpacto.style.display = 'none';
-    this.inicializarFormularios();
 },
 
 // ─────────────────────────────────────────────────────────────────
@@ -2330,6 +2252,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
