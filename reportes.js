@@ -656,13 +656,13 @@ window.reportes = {
                 subtotalCalculado += totalIndirectosAdic;
             }
             
-            // ⚠️ USAR VALORES DIRECTOS DE LA COTIZACIÓN (BD)
-            // Estos valores ya incluyen indirectos + utilidad
-            const subtotalBD = (cotizacion.costoDirecto || 0) + (cotizacion.totalIndirectos || 0) + (cotizacion.utilidad || 0);
-            const subtotalParaPDF = subtotalCalculado > 0 ? subtotalCalculado : subtotalBD;  // ✅ DECLARACIÓN CORRECTA
-
-            const subtotalConUtilidad = cotizacion.costoDirecto + cotizacion.totalIndirectos + (cotizacion.utilidad || 0);
-
+            // ⚠️ USAR VALORES DIRECTOS DE LA COTIZACIÓN (CON FALLBACK A DESGLOSE)
+            const costoDirecto = cotizacion.costoDirecto || 0;
+            const totalIndirectos = cotizacion.totalIndirectos || cotizacion.desgloseTotales?.totalIndirectos || 0;
+            const utilidad = cotizacion.utilidad || cotizacion.desgloseTotales?.utilidadMonto || 0;  // ✅ FALLBACK
+            
+            // Subtotal = Costo Directo + Indirectos + Utilidad
+            const subtotalParaPDF = costoDirecto + totalIndirectos + utilidad;
                        
             // ─────────────────────────────────────────────────────────
             // MOSTRAR TOTALES
@@ -702,11 +702,11 @@ window.reportes = {
             const diferencia = Math.abs((subtotalParaPDF + iva) - totalFinal);
             if (diferencia > 1) {  // Tolerancia de $1 por redondeo
                 console.warn('⚠️ Diferencia en totales:', diferencia.toFixed(2));
-                console.log('  Subtotal calculado:', subtotalCalculado);
-                console.log('  Subtotal BD:', subtotalBD);
-                console.log('  IVA:', iva);
-                console.log('  Total Final:', totalFinal);
-                console.log('  Suma:', subtotalParaPDF + iva);
+                console.warn('⚠️ Diferencia en totales:', diferencia.toFixed(2));
+                console.log('  Subtotal BD:', subtotalParaPDF);
+                console.log('  IVA BD:', iva);
+                console.log('  Total BD:', totalFinal);
+                console.log('  Utilidad BD:', utilidad);  // ⚠️ DEBUG
             }  
             // ─────────────────────────────────────────────────────────
             // PIE DE PÁGINA
