@@ -662,7 +662,6 @@ window.reportes = {
             const subtotalBD = (cotizacion.costoDirecto || 0) + (cotizacion.totalIndirectos || 0) + (cotizacion.utilidad || 0);
             const subtotalParaPDF = subtotalCalculado > 0 ? subtotalCalculado : subtotalBD;
             
-            const iva = cotizacion.iva || 0;
             const totalFinal = cotizacion.totalFinal || 0;
             
             // ─────────────────────────────────────────────────────────
