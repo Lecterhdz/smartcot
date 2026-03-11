@@ -627,11 +627,11 @@ window.curvaS = {
                 return;
             }
             
-            // ⚠️ FILTRAR AVANCES CON DATOS VÁLIDOS (CAMPOS CORRECTOS)
-            const avancesValidos = avances.filter(a =>
-                (a.porcentajeEjecutado !== undefined && a.porcentajeEjecutado !== null) ||
-                (a.porcentaje !== undefined && a.porcentaje !== null)
-            );
+                // ⚠️ FILTRAR AVANCES CON DATOS VÁLIDOS (VERIFICAR VALOR > 0)
+            const avancesValidos = avances.filter(a => {
+                const porcentaje = a.porcentajeEjecutado || a.porcentaje || 0;
+                return porcentaje >= 0 && porcentaje <= 100;  // ✅ VALIDAR RANGO 0-100
+            });
             
             console.log('📊 Avances válidos:', avancesValidos);  // ⚠️ DEBUG
             
@@ -810,6 +810,8 @@ window.curvaS = {
                 .equals(parseInt(cotizacionId))
                 .toArray();
             
+            console.log('📊 Avances encontrados:', avances);  // ⚠️ DEBUG
+            
             if (avances.length < 2) {
                 console.warn('⚠️ Se necesitan al menos 2 avances para proyectar');
                 const elSemanasRestantes = document.getElementById('proyeccion-semanas-restantes');
@@ -821,22 +823,38 @@ window.curvaS = {
                 return;
             }
             
-            // ⚠️ FILTRAR AVANCES VÁLIDOS (CAMPOS CORREGIDOS)
-            const avancesValidos = avances.filter(a =>
-                (a.porcentajeEjecutado !== undefined && a.porcentajeEjecutado !== null) ||
-                (a.porcentaje !== undefined && a.porcentaje !== null)
-            );
+            // ⚠️ FILTRAR AVANCES VÁLIDOS (VERIFICAR QUE EL VALOR SEA > 0)
+            const avancesValidos = avances.filter(a => {
+                const porcentaje = a.porcentajeEjecutado || a.porcentaje || 0;
+                const semana = a.semana || 0;
+                return porcentaje > 0 && semana > 0;  // ✅ VALIDAR QUE TENGA VALOR
+            });
+            
+            console.log('📊 Avances válidos:', avancesValidos);  // ⚠️ DEBUG
             
             if (avancesValidos.length < 2) {
-                console.warn('⚠️ Se necesitan al menos 2 avances con porcentaje válido');
+                console.warn('⚠️ Se necesitan al menos 2 avances con porcentaje > 0');
+                console.log('Avances con porcentaje válido:', avancesValidos.length);
+                const elSemanasRestantes = document.getElementById('proyeccion-semanas-restantes');
+                const elFechaEstimada = document.getElementById('proyeccion-fecha-estimada');
+                const elVelocidad = document.getElementById('proyeccion-velocidad');
+                if (elSemanasRestantes) elSemanasRestantes.textContent = 'N/A';
+                if (elFechaEstimada) elFechaEstimada.textContent = 'N/A';
+                if (elVelocidad) elVelocidad.textContent = 'N/A';
                 return;
             }
             
+            // ⚠️ ORDENAR POR SEMANA (ASEGURAR QUE EL ÚLTIMO SEA EL MÁS RECIENTE)
+            avancesValidos.sort(function(a, b) {
+                return (a.semana || 0) - (b.semana || 0);
+            });
+            
             // Calcular velocidad de avance
             const ultimoAvance = avancesValidos[avancesValidos.length - 1];
-            // ⚠️ USAR porcentajeEjecutado EN VEZ DE porcentaje
             const avanceActual = parseFloat(ultimoAvance.porcentajeEjecutado || ultimoAvance.porcentaje || 0);
             const semanaActual = parseInt(ultimoAvance.semana) || avancesValidos.length;
+            
+            console.log('📊 Último avance:', { avanceActual, semanaActual });  // ⚠️ DEBUG
             
             if (semanaActual === 0 || avanceActual === 0) {
                 console.warn('⚠️ Datos inválidos para proyección');
