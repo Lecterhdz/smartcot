@@ -658,6 +658,9 @@ window.reportes = {
             
             // ⚠️ USAR VALORES DIRECTOS DE LA COTIZACIÓN (BD)
             // Estos valores ya incluyen indirectos + utilidad
+            const subtotalBD = (cotizacion.costoDirecto || 0) + (cotizacion.totalIndirectos || 0) + (cotizacion.utilidad || 0);
+            const subtotalParaPDF = subtotalCalculado > 0 ? subtotalCalculado : subtotalBD;  // ✅ DECLARACIÓN CORRECTA
+
             const subtotalConUtilidad = cotizacion.costoDirecto + cotizacion.totalIndirectos + (cotizacion.utilidad || 0);
 
                        
