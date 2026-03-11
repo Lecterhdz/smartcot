@@ -659,8 +659,7 @@ window.reportes = {
             // ⚠️ USAR VALORES DIRECTOS DE LA COTIZACIÓN (BD)
             // Estos valores ya incluyen indirectos + utilidad
             const subtotalConUtilidad = cotizacion.costoDirecto + cotizacion.totalIndirectos + (cotizacion.utilidad || 0);
-            const iva = cotizacion.iva || 0;
-            const totalFinal = cotizacion.totalFinal || 0;
+
                        
             // ─────────────────────────────────────────────────────────
             // MOSTRAR TOTALES
