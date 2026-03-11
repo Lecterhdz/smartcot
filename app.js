@@ -2246,7 +2246,44 @@ notificacion: function(mensaje, tipo) {
         setTimeout(function() { div.remove(); }, 300);
     }, 3000);
 },
+// ─────────────────────────────────────────────────────────────────
+// RESETEAR FORMULARIO
+// ─────────────────────────────────────────────────────────────────
+resetearFormulario: function() {
+    this.datosCotizacion = {
+        materiales: [],
+        manoObra: [],
+        equipos: [],
+        herramienta: [],
+        indirectos: [],
+        conceptosSeleccionados: []
+    };
+    this.tiempoEjecucion = { jornadas: 0, diasHabiles: 0, semanas: 0, meses: 0 };
+    this.factoresAjuste = { altura: 1, clima: 1, acceso: 1, seguridad: 1, total: 1 };
+    this.impactoFactores = { aplicado: false, factorTotal: 1, costoTiempoExtendido: 0 };
+    this.costoIndirectosDiario = 0;
+    this.factorAjusteActual = 1;
 
+    const campos = ['cot-cliente', 'cot-descripcion', 'cot-ubicacion', 'cot-fecha-inicio', 'cot-fecha-fin'];
+    campos.forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+
+    const listas = ['materiales-lista', 'mano-obra-lista', 'equipos-lista', 'indirectos-lista'];
+    listas.forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '';
+    });
+
+    this.agregarMaterial();
+    this.agregarManoObra();
+    this.agregarEquipo();
+    this.agregarIndirecto();
+    this.actualizarConceptosSeleccionadosUI();
+    this.calcularTotal();
+    console.log('✅ Formulario reseteado');
+},
 // ─────────────────────────────────────────────────────────────────
 // CERRAR SESIÓN
 // ─────────────────────────────────────────────────────────────────
@@ -2272,6 +2309,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
