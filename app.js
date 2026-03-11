@@ -1563,7 +1563,7 @@ confirmarExtraerManoDeObra: async function() {
         }
         
         // Calcular totales
-        const subtotal = this._costoTotalMO || 0;
+        const subtotal = window.app._costoTotalMO || 0;
         const indirectosPorcentaje = parseFloat(document.getElementById('cot-indirectos-oficina')?.value) || 5;
         const utilidadPorcentaje = parseFloat(document.getElementById('cot-utilidad')?.value) || 10;
         
@@ -1587,7 +1587,7 @@ confirmarExtraerManoDeObra: async function() {
             fechaInicio: document.getElementById('cot-fecha-inicio')?.value || new Date().toISOString(),
             fechaFinSolicitada: document.getElementById('cot-fecha-fin')?.value || null,
             conceptosCatalogo: [],  // Sin conceptos completos
-            manoObraExtraida: this._manoDeObraExtraer,  // ⚠️ GUARDAR MANO DE OBRA EXTRAIDA
+            manoObraExtraida: window.app._manoDeObraExtraer,  // ⚠️ GUARDAR MANO DE OBRA EXTRAIDA
             materialesAdicionales: [],
             manoObraAdicional: [],
             equiposAdicionales: [],
@@ -1601,10 +1601,10 @@ confirmarExtraerManoDeObra: async function() {
             },
             factoresAjuste: { altura: 1, clima: 1, acceso: 1, seguridad: 1, total: 1 },
             tiempoEjecucion: {
-                jornadas: this._totalJornadas || 0,
-                diasHabiles: Math.ceil((this._totalJornadas || 0) / 8),
-                semanas: Math.ceil((this._totalJornadas || 0) / 8 / 5),
-                meses: Math.ceil((this._totalJornadas || 0) / 8 / 5 / 4.33)
+                jornadas: window.app._totalJornadas || 0,
+                diasHabiles: Math.ceil((window.app._totalJornadas || 0) / 8),
+                semanas: Math.ceil((window.app._totalJornadas || 0) / 8 / 5),
+                meses: Math.ceil((window.app._totalJornadas || 0) / 8 / 5 / 4.33)
             },
             costoDirecto: subtotal,
             totalIndirectos: indirectos,
@@ -1618,13 +1618,14 @@ confirmarExtraerManoDeObra: async function() {
         await window.db.cotizaciones.add(cotizacion);
         
         console.log('✅ Cotización solo MO guardada:', cotizacion);
-        this.notificacion('✅ Cotización solo mano de obra guardada (' + this._manoDeObraExtraer.length + ' puestos)', 'exito');
         
-        this.cancelarExtraerManoDeObra();
-        this.resetearFormulario();
-        await this.cargarEstadisticas();
-        await this.actualizarContadoresLicencia();
-        this.mostrarPantalla('dashboard-screen');
+        // ⚠️ USAR window.app EN VEZ DE this
+        window.app.notificacion('✅ Cotización solo mano de obra guardada (' + (window.app._manoDeObraExtraer?.length || 0) + ' puestos)', 'exito');
+        window.app.cancelarExtraerManoDeObra();
+        window.app.resetearFormulario();  // ✅ CORREGIDO
+        await window.app.cargarEstadisticas();
+        await window.app.actualizarContadoresLicencia();
+        window.app.mostrarPantalla('dashboard-screen');
         
     } catch (error) {
         console.error('❌ Error guardando cotización solo MO:', error);
@@ -2252,6 +2253,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
