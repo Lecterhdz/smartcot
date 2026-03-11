@@ -207,10 +207,7 @@ window.historialCotizaciones = {
                             ` : ''}
                         </div>
                     </div>
-                    ` : ''}
-                    // ─────────────────────────────────────────────────────────
-                    // RESUMEN FINANCIERO (CORREGIDO - LEER CAMPOS CORRECTOS)
-                    // ─────────────────────────────────────────────────────────                    
+                    ` : ''}                   
                     <div style="background:linear-gradient(135deg,#1a1a1a,#333333);padding:20px;border-radius:15px;color:white;">
                         <h4 style="margin:0 0 15px 0;">💰 Resumen Financiero</h4>
                         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;">
