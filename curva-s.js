@@ -800,7 +800,7 @@ window.curvaS = {
     actualizarGrafica: async function() {
         console.log('🔄 Actualizando gráfica...');
         await this.cargarAvanceEjecutado();
-        this.generarGrafica('curva-s-chart');
+        this.inicializargrafica('curva-s-chart');
         // ⚠️ IMPORTANTE: Calcular variaciones después de actualizar
         this.calcularVariaciones();
         this.calcularProyeccion();
