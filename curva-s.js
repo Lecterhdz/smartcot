@@ -410,7 +410,7 @@ window.curvaS = {
                             pointRadius: 5,
                             pointBackgroundColor: '#4d8ef0',
                             pointBorderColor: '#fff',
-                            pointBorderWidth: 2                           
+                            pointBorderWidth: 2,                           
                             pointHoverRadius: 7,
                             spanGaps: false
                         }
