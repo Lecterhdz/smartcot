@@ -429,6 +429,83 @@ window.curvaS = {
             console.error('Stack:', error.stack);
         }
     },
+
+    // ─────────────────────────────────────────────────────────────────
+    // CALCULAR Y MOSTRAR PROYECCIÓN (NUEVA FUNCIÓN)
+    // ─────────────────────────────────────────────────────────────────
+    calcularProyeccion: function() {
+        try {
+            console.log('📊 Calculando proyección...');
+            
+            // ⚠️ OBTENER DATOS DE AVANCE REAL
+            const avancesReales = this.avances || [];
+            if (avancesReales.length < 2) {
+                console.log('⚠️ No hay suficientes datos para calcular proyección');
+                return;
+            }
+            
+            // ⚠️ CALCULAR VELOCIDAD PROMEDIO (semanas)
+            const ultimoAvance = avancesReales[avancesReales.length - 1];
+            const primerAvance = avancesReales[0];
+            
+            const semanasTranscurridas = ultimoAvance.semana - primerAvance.semana;
+            const avanceTotal = ultimoAvance.porcentaje - primerAvance.porcentaje;
+            
+            const velocidadPromedio = semanasTranscurridas > 0 
+                ? avanceTotal / semanasTranscurridas 
+                : 0;
+            
+            console.log('📊 Velocidad promedio:', velocidadPromedio.toFixed(2) + '%/semana');
+            
+            // ⚠️ CALCULAR SEMANAS RESTANTES
+            const avanceRestante = 100 - ultimoAvance.porcentaje;
+            const semanasRestantes = velocidadPromedio > 0 
+                ? Math.ceil(avanceRestante / velocidadPromedio) 
+                : 0;
+            
+            // ⚠️ CALCULAR FECHA ESTIMADA DE TERMINACIÓN
+            const fechaActual = new Date();
+            const fechaEstimada = new Date(fechaActual);
+            fechaEstimada.setDate(fechaEstimada.getDate() + (semanasRestantes * 7));
+            
+            // ⚠️ ACTUALIZAR UI CON PROYECCIÓN
+            const elSemanasRestantes = document.getElementById('proyeccion-semanas-restantes');
+            const elFechaEstimada = document.getElementById('proyeccion-fecha-estimada');
+            const elVelocidad = document.getElementById('proyeccion-velocidad');
+            
+            if (elSemanasRestantes) {
+                elSemanasRestantes.textContent = semanasRestantes + ' semanas';
+                elSemanasRestantes.style.color = semanasRestantes > 10 ? 'var(--rose)' : 'var(--amber)';
+            }
+            
+            if (elFechaEstimada) {
+                elFechaEstimada.textContent = fechaEstimada.toLocaleDateString('es-MX', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                elFechaEstimada.style.color = 'var(--blue)';
+            }
+            
+            if (elVelocidad) {
+                elVelocidad.textContent = velocidadPromedio.toFixed(2) + '%/semana';
+                elVelocidad.style.color = velocidadPromedio >= 5 ? 'var(--green)' : 'var(--amber)';
+            }
+            
+            // ⚠️ GUARDAR PROYECCIÓN PARA USAR EN GRÁFICA
+            this.proyeccion = {
+                semanasRestantes: semanasRestantes,
+                fechaEstimada: fechaEstimada,
+                velocidadPromedio: velocidadPromedio,
+                avanceRestante: avanceRestante
+            };
+            
+            console.log('✅ Proyección calculada:', this.proyeccion);
+            
+        } catch (error) {
+            console.error('❌ Error calculando proyección:', error);
+        }
+    },
     
     // ─────────────────────────────────────────────────────────────────
     // CALCULAR VARIACIONES (CORREGIDO)
