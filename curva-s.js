@@ -418,7 +418,7 @@ window.curvaS = {
                     datasets: [
                         {
                             label: 'Programado',
-                             this.datos.avanceProgramado || [],
+                            data: this.datos.avanceProgramado || [],
                             borderColor: '#7c6ff0',
                             backgroundColor: 'rgba(124, 111, 240, 0.1)',
                             borderWidth: 3,
@@ -429,7 +429,7 @@ window.curvaS = {
                         },
                         {
                             label: 'Real',
-                             this.datos.avanceEjecutado || [],
+                            data: this.datos.avanceEjecutado || [],
                             borderColor: '#4d8ef0',
                             backgroundColor: 'rgba(77, 142, 240, 0.1)',
                             borderWidth: 3,
@@ -442,7 +442,7 @@ window.curvaS = {
                         // ⚠️ NUEVO: Dataset para línea vertical de semana actual
                         {
                             label: 'Semana Actual',
-                             [],  // Se llena dinámicamente abajo
+                            data: [],  // Se llena dinámicamente abajo
                             borderColor: '#f0436a',  // Rose del tema oscuro
                             borderWidth: 2,
                             borderDash: [4, 3],  // ✅ Punteado
@@ -473,7 +473,7 @@ window.curvaS = {
                             borderWidth: 1,
                             padding: 12,
                             callbacks: {
-                                label: function(ctx) {
+                                label: function(context) {
                                     return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
                                 }
                             }
@@ -509,8 +509,8 @@ window.curvaS = {
                     }
                 }
             });
+            
             // ⚠️ POSICIONAR LÍNEA VERTICAL EN SEMANA ACTUAL
-
             if (semanaActual > 0 && semanaActual <= this.datos.semanas.length) {
                 // Crear array con nulls y poner 100 en la posición de la semana actual
                 const lineaData = new Array(this.datos.semanas.length).fill(null);
