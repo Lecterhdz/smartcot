@@ -2292,48 +2292,175 @@ comprarPlan: function(plan) {
     alert(mensaje);
 },
 
-// ─────────────────────────────────────────────────────────────────
-// EXPORTAR/IMPORTAR
-// ─────────────────────────────────────────────────────────────────
+// Exportar datos completos (respaldo)
 exportarDatos: async function() {
     try {
-        console.log('📤 Exportando datos...');
-        if (!window.dbUtils) {
-            throw new Error('dbUtils no está disponible');
+        if (!window.db || !window.dbUtils) {
+            throw new Error('Base de datos no disponible');
         }
-        await window.dbUtils.exportarTodo();
+        
+        this.notificacion('📤 Generando respaldo...', 'info');
+        
+        // Usar dbUtils si está disponible, sino exportar manualmente
+        if (window.dbUtils?.exportarTodo) {
+            await window.dbUtils.exportarTodo();
+        } else {
+            // Exportación manual de respaldo
+            const data = {
+                version: '2.0',
+                fecha: new Date().toISOString(),
+                conceptos: await window.db.conceptos.toArray(),
+                cotizaciones: await window.db.cotizaciones.toArray(),
+                clientes: await window.db.clientes.toArray(),
+                configuracion: await window.db.configuracion.toArray(),
+                historicoPrecios: await window.db.historicoPrecios?.toArray() || []
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'smartcot-respaldo-' + new Date().toISOString().split('T')[0] + '.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
         this.notificacion('✅ Respaldo exportado exitosamente', 'exito');
+        
     } catch (error) {
         console.error('❌ Error exportando:', error);
         this.notificacion('❌ Error al exportar: ' + error.message, 'error');
     }
 },
 
+// Importar datos desde respaldo
 importarDatos: async function(event) {
     try {
-        const file = event.target.files[0];
+        const file = event.target.files?.[0];
         if (!file) return;
-        console.log('📥 Importando datos...', file.name);
+        
+        if (!confirm('⚠️ IMPORTAR DATOS\n\nEsto reemplazará TODA tu información actual.\n\n¿Estás seguro de continuar?\n\nRecomendación: Exporta un respaldo primero.')) {
+            event.target.value = ''; // Resetear input
+            return;
+        }
+        
+        this.notificacion('📥 Importando datos...', 'info');
+        
         const reader = new FileReader();
         const app = this;
+        
         reader.onload = async function(e) {
             try {
-                if (!window.dbImportar) {
-                    throw new Error('dbImportar no está disponible');
+                const data = JSON.parse(e.target.result);
+                
+                if (!data.version || !data.conceptos) {
+                    throw new Error('Archivo de respaldo no válido');
                 }
-                await window.dbImportar(e.target.result);
+                
+                // Limpiar y restaurar tablas
+                if (window.dbUtils?.importarTodo) {
+                    await window.dbUtils.importarTodo(data);
+                } else {
+                    // Importación manual
+                    await window.db.conceptos.clear();
+                    await window.db.cotizaciones.clear();
+                    await window.db.clientes.clear();
+                    await window.db.configuracion.clear();
+                    
+                    if (data.conceptos?.length) await window.db.conceptos.bulkAdd(data.conceptos);
+                    if (data.cotizaciones?.length) await window.db.cotizaciones.bulkAdd(data.cotizaciones);
+                    if (data.clientes?.length) await window.db.clientes.bulkAdd(data.clientes);
+                    if (data.configuracion?.length) await window.db.configuracion.bulkPut(data.configuracion);
+                    if (data.historicoPrecios?.length && window.db.historicoPrecios) {
+                        await window.db.historicoPrecios.bulkAdd(data.historicoPrecios);
+                    }
+                }
+                
                 app.notificacion('✅ Datos importados exitosamente', 'exito');
+                
+                // Recargar la aplicación para aplicar cambios
                 setTimeout(function() {
                     window.location.reload();
                 }, 2000);
-            } catch (error) {
-                console.error('❌ Error importando:', error);
-                app.notificacion('❌ Error al importar: ' + error.message, 'error');
+                
+            } catch (err) {
+                console.error('❌ Error procesando importación:', err);
+                app.notificacion('❌ Error al importar: ' + err.message, 'error');
             }
         };
+        
+        reader.onerror = function() {
+            app.notificacion('❌ Error al leer el archivo', 'error');
+        };
+        
         reader.readAsText(file);
+        
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('❌ Error en importarDatos:', error);
+        this.notificacion('❌ Error: ' + error.message, 'error');
+    }
+},
+
+// Limpiar cotizaciones (Zona de Peligro)
+limpiarDatosCotizaciones: async function() {
+    if (!confirm('🗑️ ¿Eliminar TODAS las cotizaciones?\n\nEsta acción NO se puede deshacer.\n\n¿Continuar?')) return;
+    
+    try {
+        await window.db.cotizaciones.clear();
+        this.notificacion('🗑️ Cotizaciones eliminadas', 'advertencia');
+        await this.cargarEstadisticas();
+        await this.actualizarContadoresLicencia();
+    } catch (error) {
+        console.error('❌ Error eliminando cotizaciones:', error);
+        this.notificacion('❌ Error: ' + error.message, 'error');
+    }
+},
+
+// Limpiar conceptos del catálogo (Zona de Peligro)
+limpiarDatosConceptos: async function() {
+    if (!confirm('🗑️ ¿Eliminar TODOS los conceptos del catálogo?\n\nEsta acción NO se puede deshacer.\n\n¿Continuar?')) return;
+    
+    try {
+        await window.db.conceptos.clear();
+        this.notificacion('🗑️ Conceptos eliminados', 'advertencia');
+        await this.cargarEstadisticas();
+    } catch (error) {
+        console.error('❌ Error eliminando conceptos:', error);
+        this.notificacion('❌ Error: ' + error.message, 'error');
+    }
+},
+
+// Resetear toda la aplicación (Zona de Peligro - Nuclear)
+resetearTodo: async function() {
+    if (!confirm('☢️  RESET COMPLETO\n\nEsto eliminará:\n• Todas las cotizaciones\n• Todos los conceptos\n• Todos los clientes\n• Toda la configuración\n\n¿ESTÁS 100% SEGURO?')) return;
+    
+    if (!confirm('⚠️  ÚLTIMA ADVERTENCIA\n\nNo hay vuelta atrás.\n\nEscribe "RESET" para confirmar:', 'prompt') === 'RESET') {
+        this.notificacion('⚠️  Operación cancelada', 'advertencia');
+        return;
+    }
+    
+    try {
+        // Limpiar todas las tablas
+        await window.db.conceptos.clear();
+        await window.db.cotizaciones.clear();
+        await window.db.clientes.clear();
+        await window.db.configuracion.clear();
+        if (window.db.historicoPrecios) await window.db.historicoPrecios.clear();
+        
+        // Limpiar licencia local (opcional, comentar si se quiere conservar)
+        // localStorage.removeItem('smartcot_licencia');
+        
+        this.notificacion('☢️  Aplicación reseteada', 'advertencia');
+        
+        // Recargar para estado limpio
+        setTimeout(function() {
+            window.location.reload();
+        }, 2500);
+        
+    } catch (error) {
+        console.error('❌ Error reseteando:', error);
         this.notificacion('❌ Error: ' + error.message, 'error');
     }
 },
@@ -2420,6 +2547,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
