@@ -1100,10 +1100,10 @@ table { min-width: 600px; }
 <p style="color:var(--ink3);font-size:13px;margin-bottom:15px;">
 Exporta todos tus datos (conceptos, cotizaciones, clientes, configuración) para evitar perderlos.
 </p>
-<div style="display:flex;gap:10px;flex-wrap:wrap;">
-<button onclick="app.exportarDatos()" class="topbar-btn primary">📤 Exportar Datos</button>
-<button onclick="document.getElementById('import-file').click()" class="topbar-btn ghost">📥 Importar Datos</button>
-<input type="file" id="import-file" accept=".json" style="display:none;" onchange="app.importarDatos(event)">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
+  <button onclick="app.exportarDatos()" class="topbar-btn primary" style="width:100%;justify-content:center;">📤 Exportar Datos</button>
+  <button onclick="document.getElementById('import-file').click()" class="topbar-btn ghost" style="width:100%;justify-content:center;">📥 Importar Datos</button>
+  <input type="file" id="import-file" accept=".json" style="display:none;" onchange="app.importarDatos(event)">
 </div>
 </div>
 <div style="background:var(--rose-l);padding:15px;border-radius:var(--radius-sm);border-left:4px solid var(--rose);">
@@ -1548,6 +1548,7 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
 
 
