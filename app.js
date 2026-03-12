@@ -1879,46 +1879,191 @@ guardarClienteRapido: async function() {
 cargarConfiguracion: async function() {
     try {
         if (!window.db) return;
+        
+        // Cargar todos los valores de configuración
         const config = await window.db.configuracion.toArray();
         const configObj = {};
-        config.forEach(function(c) { configObj[c.clave] = c.valor; });
+        config.forEach(function(c) { 
+            if (c?.clave && c?.valor !== undefined) {
+                configObj[c.clave] = c.valor; 
+            }
+        });
+        
+        // ═══════════════════════════════════════════════════════════
+        // DATOS DE LA EMPRESA
+        // ═══════════════════════════════════════════════════════════
+        const elEmpresa = document.getElementById('config-empresa');
+        const elRfc = document.getElementById('config-rfc');
+        const elEmail = document.getElementById('config-email');
+        const elTelefono = document.getElementById('config-telefono');
+        const elDireccion = document.getElementById('config-direccion');
+        
+        if (elEmpresa && configObj.empresa) elEmpresa.value = configObj.empresa;
+        if (elRfc && configObj.rfc) elRfc.value = configObj.rfc;
+        if (elEmail && configObj.email) elEmail.value = configObj.email;
+        if (elTelefono && configObj.telefono) elTelefono.value = configObj.telefono;
+        if (elDireccion && configObj.direccion) elDireccion.value = configObj.direccion;
+        
+        // ═══════════════════════════════════════════════════════════
+        // PARÁMETROS DE COTIZACIÓN
+        // ═══════════════════════════════════════════════════════════
         const elIva = document.getElementById('config-iva');
         const elUtilidad = document.getElementById('config-utilidad');
-        const elEmpresa = document.getElementById('config-empresa');
+        const elIndOficina = document.getElementById('config-indirectos-oficina');
+        const elIndCampo = document.getElementById('config-indirectos-campo');
+        
+        if (elIva && configObj.iva !== undefined) elIva.value = configObj.iva;
+        if (elUtilidad && configObj.utilidad !== undefined) elUtilidad.value = configObj.utilidad;
+        if (elIndOficina && configObj.indirectosOficina !== undefined) elIndOficina.value = configObj.indirectosOficina;
+        if (elIndCampo && configObj.indirectosCampo !== undefined) elIndCampo.value = configObj.indirectosCampo;
+        
+        // ═══════════════════════════════════════════════════════════
+        // COSTOS DE MANO DE OBRA
+        // ═══════════════════════════════════════════════════════════
+        const costos = configObj.costos_mano_obra || {};
+        const elAyudante = document.getElementById('costo-ayudante');
+        const elOficial = document.getElementById('costo-oficial');
+        const elTecnico = document.getElementById('costo-tecnico');
+        const elSupervisor = document.getElementById('costo-supervisor');
+        
+        if (elAyudante) elAyudante.value = costos.ayudante || 250;
+        if (elOficial) elOficial.value = costos.oficial || 350;
+        if (elTecnico) elTecnico.value = costos.tecnico || 450;
+        if (elSupervisor) elSupervisor.value = costos.supervisor || 550;
+        
+        // Actualizar display de costos
+        if (typeof this.actualizarDisplayCostos === 'function') {
+            this.actualizarDisplayCostos();
+        }
+        
+        // ═══════════════════════════════════════════════════════════
+        // MARCA PERSONALIZADA (Solo ENTERPRISE)
+        // ═══════════════════════════════════════════════════════════
         const elColor = document.getElementById('config-color');
         const elColorGroup = document.getElementById('config-color-group');
-        if (elIva && configObj.iva) elIva.value = configObj.iva;
-        if (elUtilidad && configObj.utilidad) elUtilidad.value = configObj.utilidad;
-        if (elEmpresa && configObj.empresa) elEmpresa.value = configObj.empresa;
+        const elSeccionMarca = document.getElementById('seccion-marca-personalizada');
+        
         if (elColor && configObj.marca_colores) elColor.value = configObj.marca_colores;
+        
         const licencia = window.licencia.cargar();
-        if (elColorGroup) {
-            elColorGroup.style.display = (licencia?.tipo === 'ENTERPRISE') ? 'block' : 'none';
+        const esEnterprise = licencia?.tipo === 'ENTERPRISE';
+        
+        if (elColorGroup) elColorGroup.style.display = esEnterprise ? 'block' : 'none';
+        if (elSeccionMarca) elSeccionMarca.style.display = esEnterprise ? 'block' : 'none';
+        
+        // ═══════════════════════════════════════════════════════════
+        // INFO DE LICENCIA EN CONFIGURACIÓN
+        // ═══════════════════════════════════════════════════════════
+        if (typeof this.actualizarInfoLicenciaConfig === 'function') {
+            await this.actualizarInfoLicenciaConfig();
         }
+        
+        console.log('✅ Configuración cargada');
+        
     } catch (error) {
         console.error('❌ Error cargando configuración:', error);
+        this.notificacion('⚠️ Error cargando configuración', 'advertencia');
     }
 },
 
-guardarConfiguracion: async function() {
+// Guardar datos de la empresa
+guardarConfiguracionEmpresa: async function() {
     try {
-        const empresa = document.getElementById('config-empresa')?.value;
-        const iva = parseFloat(document.getElementById('config-iva')?.value) || 16;
-        const utilidad = parseFloat(document.getElementById('config-utilidad')?.value) || 15;
-        const colorCorporativo = document.getElementById('config-color')?.value || '#1a1a1a';
-        const licencia = window.licencia.cargar();
+        const empresa = document.getElementById('config-empresa')?.value?.trim();
+        const rfc = document.getElementById('config-rfc')?.value?.trim()?.toUpperCase();
+        const email = document.getElementById('config-email')?.value?.trim();
+        const telefono = document.getElementById('config-telefono')?.value?.trim();
+        const direccion = document.getElementById('config-direccion')?.value?.trim();
+        
+        if (!empresa) {
+            this.notificacion('⚠️ El nombre de la empresa es obligatorio', 'advertencia');
+            return;
+        }
+        
         const configData = [
             { clave: 'empresa', valor: empresa },
-            { clave: 'iva', valor: iva },
-            { clave: 'utilidad', valor: utilidad }
+            { clave: 'rfc', valor: rfc },
+            { clave: 'email', valor: email },
+            { clave: 'telefono', valor: telefono },
+            { clave: 'direccion', valor: direccion }
         ];
-        if (licencia?.tipo === 'ENTERPRISE') {
-            configData.push({ clave: 'marca_colores', valor: colorCorporativo });
-        }
+        
         await window.db.configuracion.bulkPut(configData);
-        this.notificacion('✅ Configuración guardada', 'exito');
+        this.notificacion('✅ Datos de empresa guardados', 'exito');
+        
     } catch (error) {
-        console.error('❌ Error guardando configuración:', error);
+        console.error('❌ Error guardando empresa:', error);
+        this.notificacion('❌ Error: ' + error.message, 'error');
+    }
+},
+
+// Guardar parámetros de cotización
+guardarParametrosCotizacion: async function() {
+    try {
+        const iva = parseFloat(document.getElementById('config-iva')?.value) || 16;
+        const utilidad = parseFloat(document.getElementById('config-utilidad')?.value) || 10;
+        const indirectosOficina = parseFloat(document.getElementById('config-indirectos-oficina')?.value) || 5;
+        const indirectosCampo = parseFloat(document.getElementById('config-indirectos-campo')?.value) || 15;
+        
+        // Validar rangos
+        if (iva < 0 || iva > 100) {
+            this.notificacion('⚠️ IVA debe estar entre 0 y 100%', 'advertencia');
+            return;
+        }
+        if (utilidad < 0 || utilidad > 100) {
+            this.notificacion('⚠️ Utilidad debe estar entre 0 y 100%', 'advertencia');
+            return;
+        }
+        
+        const configData = [
+            { clave: 'iva', valor: iva },
+            { clave: 'utilidad', valor: utilidad },
+            { clave: 'indirectosOficina', valor: indirectosOficina },
+            { clave: 'indirectosCampo', valor: indirectosCampo }
+        ];
+        
+        await window.db.configuracion.bulkPut(configData);
+        this.notificacion('✅ Parámetros de cotización guardados', 'exito');
+        
+    } catch (error) {
+        console.error('❌ Error guardando parámetros:', error);
+        this.notificacion('❌ Error: ' + error.message, 'error');
+    }
+},
+
+// Guardar costos de mano de obra (esta ya la tienes, pero verifica que tenga esto):
+guardarCostosManoObra: async function() {
+    try {
+        const licencia = window.licencia.cargar();
+        if (licencia?.tipo === 'DEMO') {
+            this.notificacion('❌ Costos de mano de obra solo disponible en PRO/ENTERPRISE', 'error');
+            return;
+        }
+        
+        const costos = {
+            ayudante: parseFloat(document.getElementById('costo-ayudante')?.value) || 0,
+            oficial: parseFloat(document.getElementById('costo-oficial')?.value) || 0,
+            tecnico: parseFloat(document.getElementById('costo-tecnico')?.value) || 0,
+            supervisor: parseFloat(document.getElementById('costo-supervisor')?.value) || 0
+        };
+        
+        await window.db.configuracion.put({ clave: 'costos_mano_obra', valor: costos });
+        this.notificacion('✅ Costos de mano de obra actualizados', 'exito');
+        
+        // Actualizar display inmediatamente
+        if (typeof this.actualizarDisplayCostos === 'function') {
+            this.actualizarDisplayCostos();
+        }
+        
+        // Preguntar si desea aplicar a conceptos existentes
+        if (confirm('¿Deseas aplicar estos nuevos costos a todos los conceptos del catálogo existentes?')) {
+            if (typeof this.aplicarCostosManoObraAConceptos === 'function') {
+                await this.aplicarCostosManoObraAConceptos(costos);
+            }
+        }
+        
+    } catch (error) {
+        console.error('❌ Error guardando costos:', error);
         this.notificacion('❌ Error: ' + error.message, 'error');
     }
 },
@@ -1977,40 +2122,6 @@ guardarCostosManoObra: async function() {
     }
 },
 
-cargarCostosManoObra: async function() {
-    try {
-        
-       // ⚠️ VERIFICAR QUE LOS ELEMENTOS EXISTAN
-        const elAyudante = document.getElementById('costo-ayudante');
-        const elOficial = document.getElementById('costo-oficial');
-        const elTecnico = document.getElementById('costo-tecnico');
-        const elSupervisor = document.getElementById('costo-supervisor');
-        
-        if (!elAyudante || !elOficial || !elTecnico || !elSupervisor) {
-            console.log('⚠️ Elementos del formulario no encontrados, esperando...');
-            return;  // ✅ SALIR SI NO EXISTEN LOS ELEMENTOS
-        }        
-        
-        const costos = await window.db.configuracion.get('costos_mano_obra');
-        
-        if (costos) {
-            console.log('✅ Costos encontrados:', costos);
-            elAyudante.value = costos.ayudante || 0;
-            elOficial.value = costos.oficial || 0;
-            elTecnico.value = costos.tecnico || 0;
-            elSupervisor.value = costos.supervisor || 0;
-        } else {
-            console.log('⚠️ No hay costos guardados en BD, usando valores por defecto');
-            // ⚠️ VALORES POR DEFECTO SI NO HAY NADA GUARDADO
-            elAyudante.value = 250;  // Ayudante
-            elOficial.value = 350;   // Oficial
-            elTecnico.value = 450;   // Técnico
-            elSupervisor.value = 550; // Supervisor
-        }
-    } catch (error) {
-        console.error('❌ Error cargando costos:', error);
-    }
-},
 
 crearCotizacionSoloManoObra: function() {
     const licencia = window.licencia.cargar();
@@ -2309,6 +2420,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
