@@ -486,7 +486,7 @@ window.curvaS = {
                 }
             });
             // ⚠️ POSICIONAR LÍNEA VERTICAL EN SEMANA ACTUAL
-            const semanaActual = this.datos.avanceEjecutado.findIndex(v => v > 0) + 1;
+
             if (semanaActual > 0 && semanaActual <= this.datos.semanas.length) {
                 // Crear array con nulls y poner 100 en la posición de la semana actual
                 const lineaData = new Array(this.datos.semanas.length).fill(null);
