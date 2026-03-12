@@ -957,40 +957,131 @@ table { min-width: 600px; }
 
 <!-- ───── LICENCIA ───── -->
 <section id="licencia-screen" class="screen">
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
 <button onclick="app.mostrarPantalla('dashboard-screen')" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;font-family:var(--font);">← Volver</button>
 <span style="font-size:13px;font-weight:700;color:var(--ink);">Licencia y Planes</span>
 </div>
+
 <div class="card">
 <div class="card-body">
-<div style="background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--radius-lg);padding:24px;color:white;margin-bottom:28px;">
+
+<!-- Plan Activo -->
+<div style="background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--radius-lg);padding:24px 28px;color:white;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;box-shadow:0 8px 32px rgba(37,99,235,.35);">
+<div>
 <div style="font-size:12px;opacity:.75;font-family:var(--mono);text-transform:uppercase;margin-bottom:6px;">Plan actual</div>
-<div style="font-size:28px;font-weight:800;margin-bottom:4px;" id="licencia-plan-actual">DEMO</div>
+<div style="font-size:28px;font-weight:800;margin-bottom:4px;" id="licencia-plan-actual">DEMO 🚀</div>
 <div style="font-size:13px;opacity:.85;">Activo hasta el <strong id="licencia-expiry">--</strong></div>
 </div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;margin-bottom:28px;">
-<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;">
-<div style="font-size:13px;font-weight:700;color:var(--ink4);text-transform:uppercase;margin-bottom:4px;">Demo</div>
-<div style="font-size:34px;font-weight:800;color:var(--ink);margin-bottom:4px;">$0</div>
-<div style="font-size:12px;color:var(--ink4);margin-bottom:20px;">Para explorar</div>
+<div style="text-align:right;">
+<div style="font-size:12px;opacity:.7;margin-bottom:8px;font-family:var(--mono);" id="licencia-email">lecterhdz@gmail.com</div>
+<button onclick="document.getElementById('activar-licencia-section').scrollIntoView({behavior:'smooth'})" style="padding:10px 22px;background:white;color:var(--blue);border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);box-shadow:0 2px 8px rgba(0,0,0,.15);">🔄 Renovar ahora</button>
+</div>
+</div>
+
+<!-- Planes Disponibles -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-bottom:28px;">
+
+<!-- DEMO -->
+<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm);">
+<div style="font-size:13px;font-weight:700;color:var(--ink4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Demo</div>
+<div style="font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-1.5px;margin-bottom:4px;">$0</div>
+<div style="font-size:12px;color:var(--ink4);margin-bottom:20px;">Para explorar · 7 días</div>
+<div style="display:flex;flex-direction:column;gap:9px;margin-bottom:24px;">
+<div style="font-size:13px;color:var(--ink3);display:flex;gap:8px;align-items:center;"><span style="color:var(--green);font-weight:700;">✓</span> Hasta 50 conceptos</div>
+<div style="font-size:13px;color:var(--ink3);display:flex;gap:8px;align-items:center;"><span style="color:var(--green);font-weight:700;">✓</span> 5 cotizaciones</div>
+<div style="font-size:13px;color:var(--ink3);display:flex;gap:8px;align-items:center;"><span style="color:var(--green);font-weight:700;">✓</span> 3 clientes</div>
+<div style="font-size:13px;color:var(--ink3);display:flex;gap:8px;align-items:center;"><span style="color:var(--green);font-weight:700;">✓</span> PDF básico</div>
+<div style="font-size:13px;color:#cbd5e1;display:flex;gap:8px;align-items:center;"><span style="color:#64748b;">✗</span> Sin importar Excel</div>
+<div style="font-size:13px;color:#cbd5e1;display:flex;gap:8px;align-items:center;"><span style="color:#64748b;">✗</span> Sin Curva S</div>
+<div style="font-size:13px;color:#cbd5e1;display:flex;gap:8px;align-items:center;"><span style="color:#64748b;">✗</span> Sin factores de ajuste</div>
+<div style="font-size:13px;color:#cbd5e1;display:flex;gap:8px;align-items:center;"><span style="color:#64748b;">✗</span> Sin soporte</div>
+</div>
 <button style="width:100%;padding:10px;background:var(--bg2);color:var(--ink4);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:default;font-family:var(--font);">Plan gratuito</button>
 </div>
-<div style="background:linear-gradient(160deg,#f0f7ff,var(--white));border:2px solid var(--blue);border-radius:var(--radius-lg);padding:24px;position:relative;">
-<div style="font-size:13px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:4px;">Pro</div>
-<div style="font-size:34px;font-weight:800;color:var(--ink);margin-bottom:4px;">$499<span style="font-size:16px;font-weight:500;color:var(--ink4);">/mes</span></div>
-<div style="font-size:12px;color:var(--ink4);margin-bottom:20px;">Para profesionistas</div>
-<button onclick="app.comprarPlan('PRO')" style="width:100%;padding:10px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);">🔄 Renovar — $499</button>
+
+<!-- PRO — destacado -->
+<div style="background:linear-gradient(160deg,#f0f7ff,var(--white));border:2px solid var(--blue);border-radius:var(--radius-lg);padding:24px;box-shadow:0 8px 24px rgba(37,99,235,.15);position:relative;">
+<div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--blue);color:white;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;white-space:nowrap;font-family:var(--mono);">⭐ PLAN ACTUAL</div>
+<div style="font-size:13px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Pro</div>
+<div style="font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-1.5px;margin-bottom:4px;">$599<span style="font-size:16px;font-weight:500;color:var(--ink4);">/año</span></div>
+<div style="font-size:12px;color:var(--ink4);margin-bottom:20px;">Para profesionistas · Ahorra $349</div>
+<div style="display:flex;flex-direction:column;gap:9px;margin-bottom:24px;">
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--blue);font-weight:700;">✓</span> <strong>10,000 conceptos</strong></div>
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--blue);font-weight:700;">✓</span> <strong>Cotizaciones ilimitadas</strong></div>
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--blue);font-weight:700;">✓</span> <strong>Clientes ilimitados</strong></div>
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--blue);font-weight:700;">✓</span> Importar Excel / Neodata</div>
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--blue);font-weight:700;">✓</span> Curva S básica incluida</div>
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--blue);font-weight:700;">✓</span> Factores de ajuste</div>
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--blue);font-weight:700;">✓</span> PDF profesional con logo</div>
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--blue);font-weight:700;">✓</span> Soporte por email</div>
 </div>
-<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;">
-<div style="font-size:13px;font-weight:700;color:var(--indigo);text-transform:uppercase;margin-bottom:4px;">Enterprise</div>
-<div style="font-size:34px;font-weight:800;color:var(--ink);margin-bottom:4px;">$999<span style="font-size:16px;font-weight:500;color:var(--ink4);">/mes</span></div>
-<div style="font-size:12px;color:var(--ink4);margin-bottom:20px;">Para despachos</div>
+<button onclick="app.comprarPlan('PRO')" style="width:100%;padding:10px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);box-shadow:0 2px 8px rgba(37,99,235,.3);">🔄 Renovar — $599/año</button>
+</div>
+
+<!-- ENTERPRISE -->
+<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm);">
+<div style="font-size:13px;font-weight:700;color:var(--indigo);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Enterprise</div>
+<div style="font-size:34px;font-weight:800;color:var(--ink);letter-spacing:-1.5px;margin-bottom:4px;">$999<span style="font-size:16px;font-weight:500;color:var(--ink4);">/año</span></div>
+<div style="font-size:12px;color:var(--ink4);margin-bottom:20px;">Para despachos · Ahorra $549</div>
+<div style="display:flex;flex-direction:column;gap:9px;margin-bottom:24px;">
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--indigo);font-weight:700;">✓</span> Todo lo de PRO</div>
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--indigo);font-weight:700;">✓</span> <strong>Conceptos ilimitados</strong></div>
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--indigo);font-weight:700;">✓</span> <strong>Múltiples usuarios</strong></div>
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--indigo);font-weight:700;">✓</span> Catálogo compartido</div>
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--indigo);font-weight:700;">✓</span> Historial de precios</div>
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--indigo);font-weight:700;">✓</span> Curva S avanzada (EVM)</div>
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--indigo);font-weight:700;">✓</span> Reportes APU</div>
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--indigo);font-weight:700;">✓</span> Marca personalizada</div>
+<div style="font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center;"><span style="color:var(--indigo);font-weight:700;">✓</span> Soporte prioritario 24hrs</div>
+</div>
 <button onclick="app.comprarPlan('ENTERPRISE')" style="width:100%;padding:10px;background:var(--indigo);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);">📩 Contactar ventas</button>
 </div>
 </div>
+
+<!-- Por qué elegir anual -->
+<div style="margin-top:20px;padding:15px;background:var(--blue-l);border-radius:var(--radius-sm);border-left:4px solid var(--blue);">
+<div style="font-size:13px;color:var(--blue);line-height:1.7;">
+<strong>💡 ¿Por qué elegir el plan anual?</strong><br>
+• Ahorras hasta $549 pesos al año comparado con pago mensual<br>
+• Un solo pago, sin preocupaciones de renovación mensual<br>
+• Acceso completo a todas las actualizaciones durante el año<br>
+• Ideal para profesionales y empresas que buscan estabilidad
 </div>
 </div>
-</section>
+
+<!-- Activar Licencia -->
+<div id="activar-licencia-section" style="margin-top:28px;padding:24px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);">
+<div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:15px;display:flex;align-items:center;gap:8px;">
+🔑 Activar con clave de licencia
+</div>
+<div style="display:grid;gap:15px;max-width:500px;">
+<div>
+<label style="font-size:12px;color:var(--ink3);display:block;margin-bottom:8px;font-family:var(--mono);text-transform:uppercase;">Email de registro</label>
+<input type="email" id="licencia-email-activar" placeholder="tu@email.com" style="width:100%;padding:12px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--ink);font-family:var(--font);">
+</div>
+<div>
+<label style="font-size:12px;color:var(--ink3);display:block;margin-bottom:8px;font-family:var(--mono);text-transform:uppercase;">Clave de Licencia</label>
+<input type="text" id="licencia-clave-activar" placeholder="XXXX-XXXX-XXXX-XXXX" style="width:100%;padding:12px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--ink);font-family:var(--mono);letter-spacing:2px;text-transform:uppercase;">
+</div>
+<button onclick="licencia.activarDesdeUI()" style="padding:12px 24px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);box-shadow:0 2px 8px rgba(37,99,235,.3);">🔓 Activar Licencia</button>
+</div>
+<div style="font-size:12px;color:var(--ink4);margin-top:12px;">
+¿Compraste una licencia? Ingresa tu email y clave para activarla. Contacto: <strong style="color:var(--blue);">lecterhdz@gmail.com</strong>
+</div>
+</div>
+
+<!-- Footer Links -->
+<div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border);">
+<div style="display:flex;justify-content:center;gap:20px;flex-wrap:wrap;">
+<a href="planes.html" style="color:var(--ink3);text-decoration:none;font-size:13px;font-weight:500;font-family:var(--font);transition:color .15s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--ink3)'">📋 Ver todos los planes</a>
+<a href="terminos.html" style="color:var(--ink3);text-decoration:none;font-size:13px;font-weight:500;font-family:var(--font);transition:color .15s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--ink3)'">📄 Términos y Condiciones</a>
+<a href="privacidad.html" style="color:var(--ink3);text-decoration:none;font-size:13px;font-weight:500;font-family:var(--font);transition:color .15s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--ink3)'">🔒 Política de Privacidad</a>
+<a href="mailto:lecterhdz@gmail.com" style="color:var(--ink3);text-decoration:none;font-size:13px;font-weight:500;font-family:var(--font);transition:color .15s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--ink3)'">📧 Contacto</a>
+</div>
+<div style="text-align:center;font-size:11px;color:var(--ink4);margin-top:15px;font-family:var(--mono);">
+© 2026 SmartCot v2.0 — Todos los derechos reservados
+</div>
+</div>
 
 <!-- ───── IMPORTAR ───── -->
 <section id="importar-screen" class="screen">
@@ -1218,4 +1309,5 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
