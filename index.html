@@ -894,11 +894,8 @@ table { min-width: 600px; }
       
       <!-- 1️⃣ BOTONES DE ACCIÓN (Primero) -->
       <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
-        <select id="curva-s-cotizacion" class="f-input" style="flex:1;min-width:200px;">
-          <option value="">Seleccionar cotización...</option>
-          <option value="1">Instalación HVAC Planta Norte — $842,500</option>
-          <option value="2">Instalación eléctrica nave industrial</option>
-          <option value="3">Obra civil cimentación bodega</option>
+        <select id="curva-s-cotizacion" class="f-input" style="width:100%;margin-bottom:15px;">
+            <option value="">Seleccionar cotización...</option>
         </select>
         <button class="topbar-btn primary" onclick="curvaS.cargarCotizacion()">📊 Cargar</button>
         <button class="topbar-btn ghost" onclick="curvaS.exportarReportePDF()">📄 Exportar PDF</button>
@@ -1799,6 +1796,7 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
 
 
