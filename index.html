@@ -929,31 +929,219 @@ table { min-width: 600px; }
 </div>
 </section>
 
-<!-- ───── CONFIGURACIÓN ───── -->
-<section id="configuracion-screen" class="screen">
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-<button onclick="app.mostrarPantalla('dashboard-screen')" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;font-family:var(--font);">← Volver</button>
-<span style="font-size:13px;font-weight:700;color:var(--ink);">Configuración</span>
-</div>
-<div class="card">
-<div class="card-body">
-<h3 style="color:var(--ink);margin-bottom:20px;">💰 Costos de Mano de Obra</h3>
-<div id="costos-actuales-display" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:20px;">
-<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:10px;color:var(--ink4);">👷 Ayudante</div><div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-ayudante">$0.00</div></div>
-<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:10px;color:var(--ink4);">🔧 Oficial</div><div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-oficial">$0.00</div></div>
-<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:10px;color:var(--ink4);">⚡ Técnico</div><div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-tecnico">$0.00</div></div>
-<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:10px;color:var(--ink4);">📋 Supervisor</div><div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-supervisor">$0.00</div></div>
-</div>
-<div class="form-grid" style="margin-bottom:20px;">
-<div class="f-group"><label class="f-label">👷 Ayudante ($/jornada)</label><input class="f-input" id="costo-ayudante" type="number" onchange="app.actualizarDisplayCostos()"></div>
-<div class="f-group"><label class="f-label">🔧 Oficial ($/jornada)</label><input class="f-input" id="costo-oficial" type="number" onchange="app.actualizarDisplayCostos()"></div>
-<div class="f-group"><label class="f-label">⚡ Técnico ($/jornada)</label><input class="f-input" id="costo-tecnico" type="number" onchange="app.actualizarDisplayCostos()"></div>
-<div class="f-group"><label class="f-label">📋 Supervisor ($/jornada)</label><input class="f-input" id="costo-supervisor" type="number" onchange="app.actualizarDisplayCostos()"></div>
-</div>
-<button onclick="app.guardarCostosManoObra()" class="topbar-btn primary">💾 Guardar Costos</button>
-</div>
-</div>
-</section>
+// ─────────────────────────────────────────────────────────────────
+// CONFIGURACIÓN - FUNCIONES ACTUALIZADAS
+// ─────────────────────────────────────────────────────────────────
+
+// Cargar configuración completa
+cargarConfiguracion: async function() {
+try {
+if (!window.db) return;
+
+// Cargar datos de empresa
+const config = await window.db.configuracion.toArray();
+const configObj = {};
+config.forEach(function(c) { configObj[c.clave] = c.valor; });
+
+// Empresa
+const elEmpresa = document.getElementById('config-empresa');
+const elRfc = document.getElementById('config-rfc');
+const elEmail = document.getElementById('config-email');
+const elTelefono = document.getElementById('config-telefono');
+const elDireccion = document.getElementById('config-direccion');
+if (elEmpresa && configObj.empresa) elEmpresa.value = configObj.empresa;
+if (elRfc && configObj.rfc) elRfc.value = configObj.rfc;
+if (elEmail && configObj.email) elEmail.value = configObj.email;
+if (elTelefono && configObj.telefono) elTelefono.value = configObj.telefono;
+if (elDireccion && configObj.direccion) elDireccion.value = configObj.direccion;
+
+// Parámetros
+const elIva = document.getElementById('config-iva');
+const elUtilidad = document.getElementById('config-utilidad');
+const elIndOficina = document.getElementById('config-indirectos-oficina');
+const elIndCampo = document.getElementById('config-indirectos-campo');
+if (elIva && configObj.iva) elIva.value = configObj.iva;
+if (elUtilidad && configObj.utilidad) elUtilidad.value = configObj.utilidad;
+if (elIndOficina && configObj.indirectosOficina) elIndOficina.value = configObj.indirectosOficina;
+if (elIndCampo && configObj.indirectosCampo) elIndCampo.value = configObj.indirectosCampo;
+
+// Marca (solo ENTERPRISE)
+const elColor = document.getElementById('config-color');
+const elSeccionMarca = document.getElementById('seccion-marca-personalizada');
+if (elColor && configObj.marca_colores) elColor.value = configObj.marca_colores;
+const licencia = window.licencia.cargar();
+if (elSeccionMarca) {
+elSeccionMarca.style.display = (licencia?.tipo === 'ENTERPRISE') ? 'block' : 'none';
+}
+
+// Cargar costos de mano de obra
+await this.cargarCostosManoObra();
+
+// Actualizar info de licencia
+this.actualizarInfoLicenciaConfig();
+
+console.log('✅ Configuración cargada');
+} catch (error) {
+console.error('❌ Error cargando configuración:', error);
+}
+},
+
+// Guardar datos de empresa
+guardarConfiguracionEmpresa: async function() {
+try {
+const empresa = document.getElementById('config-empresa')?.value;
+const rfc = document.getElementById('config-rfc')?.value;
+const email = document.getElementById('config-email')?.value;
+const telefono = document.getElementById('config-telefono')?.value;
+const direccion = document.getElementById('config-direccion')?.value;
+
+const configData = [
+{ clave: 'empresa', valor: empresa },
+{ clave: 'rfc', valor: rfc },
+{ clave: 'email', valor: email },
+{ clave: 'telefono', valor: telefono },
+{ clave: 'direccion', valor: direccion }
+];
+
+await window.db.configuracion.bulkPut(configData);
+this.notificacion('✅ Datos de empresa guardados', 'exito');
+} catch (error) {
+console.error('❌ Error guardando empresa:', error);
+this.notificacion('❌ Error: ' + error.message, 'error');
+}
+},
+
+// Guardar parámetros de cotización
+guardarParametrosCotizacion: async function() {
+try {
+const iva = parseFloat(document.getElementById('config-iva')?.value) || 16;
+const utilidad = parseFloat(document.getElementById('config-utilidad')?.value) || 10;
+const indirectosOficina = parseFloat(document.getElementById('config-indirectos-oficina')?.value) || 5;
+const indirectosCampo = parseFloat(document.getElementById('config-indirectos-campo')?.value) || 15;
+
+const configData = [
+{ clave: 'iva', valor: iva },
+{ clave: 'utilidad', valor: utilidad },
+{ clave: 'indirectosOficina', valor: indirectosOficina },
+{ clave: 'indirectosCampo', valor: indirectosCampo }
+];
+
+await window.db.configuracion.bulkPut(configData);
+this.notificacion('✅ Parámetros de cotización guardados', 'exito');
+} catch (error) {
+console.error('❌ Error guardando parámetros:', error);
+this.notificacion('❌ Error: ' + error.message, 'error');
+}
+},
+
+// Actualizar info de licencia en configuración
+actualizarInfoLicenciaConfig: async function() {
+try {
+const licencia = window.licencia.cargar();
+const plan = window.licencia.PLANES[licencia?.tipo || 'DEMO'] || window.licencia.PLANES.DEMO;
+
+const elPlan = document.getElementById('config-plan-actual');
+const elExpiracion = document.getElementById('config-expiracion');
+const elUsoConceptos = document.getElementById('config-uso-conceptos');
+const elUsoCotizaciones = document.getElementById('config-uso-cotizaciones');
+const elUsoClientes = document.getElementById('config-uso-clientes');
+
+if (elPlan) elPlan.textContent = licencia?.tipo || 'DEMO';
+if (elExpiracion) {
+if (licencia?.expiracion) {
+elExpiracion.textContent = new Date(licencia.expiracion).toLocaleDateString('es-MX');
+elExpiracion.style.color = licencia.expirada ? 'var(--rose)' : 'var(--blue)';
+} else {
+elExpiracion.textContent = 'N/A';
+}
+}
+
+// Contadores
+if (!window.db) return;
+const conceptos = await window.db.conceptos.count();
+const cotizaciones = await window.db.cotizaciones.count();
+const clientes = await window.db.clientes.count();
+
+if (elUsoConceptos) elUsoConceptos.textContent = conceptos + '/' + plan.limiteConceptos;
+if (elUsoCotizaciones) elUsoCotizaciones.textContent = cotizaciones + '/' + plan.limiteCotizaciones;
+if (elUsoClientes) elUsoClientes.textContent = clientes + '/' + plan.limiteClientes;
+} catch (error) {
+console.error('❌ Error actualizando info licencia:', error);
+}
+},
+
+// Activar licencia desde configuración
+activarLicencia: async function() {
+try {
+const clave = document.getElementById('config-clave-licencia')?.value.trim();
+const email = document.getElementById('config-email')?.value.trim();
+
+if (!clave) {
+this.notificacion('⚠️ Ingresa una clave de licencia', 'advertencia');
+return;
+}
+
+// Simular activación (reemplazar con tu lógica real)
+const resultado = await window.licencia.activar(clave, email);
+
+if (resultado.activo) {
+this.notificacion('✅ Licencia activada exitosamente', 'exito');
+this.actualizarInfoLicenciaConfig();
+} else {
+this.notificacion('❌ ' + resultado.razon, 'error');
+}
+} catch (error) {
+console.error('❌ Error activando licencia:', error);
+this.notificacion('❌ Error: ' + error.message, 'error');
+}
+},
+
+// Limpiar datos de cotizaciones
+limpiarDatosCotizaciones: async function() {
+if (confirm('¿Estás seguro de eliminar TODAS las cotizaciones? Esta acción no se puede deshacer.')) {
+try {
+await window.db.cotizaciones.clear();
+this.notificacion('🗑️ Cotizaciones eliminadas', 'exito');
+this.cargarEstadisticas();
+} catch (error) {
+console.error('❌ Error eliminando cotizaciones:', error);
+this.notificacion('❌ Error: ' + error.message, 'error');
+}
+}
+},
+
+// Limpiar datos de conceptos
+limpiarDatosConceptos: async function() {
+if (confirm('¿Estás seguro de eliminar TODOS los conceptos? Esta acción no se puede deshacer.')) {
+try {
+await window.db.conceptos.clear();
+this.notificacion('🗑️ Conceptos eliminados', 'exito');
+this.cargarEstadisticas();
+} catch (error) {
+console.error('❌ Error eliminando conceptos:', error);
+this.notificacion('❌ Error: ' + error.message, 'error');
+}
+}
+},
+
+// Resetear todo
+resetearTodo: async function() {
+if (confirm('⚠️ ¿ESTÁS SEGURO? Esto eliminará TODOS los datos de la aplicación. Esta acción NO se puede deshacer.')) {
+if (confirm('¿Última advertencia? ¿Realmente deseas continuar?')) {
+try {
+await window.db.cotizaciones.clear();
+await window.db.conceptos.clear();
+await window.db.clientes.clear();
+await window.db.configuracion.clear();
+this.notificacion('☢️ Aplicación reseteada', 'advertencia');
+setTimeout(function() { window.location.reload(); }, 2000);
+} catch (error) {
+console.error('❌ Error reseteando:', error);
+this.notificacion('❌ Error: ' + error.message, 'error');
+}
+}
+}
+}
 
 <!-- ───── LICENCIA ───── -->
 <section id="licencia-screen" class="screen">
@@ -1309,5 +1497,6 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
 
