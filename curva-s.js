@@ -85,6 +85,141 @@ window.curvaS = {
     },
     
     // ─────────────────────────────────────────────────────────────────
+    // ACTUALIZAR INDICADOR DE SEMANA ACTUAL EN GRÁFICA SVG
+    // ─────────────────────────────────────────────────────────────────
+    actualizarIndicadorSemana: function(semanaActual) {
+      try {
+        console.log('📍 Actualizando indicador semana:', semanaActual);
+        
+        // Calcular posición X basada en escala (60px inicio, ~42.5px por semana)
+        const x = 60 + (semanaActual * 42.5);
+        
+        // Actualizar línea vertical "ACTUAL"
+        const lineHoy = document.querySelector('#curva-s-screen svg line[stroke="var(--rose)"]');
+        const textHoy = document.querySelector('#curva-s-screen svg text[fill="var(--rose)"]');
+        
+        if (lineHoy) {
+          lineHoy.setAttribute('x1', x);
+          lineHoy.setAttribute('x2', x);
+        }
+        if (textHoy) {
+          textHoy.setAttribute('x', x + 3);
+          textHoy.textContent = 'S' + semanaActual + ' ◀';
+        }
+        
+        // Actualizar puntos de datos (ejemplo: ajustar posición Y según avance)
+        const puntos = document.querySelectorAll('#curva-s-screen svg circle');
+        if (puntos.length >= 2) {
+          const avanceReal = this.datosCotizacion?.avanceReal || 42;
+          const avanceProg = this.datosCotizacion?.avanceProg || 55;
+          const yReal = 260 - (avanceReal * 2);
+          const yProg = 260 - (avanceProg * 2);
+          
+          puntos[0].setAttribute('cy', yReal);
+          puntos[1].setAttribute('cy', yProg);
+          
+          const etiquetas = document.querySelectorAll('#curva-s-screen svg rect + text');
+          if (etiquetas.length >= 2) {
+            etiquetas[0].textContent = avanceReal + '% Real';
+            etiquetas[1].textContent = avanceProg + '% Prog';
+          }
+        }
+        
+        console.log('✅ Indicador de semana actualizado');
+      } catch (error) {
+        console.error('❌ Error actualizando indicador:', error);
+      }
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // RESALTAR FILA DE SEMANA ACTUAL EN TABLA
+    // ─────────────────────────────────────────────────────────────────
+    resaltarFilaSemana: function(semanaActual) {
+      try {
+        document.querySelectorAll('#curva-s-screen tbody tr').forEach(tr => {
+          tr.style.background = '';
+          tr.style.fontWeight = '';
+          tr.querySelector('td:first-child')?.classList.remove('semana-actual');
+        });
+        
+        const filas = document.querySelectorAll('#curva-s-screen tbody tr');
+        filas.forEach(fila => {
+          const celdaSemana = fila.querySelector('td:first-child');
+          if (celdaSemana && celdaSemana.textContent.includes('S' + semanaActual)) {
+            fila.style.background = 'var(--blue-l)';
+            fila.style.fontWeight = '700';
+            celdaSemana.innerHTML = 'S' + semanaActual + ' ◀';
+            celdaSemana.classList.add('semana-actual');
+          }
+        });
+        
+        console.log('✅ Fila de semana ' + semanaActual + ' resaltada');
+      } catch (error) {
+        console.error('❌ Error resaltando fila:', error);
+      }
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // ACTUALIZAR VALORES EVM DINÁMICAMENTE
+    // ─────────────────────────────────────────────────────────────────
+    actualizarValoresEVM: function(datosEVM) {
+      try {
+        const mapeo = {
+          pv: 'evm-pv', ev: 'evm-ev', ac: 'evm-ac',
+          cv: 'evm-cv', sv: 'evm-sv', cpi: 'evm-cpi',
+          spi: 'evm-spi', eac: 'evm-eac', etc: 'evm-etc', vac: 'evm-vac'
+        };
+        
+        Object.entries(mapeo).forEach(([clave, id]) => {
+          const el = document.getElementById(id);
+          if (el && datosEVM[clave] !== undefined) {
+            const valor = datosEVM[clave];
+            if (typeof valor === 'number' && (clave === 'cpi' || clave === 'spi')) {
+              el.textContent = valor.toFixed(2);
+            } else if (typeof valor === 'number') {
+              el.textContent = calculator?.formatoMoneda?.(valor) || '$' + valor.toLocaleString();
+            } else {
+              el.textContent = valor;
+            }
+          }
+        });
+        
+        console.log('✅ Valores EVM actualizados');
+      } catch (error) {
+        console.error('❌ Error actualizando EVM:', error);
+      }
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // ACTUALIZAR CURVA DE INVERSIÓN
+    // ─────────────────────────────────────────────────────────────────
+    actualizarCurvaInversion: function(inversionEjecutada, inversionTotal) {
+      try {
+        const elEjecutada = document.getElementById('curva-inversion-ejecutada');
+        const elTotal = document.getElementById('curva-inversion-total');
+        const barra = document.querySelector('#curva-s-screen .card-body div[style*="linear-gradient"] div[style*="position:absolute"]');
+        
+        if (elEjecutada) {
+          elEjecutada.textContent = calculator?.formatoMoneda?.(inversionEjecutada) || '$' + inversionEjecutada.toLocaleString();
+        }
+        if (elTotal) {
+          elTotal.textContent = calculator?.formatoMoneda?.(inversionTotal) || '$' + inversionTotal.toLocaleString();
+        }
+        
+        if (barra && inversionTotal > 0) {
+          const porcentaje = Math.min(100, Math.max(0, (inversionEjecutada / inversionTotal) * 100));
+          barra.style.width = porcentaje + '%';
+          const label = barra.parentElement.querySelector('div[style*="position:absolute;top:8px"]');
+          if (label) label.textContent = porcentaje.toFixed(0) + '%';
+        }
+        
+        console.log('✅ Curva de inversión actualizada');
+      } catch (error) {
+        console.error('❌ Error actualizando curva de inversión:', error);
+      }
+    },    
+    
+    // ─────────────────────────────────────────────────────────────────
     // CARGAR COTIZACIÓN SELECCIONADA
     // ─────────────────────────────────────────────────────────────────
     cargarCotizacion: async function() {
@@ -146,7 +281,27 @@ window.curvaS = {
             
             // Mostrar información de la cotización
             this.mostrarInfoCotizacion(cotizacion, fechaInicio, fechaFinEstimada, fechaFinSolicitada);
+
+            // ⚠️ NUEVO: ACTUALIZAR COMPONENTES VISUALES CON DATOS REALES
+            const semanaActual = 8; // ← Esto debería venir de tus datos de avance
+            this.actualizarIndicadorSemana(semanaActual);
+            this.resaltarFilaSemana(semanaActual);
             
+            // ⚠️ ACTUALIZAR VALORES EVM (usar datos reales de tu cotización)
+            if (cotizacion.evm) {
+                this.actualizarValoresEVM(cotizacion.evm);
+            }
+            
+            // ⚠️ ACTUALIZAR CURVA DE INVERSIÓN
+            const avanceReal = cotizacion.avanceEjecutado || 0;
+            const inversionEjecutada = (avanceReal / 100) * montoTotal;
+            this.actualizarCurvaInversion(inversionEjecutada, montoTotal);
+            
+            // ⚠️ MOSTRAR SECCIÓN EVM SI HAY DATOS
+            const seccionEVM = document.getElementById('curva-s-avanzada-seccion');
+            if (seccionEVM && cotizacion.evm) {
+                seccionEVM.style.display = 'block';
+            }  
         } catch (error) {
             console.error('❌ Error cargando cotización:', error);
             alert('❌ Error: ' + error.message);
