@@ -134,9 +134,10 @@ window.curvaS = {
             // Cargar avance ejecutado
             await this.cargarAvanceEjecutado();
             
-            // ⚠️ ESPERAR A QUE EL CANVAS SEA VISIBLE ANTES DE GENERAR GRÁFICA
+            // ⚠️ CORRECCIÓN AQUÍ: usar inicializarGrafica + actualizarGrafica
             setTimeout(() => {
-                this.generarGrafica('curva-s-chart');
+                this.inicializarGrafica();      // ✅ Primero inicializa Chart.js
+                this.actualizarGrafica();        // ✅ Luego carga los datos
             }, 300);
             
             // Calcular y mostrar variaciones
