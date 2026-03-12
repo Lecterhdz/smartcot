@@ -650,6 +650,7 @@ window.curvaS = {
         this.generarGrafica('curva-s-chart');
         // ⚠️ IMPORTANTE: Calcular variaciones después de actualizar
         this.calcularVariaciones();
+        this.calcularProyeccion();
     },
    
     // ─────────────────────────────────────────────────────────────────
