@@ -589,157 +589,256 @@ table { min-width: 600px; }
 </div>
 </section>
 
-<!-- ───── NUEVA COTIZACIÓN ───── -->
+<!-- ───── NUEVA COTIZACIÓN (MOBILE OPTIMIZED) ───── -->
 <section id="nueva-cotizacion-screen" class="screen">
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-<button onclick="app.mostrarPantalla('dashboard-screen')" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;font-family:var(--font);" onmouseover="this.style.background='var(--blue-l)';this.style.color='var(--blue)'" onmouseout="this.style.background='var(--white)';this.style.color='var(--ink2)'">← Volver</button>
-<span style="font-size:13px;font-weight:700;color:var(--ink);">Nueva Cotización</span>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+<button onclick="app.mostrarPantalla('dashboard-screen')" 
+    style="display:flex;align-items:center;gap:6px;padding:10px 16px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;font-family:var(--font);transition:all .15s;" 
+    onmouseover="this.style.background='var(--blue-l)';this.style.color='var(--blue)'" 
+    onmouseout="this.style.background='var(--white)';this.style.color='var(--ink2)'">
+    ← Volver
+</button>
+<span style="font-size:14px;font-weight:700;color:var(--ink);">Nueva Cotización</span>
 </div>
 
 <div class="cot-layout" style="display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;">
 <div>
+<!-- Datos del proyecto -->
 <div class="form-section">
 <div class="form-section-header">
 <div class="form-section-title">📋 Datos del Proyecto</div>
 </div>
 <div class="form-section-body">
-<div class="form-grid">
+<div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
 <div class="f-group" style="grid-column:span 2;">
 <label class="f-label">Descripción del Proyecto *</label>
-<input class="f-input" id="cot-descripcion" placeholder="Ej: Instalación eléctrica nave industrial">
+<input class="f-input" id="cot-descripcion" placeholder="Ej: Instalación eléctrica nave industrial" 
+    style="padding:12px 14px;font-size:14px;min-height:44px;">
 </div>
 <div class="f-group">
 <label class="f-label">Cliente *</label>
 <div style="display:grid;grid-template-columns:1fr auto;gap:10px;">
-<select id="cot-cliente" class="f-input"><option value="">Seleccionar cliente...</option></select>
-<button type="button" onclick="app.mostrarModalCliente()" style="background:var(--blue);color:white;border:none;padding:9px 14px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-family:var(--font);">➕</button>
+<select id="cot-cliente" class="f-input" style="min-height:44px;">
+    <option value="">Seleccionar cliente...</option>
+</select>
+<button type="button" onclick="app.mostrarModalCliente()" 
+    style="background:var(--blue);color:white;border:none;padding:12px 16px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-family:var(--font);min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;">➕</button>
 </div>
-<small id="sin-clientes-msg" style="color:var(--rose);display:none;">⚠️ No hay clientes</small>
+<small id="sin-clientes-msg" style="color:var(--rose);display:none;font-size:12px;">⚠️ No hay clientes</small>
 </div>
 <div class="f-group">
 <label class="f-label">Ubicación</label>
-<input class="f-input" id="cot-ubicacion" placeholder="Ciudad, Estado">
+<input class="f-input" id="cot-ubicacion" placeholder="Ciudad, Estado" 
+    style="padding:12px 14px;font-size:14px;min-height:44px;">
 </div>
 <div class="f-group">
 <label class="f-label">Fecha Inicio *</label>
-<input class="f-input" id="cot-fecha-inicio" type="date">
+<input class="f-input" id="cot-fecha-inicio" type="date" 
+    style="padding:12px 14px;font-size:14px;min-height:44px;">
 </div>
 <div class="f-group">
 <label class="f-label">Fecha Fin Solicitada</label>
-<input class="f-input" id="cot-fecha-fin" type="date">
+<input class="f-input" id="cot-fecha-fin" type="date" 
+    style="padding:12px 14px;font-size:14px;min-height:44px;">
 </div>
 </div>
 </div>
 </div>
 
+<!-- Conceptos seleccionados -->
 <div class="form-section">
 <div class="form-section-header">
-<div class="form-section-title">📦 Conceptos <span id="conceptos-count" style="background:var(--blue);color:white;font-size:11px;padding:2px 8px;border-radius:20px;font-family:var(--mono);">0</span></div>
-<button class="topbar-btn ghost" style="font-size:12px;padding:6px 12px;" onclick="app.mostrarPantalla('catalogos-screen')">＋ Agregar</button>
+<div class="form-section-title">
+    📦 Conceptos 
+    <span id="conceptos-count" style="background:var(--blue);color:white;font-size:11px;padding:2px 10px;border-radius:20px;font-family:var(--mono);font-weight:700;">0</span>
+</div>
+<button class="topbar-btn ghost" style="font-size:12px;padding:8px 14px;min-height:44px;" onclick="app.mostrarPantalla('catalogos-screen')">＋ Agregar</button>
 </div>
 <div class="form-section-body" style="padding:0;">
-<div id="conceptos-seleccionados" style="padding:20px;">
-<div style="padding:40px;text-align:center;color:var(--ink4);">
+<div id="conceptos-seleccionados" style="padding:16px;overflow-x:auto;">
+<div style="padding:40px 20px;text-align:center;color:var(--ink4);">
 <div style="font-size:48px;margin-bottom:10px;">📭</div>
-<div>No hay conceptos seleccionados</div>
-<div style="font-size:13px;margin-top:5px;">Ve a Catálogos y agrega conceptos</div>
+<div style="font-size:14px;font-weight:600;">No hay conceptos seleccionados</div>
+<div style="font-size:12px;margin-top:8px;color:var(--ink3);">Ve a Catálogos y agrega conceptos</div>
 </div>
 </div>
 </div>
 </div>
 
+<!-- Recursos Adicionales -->
 <div class="form-section">
 <div class="form-section-header">
 <div class="form-section-title">🧱 Recursos Adicionales</div>
 </div>
 <div class="form-section-body" style="padding:0;">
-<div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 20px;">
-<button class="res-tab active" onclick="showResTab(this,'materiales')" style="padding:10px 16px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--blue);border-bottom:2px solid var(--blue);font-family:var(--font);">📦 Materiales</button>
-<button class="res-tab" onclick="showResTab(this,'mano-obra')" style="padding:10px 16px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--ink4);border-bottom:2px solid transparent;font-family:var(--font);">👷 Mano de Obra</button>
-<button class="res-tab" onclick="showResTab(this,'equipos')" style="padding:10px 16px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--ink4);border-bottom:2px solid transparent;font-family:var(--font);">🏗️ Equipos</button>
+<!-- Tabs con scroll horizontal en móvil -->
+<div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;">
+<button class="res-tab active" onclick="showResTab(this,'materiales')" 
+    style="padding:12px 16px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--blue);border-bottom:2px solid var(--blue);font-family:var(--font);white-space:nowrap;transition:all .15s;">
+    📦 Materiales
+</button>
+<button class="res-tab" onclick="showResTab(this,'mano-obra')" 
+    style="padding:12px 16px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--ink4);border-bottom:2px solid transparent;font-family:var(--font);white-space:nowrap;transition:all .15s;">
+    👷 Mano de Obra
+</button>
+<button class="res-tab" onclick="showResTab(this,'equipos')" 
+    style="padding:12px 16px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--ink4);border-bottom:2px solid transparent;font-family:var(--font);white-space:nowrap;transition:all .15s;">
+    🏗️ Equipos
+</button>
 </div>
 
-<div id="res-materiales" class="res-panel" style="padding:16px 20px;">
-<div id="materiales-lista"></div>
-<button onclick="app.agregarMaterial()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--green-l);color:var(--green);border:1px dashed #86efac;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">＋ Agregar material</button>
+<div id="res-materiales" class="res-panel" style="padding:16px;">
+<div id="materiales-lista" style="margin-bottom:12px;"></div>
+<button onclick="app.agregarMaterial()" 
+    style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 16px;background:var(--green-l);color:var(--green);border:1px dashed #86efac;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);width:100%;min-height:44px;">
+    ＋ Agregar material
+</button>
 </div>
 
-<div id="res-mano-obra" class="res-panel" style="display:none;padding:16px 20px;">
-<div id="mano-obra-lista"></div>
-<button onclick="app.agregarManoObra()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--blue-l);color:var(--blue);border:1px dashed var(--blue-m);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">＋ Agregar puesto</button>
+<div id="res-mano-obra" class="res-panel" style="display:none;padding:16px;">
+<div id="mano-obra-lista" style="margin-bottom:12px;"></div>
+<button onclick="app.agregarManoObra()" 
+    style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 16px;background:var(--blue-l);color:var(--blue);border:1px dashed var(--blue-m);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);width:100%;min-height:44px;">
+    ＋ Agregar puesto
+</button>
 </div>
 
-<div id="res-equipos" class="res-panel" style="display:none;padding:16px 20px;">
-<div id="equipos-lista"></div>
-<button onclick="app.agregarEquipo()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--amber-l);color:var(--amber);border:1px dashed #fcd34d;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">＋ Agregar equipo</button>
+<div id="res-equipos" class="res-panel" style="display:none;padding:16px;">
+<div id="equipos-lista" style="margin-bottom:12px;"></div>
+<button onclick="app.agregarEquipo()" 
+    style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 16px;background:var(--amber-l);color:var(--amber);border:1px dashed #fcd34d;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);width:100%;min-height:44px;">
+    ＋ Agregar equipo
+</button>
 </div>
 </div>
 </div>
 
+<!-- Sobrecostos -->
 <div class="form-section">
 <div class="form-section-header">
 <div class="form-section-title">⚙️ Sobrecostos e Indirectos</div>
 </div>
 <div class="form-section-body">
-<div class="form-grid">
+<div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
 <div class="f-group">
 <label class="f-label">Ind. Oficina (%)</label>
-<input class="f-input" id="cot-indirectos-oficina" type="number" value="5" onchange="app.calcularTotalConConceptos()" style="font-family:var(--mono);">
+<input class="f-input" id="cot-indirectos-oficina" type="number" value="5" 
+    onchange="app.calcularTotalConConceptos()" 
+    style="font-family:var(--mono);padding:12px 14px;font-size:14px;min-height:44px;text-align:center;font-weight:600;">
 </div>
 <div class="f-group">
 <label class="f-label">Ind. Campo (%)</label>
-<input class="f-input" id="cot-indirectos-campo" type="number" value="15" onchange="app.calcularTotalConConceptos()" style="font-family:var(--mono);">
+<input class="f-input" id="cot-indirectos-campo" type="number" value="15" 
+    onchange="app.calcularTotalConConceptos()" 
+    style="font-family:var(--mono);padding:12px 14px;font-size:14px;min-height:44px;text-align:center;font-weight:600;">
 </div>
 <div class="f-group">
 <label class="f-label">Financiamiento (%)</label>
-<input class="f-input" id="cot-financiamiento" type="number" value="0.85" onchange="app.calcularTotalConConceptos()" style="font-family:var(--mono);">
+<input class="f-input" id="cot-financiamiento" type="number" value="0.85" step="0.01"
+    onchange="app.calcularTotalConConceptos()" 
+    style="font-family:var(--mono);padding:12px 14px;font-size:14px;min-height:44px;text-align:center;font-weight:600;">
 </div>
 <div class="f-group">
 <label class="f-label">Utilidad (%)</label>
-<input class="f-input" id="cot-utilidad" type="number" value="10" onchange="app.calcularTotalConConceptos()" style="font-family:var(--mono);border-color:var(--blue);">
+<input class="f-input" id="cot-utilidad" type="number" value="10" 
+    onchange="app.calcularTotalConConceptos()" 
+    style="font-family:var(--mono);padding:12px 14px;font-size:14px;min-height:44px;text-align:center;font-weight:600;border-color:var(--blue);">
 </div>
 </div>
 </div>
 </div>
 
-<div id="seccion-impacto-factores" style="display:none;background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--radius);padding:20px;margin-bottom:16px;">
+<!-- Factores de Ajuste -->
+<div id="seccion-impacto-factores" style="display:none;background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--radius);padding:16px;margin-bottom:16px;">
 <h4 style="color:var(--amber);margin:0 0 15px 0;font-size:14px;font-weight:700;">⚠️ Impacto de Factores de Ajuste</h4>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;">
-<div><div style="font-size:11px;color:var(--ink4);">Tiempo Original</div><div style="font-size:18px;font-weight:700;color:var(--ink);" id="impacto-tiempo-original">0 días</div></div>
-<div><div style="font-size:11px;color:var(--ink4);">Tiempo Ajustado</div><div style="font-size:18px;font-weight:700;color:var(--rose);" id="impacto-tiempo-ajustado">0 días</div></div>
-<div><div style="font-size:11px;color:var(--ink4);">Factor Total</div><div style="font-size:18px;font-weight:700;color:var(--ink);" id="impacto-factor-total">1.00x</div></div>
-<div><div style="font-size:11px;color:var(--ink4);">Costo Tiempo Ext.</div><div style="font-size:18px;font-weight:700;color:var(--rose);" id="impacto-costo-tiempo">$0.00</div></div>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">
+<div style="background:var(--white);padding:12px;border-radius:var(--radius-sm);">
+    <div style="font-size:10px;color:var(--ink4);">Tiempo Original</div>
+    <div style="font-size:16px;font-weight:700;color:var(--ink);" id="impacto-tiempo-original">0 días</div>
+</div>
+<div style="background:var(--white);padding:12px;border-radius:var(--radius-sm);">
+    <div style="font-size:10px;color:var(--ink4);">Tiempo Ajustado</div>
+    <div style="font-size:16px;font-weight:700;color:var(--rose);" id="impacto-tiempo-ajustado">0 días</div>
+</div>
+<div style="background:var(--white);padding:12px;border-radius:var(--radius-sm);">
+    <div style="font-size:10px;color:var(--ink4);">Factor Total</div>
+    <div style="font-size:16px;font-weight:700;color:var(--ink);" id="impacto-factor-total">1.00x</div>
+</div>
+<div style="background:var(--white);padding:12px;border-radius:var(--radius-sm);">
+    <div style="font-size:10px;color:var(--ink4);">Costo Tiempo Ext.</div>
+    <div style="font-size:16px;font-weight:700;color:var(--rose);" id="impacto-costo-tiempo">$0.00</div>
+</div>
 </div>
 </div>
 
-<button onclick="app.abrirFactoresAjuste()" style="width:100%;padding:10px;background:var(--amber-l);color:var(--amber);border:1px solid var(--amber);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:16px;font-family:var(--font);">⚠️ Factores de Ajuste</button>
-<button onclick="app.extraerSoloManoDeObra()" id="btn-extraer-mo" style="display:none;width:100%;padding:10px;background:var(--amber-l);color:var(--amber);border:1px solid var(--amber);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:16px;font-family:var(--font);">👷 Extraer Solo Mano de Obra</button>
+<button onclick="app.abrirFactoresAjuste()" 
+    style="width:100%;padding:12px 16px;background:var(--amber-l);color:var(--amber);border:1px solid var(--amber);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:12px;font-family:var(--font);min-height:44px;">
+    ⚠️ Factores de Ajuste
+</button>
+<button onclick="app.extraerSoloManoDeObra()" id="btn-extraer-mo" 
+    style="display:none;width:100%;padding:12px 16px;background:var(--amber-l);color:var(--amber);border:1px solid var(--amber);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:12px;font-family:var(--font);min-height:44px;">
+    👷 Extraer Solo Mano de Obra
+</button>
 </div>
 
+<!-- RESUMEN PANEL (Sticky en desktop, normal en móvil) -->
 <div>
 <div class="summary-panel">
 <div class="summary-header">
 <h3>💰 Resumen Financiero</h3>
-<p>Cálculo automático en tiempo real</p>
+<p style="font-size:11px;opacity:.75;">Cálculo automático en tiempo real</p>
 </div>
-<div class="summary-body">
-<div class="sum-row"><span class="s-label">Costo Directo</span><span class="s-value" id="resumen-costo-directo">$0.00</span></div>
-<div class="sum-row"><span class="s-label">Ind. Oficina</span><span class="s-value" id="resumen-indirectos-oficina">$0.00</span></div>
-<div class="sum-row"><span class="s-label">Ind. Campo</span><span class="s-value" id="resumen-indirectos-campo">$0.00</span></div>
-<div class="sum-row"><span class="s-label">Financiamiento</span><span class="s-value" id="resumen-financiamiento">$0.00</span></div>
-<div class="sum-row"><span class="s-label">Subtotal</span><span class="s-value" id="resumen-subtotal">$0.00</span></div>
-<div class="sum-row"><span class="s-label">Utilidad</span><span class="s-value" id="resumen-utilidad-costo" style="color:var(--green);">$0.00</span></div>
-<div class="sum-row"><span class="s-label">IVA (16%)</span><span class="s-value" id="resumen-iva" style="color:var(--blue);">$0.00</span></div>
-<div class="sum-total">
-<span class="t-label">Total Final</span>
-<span class="t-value" id="resumen-total">$0.00</span>
+<div class="summary-body" style="padding:16px;">
+<div class="sum-row" style="padding:10px 0;font-size:13px;">
+    <span class="s-label" style="color:var(--ink3);">Costo Directo</span>
+    <span class="s-value" style="font-family:var(--mono);font-weight:600;color:var(--ink);" id="resumen-costo-directo">$0.00</span>
 </div>
-<div class="sum-time">
-<div class="sum-time-item"><div class="st-val" id="tiempo-dias-habiles">0</div><div class="st-lab">Días háb.</div></div>
-<div class="sum-time-item"><div class="st-val" id="tiempo-semanas">0</div><div class="st-lab">Semanas</div></div>
-<div class="sum-time-item"><div class="st-val" id="tiempo-meses">0</div><div class="st-lab">Meses</div></div>
+<div class="sum-row" style="padding:10px 0;font-size:13px;">
+    <span class="s-label" style="color:var(--ink3);">Ind. Oficina</span>
+    <span class="s-value" style="font-family:var(--mono);font-weight:600;color:var(--ink);" id="resumen-indirectos-oficina">$0.00</span>
 </div>
-<button class="btn-guardar" onclick="app.guardarCotizacion()">💾 Guardar Cotización</button>
+<div class="sum-row" style="padding:10px 0;font-size:13px;">
+    <span class="s-label" style="color:var(--ink3);">Ind. Campo</span>
+    <span class="s-value" style="font-family:var(--mono);font-weight:600;color:var(--ink);" id="resumen-indirectos-campo">$0.00</span>
+</div>
+<div class="sum-row" style="padding:10px 0;font-size:13px;">
+    <span class="s-label" style="color:var(--ink3);">Financiamiento</span>
+    <span class="s-value" style="font-family:var(--mono);font-weight:600;color:var(--ink);" id="resumen-financiamiento">$0.00</span>
+</div>
+<div class="sum-row" style="padding:10px 0;font-size:13px;border-bottom:1px solid var(--border);">
+    <span class="s-label" style="color:var(--ink3);">Subtotal</span>
+    <span class="s-value" style="font-family:var(--mono);font-weight:600;color:var(--ink);" id="resumen-subtotal">$0.00</span>
+</div>
+<div class="sum-row" style="padding:10px 0;font-size:13px;">
+    <span class="s-label" style="color:var(--ink3);">Utilidad</span>
+    <span class="s-value" style="font-family:var(--mono);font-weight:600;color:var(--green);" id="resumen-utilidad-costo">$0.00</span>
+</div>
+<div class="sum-row" style="padding:10px 0;font-size:13px;">
+    <span class="s-label" style="color:var(--ink3);">IVA (16%)</span>
+    <span class="s-value" style="font-family:var(--mono);font-weight:600;color:var(--blue);" id="resumen-iva">$0.00</span>
+</div>
+<div class="sum-total" style="background:var(--bg);border-radius:var(--radius-sm);padding:14px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;">
+    <span class="t-label" style="font-size:12px;font-weight:700;color:var(--ink);text-transform:uppercase;">Total Final</span>
+    <span class="t-value" style="font-family:var(--mono);font-size:20px;font-weight:800;color:var(--blue);" id="resumen-total">$0.00</span>
+</div>
+<div class="sum-time" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px;">
+    <div class="sum-time-item" style="text-align:center;background:var(--bg);border-radius:8px;padding:10px;">
+        <div class="st-val" style="font-size:16px;font-weight:800;color:var(--ink);font-family:var(--mono);" id="tiempo-dias-habiles">0</div>
+        <div class="st-lab" style="font-size:10px;color:var(--ink4);margin-top:2px;">Días háb.</div>
+    </div>
+    <div class="sum-time-item" style="text-align:center;background:var(--bg);border-radius:8px;padding:10px;">
+        <div class="st-val" style="font-size:16px;font-weight:800;color:var(--ink);font-family:var(--mono);" id="tiempo-semanas">0</div>
+        <div class="st-lab" style="font-size:10px;color:var(--ink4);margin-top:2px;">Semanas</div>
+    </div>
+    <div class="sum-time-item" style="text-align:center;background:var(--bg);border-radius:8px;padding:10px;">
+        <div class="st-val" style="font-size:16px;font-weight:800;color:var(--ink);font-family:var(--mono);" id="tiempo-meses">0</div>
+        <div class="st-lab" style="font-size:10px;color:var(--ink4);margin-top:2px;">Meses</div>
+    </div>
+</div>
+<button class="btn-guardar" onclick="app.guardarCotizacion()" 
+    style="width:100%;padding:14px 18px;background:linear-gradient(135deg,var(--blue),var(--indigo));color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;font-family:var(--font);margin-top:14px;min-height:48px;box-shadow:0 4px 14px rgba(37,99,235,.35);">
+    💾 Guardar Cotización
+</button>
 </div>
 </div>
 </div>
@@ -1119,3 +1218,4 @@ closeSidebar();
 </script>
 </body>
 </html>
+
