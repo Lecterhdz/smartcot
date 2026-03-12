@@ -401,90 +401,7 @@ window.licencia = {
         };
     },
 
-    // ─────────────────────────────────────────────────────────────────
-    // ACTIVAR LICENCIA (ACTUALIZADO - FORMATO REAL)
-    // ─────────────────────────────────────────────────────────────────
-    activar: async function(clave, email) {
-        try {
-            console.log('🔑 Activando licencia:', clave);
-            
-            // ⚠️ VALIDAR FORMATO DE CLAVE (ACEPTA AMBOS FORMATOS)
-            // Formato 1: XXXX-XXXX-XXXX-XXXX (demo)
-            // Formato 2: PLAN-CODE6-TIMESTAMP-CODE8 (real)
-            const formato1 = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
-            const formato2 = /^[A-Z]+-[A-Z0-9]{6}-\d{13}-[A-Z0-9]{8}$/i;
-            
-            if (!formato1.test(clave) && !formato2.test(clave)) {
-                return {
-                    activo: false,
-                    razon: 'Formato de clave inválido. Debe ser: XXXX-XXXX-XXXX-XXXX o PLAN-CODE6-TIMESTAMP-CODE8'
-                };
-            }
-            
-            // ⚠️ PARSEAR LA CLAVE
-            const partes = clave.split('-');
-            let tipo = 'DEMO';
-            let expiracion = null;
-            
-            if (partes.length === 4) {
-                // Formato real: PLAN-CODE6-TIMESTAMP-CODE8
-                tipo = partes[0]; // ENTERPRISE, PRO, etc.
-                const timestamp = parseInt(partes[2]);
-                
-                // Calcular expiración desde timestamp (asumiendo que es fecha de creación)
-                const fechaCreacion = new Date(timestamp);
-                const diasValidez = this._obtenerDiasPorPlan(tipo);
-                expiracion = new Date(fechaCreacion);
-                expiracion.setDate(expiracion.getDate() + diasValidez);
-                
-                console.log('📅 Licencia creada:', fechaCreacion.toLocaleDateString());
-                console.log('📅 Licencia expira:', expiracion.toLocaleDateString());
-                console.log('📅 Días de validez:', diasValidez);
-            } else if (partes.length === 4 && formato1.test(clave)) {
-                // Formato demo: XXXX-XXXX-XXXX-XXXX
-                tipo = 'DEMO';
-                expiracion = new Date();
-                expiracion.setDate(expiracion.getDate() + 7); // 7 días demo
-            }
-            
-            // ⚠️ VALIDAR TIPO DE PLAN
-            if (!this.PLANES[tipo]) {
-                return {
-                    activo: false,
-                    razon: 'Tipo de plan no válido: ' + tipo
-                };
-            }
-            
-            // ⚠️ GUARDAR LICENCIA
-            const licencia = {
-                clave: clave,
-                tipo: tipo,
-                email: email || '',
-                expiracion: expiracion.toISOString(),
-                activa: true,
-                fechaActivacion: new Date().toISOString()
-            };
-            
-            localStorage.setItem('smartcot_licencia', JSON.stringify(licencia));
-            
-            console.log('✅ Licencia activada:', licencia);
-            
-            return {
-                activo: true,
-                tipo: tipo,
-                expiracion: expiracion.toISOString(),
-                diasRestantes: this._diasRestantes(expiracion)
-            };
-            
-        } catch (error) {
-            console.error('❌ Error activando licencia:', error);
-            return {
-                activo: false,
-                razon: 'Error: ' + error.message
-            };
-        }
-    },
-    
+   
     // ─────────────────────────────────────────────────────────────────
     // OBTENER DÍAS POR PLAN (NUEVA FUNCIÓN)
     // ─────────────────────────────────────────────────────────────────
@@ -498,7 +415,7 @@ window.licencia = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // ACTIVAR LICENCIA DESDE UI
+    // ACTIVAR LICENCIA DESDE UI (CORREGIDO - AMBOS FORMATOS)
     // ─────────────────────────────────────────────────────────────────
     activarDesdeUI: async function() {
         try {
@@ -531,9 +448,14 @@ window.licencia = {
                 return;
             }
             
-            // ⚠️ VALIDAR FORMATO DE CLAVE (XXXX-XXXX-XXXX-XXXX)
-            if (!/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i.test(clave)) {
-                alert('⚠️ Formato de clave inválido\n\nDebe ser: XXXX-XXXX-XXXX-XXXX\n(Ej: DEMO-ABCD-1234-EFGH)');
+            // ⚠️ VALIDAR FORMATO DE CLAVE (ACEPTA AMBOS FORMATOS)
+            // Formato 1: XXXX-XXXX-XXXX-XXXX (demo)
+            // Formato 2: PLAN-CODE6-TIMESTAMP-CODE8 (real)
+            const formato1 = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
+            const formato2 = /^[A-Z]+-[A-Z0-9]{6}-\d{13}-[A-Z0-9]{8}$/i;
+            
+            if (!formato1.test(clave) && !formato2.test(clave)) {
+                alert('⚠️ Formato de clave inválido\n\nDebe ser:\n• XXXX-XXXX-XXXX-XXXX (Demo)\n• PLAN-CODE6-TIMESTAMP-CODE8 (Real)\n\nEjemplo real: ENTERPRISE-ABC123-1234567890123-XYZ78901');
                 elClave.focus();
                 return;
             }
