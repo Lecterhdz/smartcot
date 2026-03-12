@@ -904,7 +904,29 @@ table { min-width: 600px; }
         <button class="topbar-btn ghost" onclick="curvaS.exportarReportePDF()">📄 Exportar PDF</button>
         <button class="topbar-btn ghost" onclick="curvaS.generarCurvaAvanzada()">📈 Curva Avanzada</button>
       </div>
-
+    <!-- Canvas con ID CORRECTO -->
+    <div style="position:relative;height:400px;margin:20px 0;">
+        <canvas id="curva-s-chart"></canvas>  <!-- ✅ ESTE ID DEBE SER EXACTO -->
+    </div>
+    
+    <!-- Proyección Calculada (AGREGAR ESTO) -->
+    <div id="curva-s-proyeccion" style="background:var(--bg);padding:20px;border-radius:var(--radius);margin-top:20px;">
+        <h4 style="color:var(--ink);margin:0 0 15px 0;">📅 Proyección Calculada</h4>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:15px;">
+            <div style="background:var(--bg2);padding:15px;border-radius:var(--radius-sm);text-align:center;">
+                <div style="font-size:10px;color:var(--ink4);margin-bottom:5px;">Semanas Restantes</div>
+                <div style="font-size:20px;font-weight:700;color:var(--amber);" id="proyeccion-semanas-restantes">—</div>
+            </div>
+            <div style="background:var(--bg2);padding:15px;border-radius:var(--radius-sm);text-align:center;">
+                <div style="font-size:10px;color:var(--ink4);margin-bottom:5px;">Fecha Estimada</div>
+                <div style="font-size:20px;font-weight:700;color:var(--blue);" id="proyeccion-fecha-estimada">—</div>
+            </div>
+            <div style="background:var(--bg2);padding:15px;border-radius:var(--radius-sm);text-align:center;">
+                <div style="font-size:10px;color:var(--ink4);margin-bottom:5px;">Velocidad</div>
+                <div style="font-size:20px;font-weight:700;color:var(--green);" id="proyeccion-velocidad">—</div>
+            </div>
+        </div>
+    </div>
       <!-- 2️⃣ REGISTRAR AVANCE SEMANAL (Segundo) -->
       <div style="background:var(--bg);padding:20px;border-radius:var(--radius);margin-bottom:20px;">
         <h4 style="color:var(--ink);margin:0 0 15px 0;font-size:14px;font-weight:700;">📝 Registrar Avance Semanal</h4>
@@ -1777,6 +1799,7 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
 
 
