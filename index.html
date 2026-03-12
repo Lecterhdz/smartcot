@@ -1444,6 +1444,127 @@ if ('serviceWorker' in navigator) {
         .catch(err => console.log('⚠️ SW error:', err));
 }
 </script>
+<!-- MODAL CLIENTE RÁPIDO -->
+<div id="modal-cliente" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">👤 Agregar Cliente Rápido</div>
+            <button class="modal-close" onclick="app.cerrarModalCliente()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="f-group">
+                <label class="f-label">Nombre del Cliente *</label>
+                <input class="f-input" id="modal-cliente-nombre" placeholder="Nombre de la empresa o persona">
+            </div>
+            <div class="f-group">
+                <label class="f-label">Email</label>
+                <input class="f-input" id="modal-cliente-email" type="email" placeholder="cliente@email.com">
+            </div>
+            <div class="f-group">
+                <label class="f-label">Teléfono</label>
+                <input class="f-input" id="modal-cliente-telefono" placeholder="55-1234-5678">
+            </div>
+            <div class="f-group">
+                <label class="f-label">Notas (opcional)</label>
+                <textarea class="f-input" id="modal-cliente-notas" placeholder="Dirección, RFC, comentarios..." style="min-height:80px;"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="topbar-btn ghost" onclick="app.cerrarModalCliente()">❌ Cancelar</button>
+            <button class="topbar-btn primary" onclick="app.guardarClienteRapido()">💾 Guardar y Seleccionar</button>
+        </div>
+    </div>
+</div>
 
+<!-- MODAL FACTORES DE AJUSTE -->
+<div id="modal-factores" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">📊 Factores de Ajuste de Rendimientos</div>
+            <button class="modal-close" onclick="document.getElementById('modal-factores').classList.remove('active')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="f-group">
+                <label class="f-label">Altura / Elevación</label>
+                <select id="factor-altura" class="f-input" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();">
+                    <option value="1">Sin altura (0-3m) - 100%</option>
+                    <option value="1.15">Altura media (3-5m) - 115%</option>
+                    <option value="1.25">Altura alta (5-10m) - 125%</option>
+                    <option value="1.40">Altura muy alta (+10m) - 140%</option>
+                </select>
+            </div>
+            <div class="f-group">
+                <label class="f-label">Condiciones Climáticas</label>
+                <select id="factor-clima" class="f-input" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();">
+                    <option value="1">Normal - 100%</option>
+                    <option value="1.10">Calor extremo (>35°C) - 110%</option>
+                    <option value="1.10">Frío extremo (<5°C) - 110%</option>
+                    <option value="1.15">Lluvia / Humedad - 115%</option>
+                </select>
+            </div>
+            <div class="f-group">
+                <label class="f-label">Dificultad de Acceso</label>
+                <select id="factor-acceso" class="f-input" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();">
+                    <option value="1">Acceso libre - 100%</option>
+                    <option value="1.10">Acceso restringido - 110%</option>
+                    <option value="1.20">Espacio confinado - 120%</option>
+                    <option value="1.25">Área operativa - 125%</option>
+                </select>
+            </div>
+            <div class="f-group">
+                <label class="f-label">🔒 Nivel de Seguridad Requerido</label>
+                <select id="factor-seguridad" class="f-input" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();" style="border-color:var(--amber);">
+                    <option value="1">Estándar (Sin permisos especiales) - 100%</option>
+                    <option value="1.05">Permiso de trabajo básico - 105%</option>
+                    <option value="1.10">ATS + Liberación de área - 110%</option>
+                    <option value="1.15">Permiso de altura + Espacio confinado - 115%</option>
+                    <option value="1.20">Área clasificada + Múltiples permisos - 120%</option>
+                    <option value="1.25">Paro de planta + Todos los permisos - 125%</option>
+                </select>
+                <small style="color:var(--amber);font-size:10px;display:block;margin-top:5px;">Incluye: tramitar permisos, ATS, liberación de área, supervisiones, etc.</small>
+            </div>
+            <div style="background:var(--blue-l);padding:15px;border-radius:var(--radius-sm);margin-top:15px;">
+                <div style="font-size:11px;color:var(--blue);margin-bottom:10px;">📈 Impacto en Tiempo de Ejecución</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div>
+                        <div style="font-size:10px;color:var(--ink4);">Tiempo Original</div>
+                        <div style="font-size:16px;font-weight:700;" id="tiempo-original">0 días</div>
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--ink4);">Tiempo Ajustado</div>
+                        <div style="font-size:16px;font-weight:700;color:var(--rose);" id="tiempo-ajustado">0 días</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="topbar-btn ghost" onclick="document.getElementById('modal-factores').classList.remove('active')">❌ Cancelar</button>
+            <button class="topbar-btn primary" onclick="app.guardarFactores()">✅ Aplicar Factores</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EXTRAER MANO DE OBRA -->
+<div id="modal-extraer-mo" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">👷 Extraer Solo Mano de Obra</div>
+            <button class="modal-close" onclick="app.cancelarExtraerManoDeObra()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div style="background:var(--amber-l);padding:15px;border-radius:var(--radius-sm);margin-bottom:15px;">
+                <p style="color:var(--amber);font-size:12px;margin:0;">
+                    ℹ️ Esto creará UNA NUEVA cotización solo con la mano de obra de los conceptos seleccionados.
+                </p>
+            </div>
+            <div id="resumen-mano-obra-extraer" style="background:var(--bg);padding:15px;border-radius:var(--radius-sm);margin-bottom:15px;max-height:400px;overflow-y:auto;"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="topbar-btn ghost" onclick="app.cancelarExtraerManoDeObra()">❌ Cancelar</button>
+            <button class="topbar-btn primary" onclick="app.confirmarExtraerManoDeObra()">✅ Sí, Extraer Mano de Obra</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
+
