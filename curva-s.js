@@ -776,7 +776,7 @@ window.curvaS = {
             await this.cargarAvanceEjecutado();
             
             // Regenerar gráfica
-            this.generarGrafica('curva-s-chart');
+            this.inicializarGrafica('curva-s-chart');
             
             // ⚠️ IMPORTANTE: Calcular variaciones DESPUÉS de guardar
             this.calcularVariaciones();
