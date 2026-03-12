@@ -99,26 +99,55 @@ window.curvaS = {
     },
 
     // ─────────────────────────────────────────────────────────────────
-    // GENERAR TABLA DE AVANCE CON SEMANA ACTUAL RESALTADA
+    // GENERAR TABLA DE AVANCE CON SEMANA ACTUAL RESALTADA (CORREGIDO)
     // ─────────────────────────────────────────────────────────────────
     generarTablaAvance: function() {
         try {
-            const tbody = document.querySelector('#curva-s-screen table tbody');
+            // ⚠️ BUSCAR TBODY CON ID ESPECÍFICO O CREARLO SI NO EXISTE
+            let tbody = document.getElementById('curva-s-tabla-avance');
+            
             if (!tbody) {
-                console.error('❌ No se encontró tbody para tabla de avance');
+                console.warn('⚠️ Tabla de avance no encontrada, creando...');
+                // Crear tabla dinámicamente si no existe
+                const container = document.createElement('div');
+                container.style.margin = '20px 0';
+                container.innerHTML = `
+                    <h4 style="color:var(--ink);margin:0 0 12px 0;font-size:14px;font-weight:700;">📊 Avance por Semana</h4>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%;border-collapse:collapse;">
+                            <thead>
+                                <tr style="background:var(--bg);">
+                                    <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Semana</th>
+                                    <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Programado</th>
+                                    <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Real</th>
+                                    <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Δ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="curva-s-tabla-avance"></tbody>
+                        </table>
+                    </div>
+                `;
+                // Insertar después de la gráfica
+                const canvas = document.getElementById('curva-s-chart');
+                if (canvas?.parentElement) {
+                    canvas.parentElement.parentNode.insertBefore(container, canvas.parentElement.nextSibling);
+                }
+                tbody = document.getElementById('curva-s-tabla-avance');
+            }
+            
+            if (!tbody) {
+                console.error('❌ No se pudo crear tbody para tabla de avance');
                 return;
             }
             
             // ⚠️ ENCONTRAR SEMANA ACTUAL (última con avance > 0)
-            let semanaActual = 0;
+            let semanaActual = -1;
             for (let i = this.datos.avanceEjecutado.length - 1; i >= 0; i--) {
                 if (this.datos.avanceEjecutado[i] > 0) {
-                    semanaActual = i + 1;  // Las semanas empiezan en 1
+                    semanaActual = i;
                     break;
                 }
             }
-            
-            console.log('📍 Semana actual para tabla:', semanaActual);
             
             // ⚠️ GENERAR FILAS
             let html = '';
@@ -129,7 +158,7 @@ window.curvaS = {
                 const desviacion = ejecutado - programado;
                 
                 // ⚠️ CLASE ESPECIAL PARA SEMANA ACTUAL
-                const esSemanaActual = (numSemana === semanaActual);
+                const esSemanaActual = (index === semanaActual);
                 const claseFila = esSemanaActual ? 'style="background:var(--blue-l);font-weight:700;"' : '';
                 const indicador = esSemanaActual ? ' ◀' : '';
                 
@@ -146,7 +175,7 @@ window.curvaS = {
                     '</tr>';
             });
             
-            tbody.innerHTML = html;
+            tbody.innerHTML = html || '<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--ink4);">Sin datos</td></tr>';
             console.log('✅ Tabla de avance generada');
         } catch (error) {
             console.error('❌ Error generando tabla:', error);
@@ -389,43 +418,38 @@ window.curvaS = {
                     datasets: [
                         {
                             label: 'Programado',
-                            data: this.datos.avanceProgramado || [],
+                             this.datos.avanceProgramado || [],
                             borderColor: '#7c6ff0',
                             backgroundColor: 'rgba(124, 111, 240, 0.1)',
                             borderWidth: 3,
                             fill: true,
                             tension: 0.4,
                             pointRadius: 4,
-                            pointHoverRadius: 6,
-                            pointBackgroundColor: '#7c6ff0',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2
+                            pointHoverRadius: 6
                         },
                         {
                             label: 'Real',
-                            data: this.datos.avanceEjecutado || [],
+                             this.datos.avanceEjecutado || [],
                             borderColor: '#4d8ef0',
                             backgroundColor: 'rgba(77, 142, 240, 0.1)',
                             borderWidth: 3,
-                            borderDash: [6, 3],
+                            borderDash: [6, 3],  // ✅ Línea punteada para curva real
                             fill: true,
                             tension: 0.4,
                             pointRadius: 5,
-                            pointHoverRadius: 7,
-                            pointBackgroundColor: '#4d8ef0',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2
+                            pointHoverRadius: 7
                         },
-                        // ⚠️ DATASET PARA LÍNEA VERTICAL DE SEMANA ACTUAL
+                        // ⚠️ NUEVO: Dataset para línea vertical de semana actual
                         {
                             label: 'Semana Actual',
-                            data: new Array(this.datos.semanas.length).fill(null),
-                            borderColor: '#f0436a',
+                             [],  // Se llena dinámicamente abajo
+                            borderColor: '#f0436a',  // Rose del tema oscuro
                             borderWidth: 2,
-                            borderDash: [4, 3],  // ✅ PUNTEADA ROJA
+                            borderDash: [4, 3],  // ✅ Punteado
                             pointRadius: 0,
-                            fill: false
-                        }                        
+                            fill: false,
+                            yAxisID: 'y'
+                        }
                     ]
                 },
                 options: {
