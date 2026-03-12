@@ -166,7 +166,11 @@ mostrarPantalla: async function(id) {
             break;
         case 'curva-s-screen':
             if (window.curvaS) {
-                setTimeout(function() { curvaS.init(); }, 300);
+                // ⚠️ ESPERAR A QUE LA PANTALLA SEA VISIBLE ANTES DE INICIALIZAR
+                setTimeout(function() {
+                    curvaS.inicializarGrafica();
+                    curvaS.calcularProyeccion();
+                }, 300);  // ✅ 300ms para asegurar que el canvas es visible
             }
             break;
         // ⚠️ AGREGAR ESTE CASO PARA CONFIGURACIÓN
@@ -2547,6 +2551,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
