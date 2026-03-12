@@ -3,9 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SmartCot v2.0 — Demo Visual</title>
+<meta name="theme-color" content="#1e2330">
+<title>SmartCot v2.0 — Cotizador Industrial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2933/2933245.png">
+
+<!-- Librerías Externas -->
+<script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
 <style>
 :root {
 --white:   #1e2330;
@@ -49,15 +59,12 @@ min-height: 100vh;
 font-size: 16px;
 -webkit-font-smoothing: antialiased;
 }
-/* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width:5px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius:3px; }
-/* ── INPUTS dark fix ── */
 input, select, textarea { color-scheme: dark; }
-/* ══════════════════════════════════════
-SIDEBAR NAV
-══════════════════════════════════════ */
+
+/* ══════════════════════════════════════ LAYOUT ══════════════════════════════════════ */
 .layout { display:grid; grid-template-columns:240px 1fr; min-height:100vh; }
 .sidebar {
 background: var(--white);
@@ -82,23 +89,9 @@ box-shadow: 0 4px 12px rgba(37,99,235,.3);
 flex-shrink:0;
 }
 .logo-text { line-height:1.2; }
-.logo-text strong {
-font-size:17px; font-weight:800;
-color: var(--ink);
-letter-spacing:-0.5px;
-}
-.logo-text span {
-display:block; font-size:10px;
-color: var(--ink4); font-family:var(--mono);
-letter-spacing:.5px; text-transform:uppercase;
-}
-.sidebar-section {
-padding: 20px 12px 8px;
-font-size:10px; font-weight:600;
-color: var(--ink4);
-text-transform:uppercase; letter-spacing:1px;
-font-family: var(--mono);
-}
+.logo-text strong { font-size:17px; font-weight:800; color: var(--ink); letter-spacing:-0.5px; }
+.logo-text span { display:block; font-size:10px; color: var(--ink4); font-family:var(--mono); letter-spacing:.5px; text-transform:uppercase; }
+.sidebar-section { padding: 20px 12px 8px; font-size:10px; font-weight:600; color: var(--ink4); text-transform:uppercase; letter-spacing:1px; font-family: var(--mono); }
 .nav-item {
 display:flex; align-items:center; gap:10px;
 padding: 9px 14px;
@@ -111,15 +104,8 @@ color: var(--ink3);
 border: none; background:none; width:calc(100% - 16px);
 text-align:left;
 }
-.nav-item:hover {
-background: var(--bg);
-color: var(--ink);
-}
-.nav-item.active {
-background: var(--blue-l);
-color: var(--blue);
-font-weight:600;
-}
+.nav-item:hover { background: var(--bg); color: var(--ink); }
+.nav-item.active { background: var(--blue-l); color: var(--blue); font-weight:600; }
 .nav-item .nav-icon { font-size:16px; width:20px; text-align:center; flex-shrink:0; }
 .nav-badge {
 margin-left:auto;
@@ -129,11 +115,7 @@ font-size:10px; font-weight:700;
 padding:2px 7px; border-radius:20px;
 font-family: var(--mono);
 }
-.sidebar-footer {
-margin-top:auto;
-padding:16px;
-border-top:1px solid var(--border);
-}
+.sidebar-footer { margin-top:auto; padding:16px; border-top:1px solid var(--border); }
 .license-pill {
 display:flex; align-items:center; gap:8px;
 padding:10px 14px;
@@ -161,9 +143,8 @@ cursor:pointer; transition:all .18s;
 font-family:var(--font);
 }
 .btn-salir:hover { background:var(--rose-l); border-color:#fda4af; color:var(--rose); }
-/* ══════════════════════════════════════
-MAIN CONTENT
-══════════════════════════════════════ */
+
+/* ══════════════════════════════════════ MAIN ══════════════════════════════════════ */
 .main { overflow:hidden; display:flex; flex-direction:column; }
 .topbar {
 background: var(--white);
@@ -185,34 +166,19 @@ border:none; cursor:pointer;
 font-size:13px; font-weight:600;
 transition:all .18s; font-family:var(--font);
 }
-.topbar-btn.primary {
-background: var(--blue);
-color:white;
-box-shadow:0 2px 8px rgba(37,99,235,.3);
-}
+.topbar-btn.primary { background: var(--blue); color:white; box-shadow:0 2px 8px rgba(37,99,235,.3); }
 .topbar-btn.primary:hover { background:#1d4ed8; transform:translateY(-1px); box-shadow:0 4px 12px rgba(37,99,235,.35); }
-.topbar-btn.ghost {
-background:var(--bg);
-color:var(--ink2);
-border:1px solid var(--border);
-}
+.topbar-btn.ghost { background:var(--bg); color:var(--ink2); border:1px solid var(--border); }
 .topbar-btn.ghost:hover { background:var(--bg2); }
 .content { padding:28px 32px; flex:1; }
-/* ══════════════════════════════════════
-SCREENS
-══════════════════════════════════════ */
+
+/* ══════════════════════════════════════ SCREENS ══════════════════════════════════════ */
 .screen { display:none; }
 .screen.active { display:block; animation: fadeUp .25s ease; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-/* ══════════════════════════════════════
-STATS ROW
-══════════════════════════════════════ */
-.stats-row {
-display:grid;
-grid-template-columns: repeat(4,1fr);
-gap:16px;
-margin-bottom:28px;
-}
+
+/* ══════════════════════════════════════ STATS ══════════════════════════════════════ */
+.stats-row { display:grid; grid-template-columns: repeat(4,1fr); gap:16px; margin-bottom:28px; }
 .stat-card {
 background:var(--white);
 border:1px solid var(--border);
@@ -247,30 +213,16 @@ font-size:18px;
 .c-teal  .stat-icon-wrap { background:var(--teal-l); }
 .c-amber .stat-icon-wrap { background:var(--amber-l); }
 .c-indigo .stat-icon-wrap{ background:#f5f3ff; }
-.stat-trend {
-font-size:11px; font-weight:600;
-padding:3px 8px; border-radius:20px;
-font-family:var(--mono);
-}
+.stat-trend { font-size:11px; font-weight:600; padding:3px 8px; border-radius:20px; font-family:var(--mono); }
 .trend-up   { background:var(--green-l); color:var(--green); }
 .trend-same { background:var(--bg2); color:var(--ink4); }
-.stat-number {
-font-size:32px; font-weight:800;
-color:var(--ink); letter-spacing:-1.5px;
-line-height:1; margin-bottom:4px;
-}
+.stat-number { font-size:32px; font-weight:800; color:var(--ink); letter-spacing:-1.5px; line-height:1; margin-bottom:4px; }
 .stat-label { font-size:12px; color:var(--ink4); font-weight:500; }
-/* ══════════════════════════════════════
-GRID LAYOUT
-══════════════════════════════════════ */
-.dashboard-grid {
-display:grid;
-grid-template-columns: 1fr 340px;
-gap:20px;
-}
-/* ══════════════════════════════════════
-CARD
-══════════════════════════════════════ */
+
+/* ══════════════════════════════════════ DASHBOARD GRID ══════════════════════════════════════ */
+.dashboard-grid { display:grid; grid-template-columns: 1fr 340px; gap:20px; }
+
+/* ══════════════════════════════════════ CARD ══════════════════════════════════════ */
 .card {
 background:var(--white);
 border:1px solid var(--border);
@@ -278,41 +230,18 @@ border-radius:var(--radius);
 box-shadow:var(--shadow-sm);
 overflow:hidden;
 }
-.card-header {
-padding:18px 22px 0;
-display:flex; align-items:center; justify-content:space-between;
-margin-bottom:16px;
-}
-.card-title {
-font-size:15px; font-weight:700;
-color:var(--ink); letter-spacing:-.2px;
-}
+.card-header { padding:18px 22px 0; display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.card-title { font-size:15px; font-weight:700; color:var(--ink); letter-spacing:-.2px; }
 .card-sub { font-size:12px; color:var(--ink4); margin-top:2px; }
-.card-action {
-font-size:12px; font-weight:600;
-color:var(--blue); cursor:pointer;
-background:none; border:none; font-family:var(--font);
-padding:5px 10px; border-radius:6px;
-transition:all .15s;
-}
+.card-action { font-size:12px; font-weight:600; color:var(--blue); cursor:pointer; background:none; border:none; font-family:var(--font); padding:5px 10px; border-radius:6px; transition:all .15s; }
 .card-action:hover { background:var(--blue-l); }
 .card-body { padding:0 22px 22px; }
-/* ══════════════════════════════════════
-ACTIVITY LIST
-══════════════════════════════════════ */
-.activity-item {
-display:flex; align-items:center; gap:14px;
-padding:12px 0;
-border-bottom:1px solid var(--border);
-transition:all .15s;
-}
+
+/* ══════════════════════════════════════ ACTIVITY ══════════════════════════════════════ */
+.activity-item { display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid var(--border); transition:all .15s; }
 .activity-item:last-child { border-bottom:none; }
 .activity-item:hover { padding-left:4px; }
-.activity-dot {
-width:36px; height:36px; border-radius:10px;
-display:flex; align-items:center; justify-content:center;
-font-size:16px; flex-shrink:0;
-}
+.activity-dot { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
 .activity-dot.green { background:var(--green-l); }
 .activity-dot.blue  { background:var(--blue-l); }
 .activity-dot.amber { background:var(--amber-l); }
@@ -323,9 +252,8 @@ font-size:16px; flex-shrink:0;
 .activity-status { font-size:10px; font-weight:600; padding:3px 8px; border-radius:20px; display:block; text-align:center; margin-top:3px; }
 .status-ok   { background:var(--green-l); color:var(--green); }
 .status-pend { background:var(--amber-l); color:var(--amber); }
-/* ══════════════════════════════════════
-QUICK ACTIONS PANEL
-══════════════════════════════════════ */
+
+/* ══════════════════════════════════════ QUICK ACTIONS ══════════════════════════════════════ */
 .quick-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .qa-btn {
 display:flex; flex-direction:column; align-items:flex-start; gap:6px;
@@ -336,198 +264,51 @@ border-radius:var(--radius-sm);
 cursor:pointer; transition:all .18s;
 text-align:left; font-family:var(--font);
 }
-.qa-btn:hover {
-background:var(--blue-l);
-border-color:var(--blue-m);
-transform:translateY(-1px);
-box-shadow:var(--shadow-sm);
-}
+.qa-btn:hover { background:var(--blue-l); border-color:var(--blue-m); transform:translateY(-1px); box-shadow:var(--shadow-sm); }
 .qa-btn:hover .qa-title { color:var(--blue); }
 .qa-icon { font-size:22px; }
 .qa-title { font-size:13px; font-weight:700; color:var(--ink); }
 .qa-desc  { font-size:11px; color:var(--ink4); line-height:1.4; }
-/* ══════════════════════════════════════
-CATALOG SCREEN
-══════════════════════════════════════ */
-.search-bar {
-display:flex; gap:10px; margin-bottom:20px;
-}
-.search-bar input {
-flex:1; padding:10px 16px;
-background:var(--white);
-border:1px solid var(--border);
-border-radius:var(--radius-sm);
-font-size:14px; color:var(--ink);
-font-family:var(--font);
-box-shadow:var(--shadow-sm);
-}
-.search-bar input:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(37,99,235,.1); }
-.filter-chips { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
-.chip {
-padding:5px 14px;
-border-radius:20px;
-font-size:12px; font-weight:600;
-cursor:pointer; transition:all .15s;
-border:none; font-family:var(--font);
-}
-.chip.active { background:var(--blue); color:white; box-shadow:0 2px 8px rgba(37,99,235,.3); }
-.chip.inactive { background:var(--white); color:var(--ink3); border:1px solid var(--border); }
-.chip.inactive:hover { background:var(--blue-l); color:var(--blue); border-color:var(--blue-m); }
-.concept-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
-.concept-card {
-background:var(--white);
-border:1px solid var(--border);
-border-radius:var(--radius);
-padding:18px;
-box-shadow:var(--shadow-sm);
-transition:all .2s;
-display:flex; flex-direction:column;
-}
-.concept-card:hover { box-shadow:var(--shadow); border-color:var(--blue-m); transform:translateY(-2px); }
-.concept-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
-.concept-code { font-family:var(--mono); font-size:11px; font-weight:600; color:var(--blue); background:var(--blue-l); padding:3px 9px; border-radius:20px; }
-.concept-cat  { font-size:10px; font-weight:600; color:var(--ink4); background:var(--bg2); padding:3px 9px; border-radius:20px; }
-.concept-desc { font-size:13px; color:var(--ink2); line-height:1.5; flex:1; margin-bottom:14px; }
-.concept-meta { display:flex; gap:10px; margin-bottom:14px; }
-.concept-meta span {
-font-size:11px; color:var(--ink4);
-background:var(--bg); padding:4px 9px;
-border-radius:6px; border:1px solid var(--border);
-font-family:var(--mono);
-}
-.concept-footer { display:flex; justify-content:space-between; align-items:center; padding-top:12px; border-top:1px solid var(--border); }
-.concept-cost { font-family:var(--mono); font-size:15px; font-weight:700; color:var(--ink); }
-.concept-actions { display:flex; gap:6px; }
-.btn-icon {
-width:32px; height:32px; border-radius:8px;
-border:none; cursor:pointer; display:flex;
-align-items:center; justify-content:center;
-font-size:14px; transition:all .15s;
-}
-.btn-icon.add  { background:var(--green-l); color:var(--green); }
-.btn-icon.add:hover  { background:var(--green); color:white; transform:scale(1.05); }
-.btn-icon.pdf  { background:var(--blue-l);  color:var(--blue); }
-.btn-icon.pdf:hover  { background:var(--blue); color:white; transform:scale(1.05); }
-/* ══════════════════════════════════════
-NUEVA COTIZACIÓN - MOBILE OPTIMIZED
-══════════════════════════════════════ */
-.cot-layout { display:grid; grid-template-columns:1fr 360px; gap:20px; align-items:start; }
-.form-section {
-background:var(--white);
-border:1px solid var(--border);
-border-radius:var(--radius);
-box-shadow:var(--shadow-sm);
-margin-bottom:16px;
-overflow:hidden;
-}
-.form-section-header {
-padding:14px 20px;
-background:var(--bg);
-border-bottom:1px solid var(--border);
-display:flex; align-items:center; justify-content:space-between;
-}
+
+/* ══════════════════════════════════════ FORMS ══════════════════════════════════════ */
+.form-section { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); margin-bottom:16px; overflow:hidden; }
+.form-section-header { padding:14px 20px; background:var(--bg); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
 .form-section-title { font-size:13px; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:8px; }
 .form-section-body { padding:20px; }
 .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 .f-group { display:flex; flex-direction:column; gap:5px; }
 .f-label { font-size:11px; font-weight:600; color:var(--ink3); text-transform:uppercase; letter-spacing:.4px; font-family:var(--mono); }
-.f-input {
-padding:9px 13px;
-background:var(--bg);
-border:1px solid var(--border);
-border-radius:var(--radius-sm);
-font-size:14px; color:var(--ink);
-font-family:var(--font); transition:all .15s;
-}
+.f-input { padding:9px 13px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); font-size:14px; color:var(--ink); font-family:var(--font); transition:all .15s; }
 .f-input:focus { outline:none; border-color:var(--blue); background:white; box-shadow:0 0 0 3px rgba(37,99,235,.08); }
 .f-input::placeholder { color:var(--ink4); }
-/* Resumen sticky */
-.summary-panel {
-background:var(--white);
-border:1px solid var(--border);
-border-radius:var(--radius);
-box-shadow:var(--shadow);
-position:sticky; top:80px;
-overflow:hidden;
-}
-.summary-header {
-background: linear-gradient(135deg, var(--blue), var(--indigo));
-padding:18px 22px;
-color:white;
-}
+
+/* ══════════════════════════════════════ SUMMARY PANEL ══════════════════════════════════════ */
+.summary-panel { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); position:sticky; top:80px; overflow:hidden; }
+.summary-header { background: linear-gradient(135deg, var(--blue), var(--indigo)); padding:18px 22px; color:white; }
 .summary-header h3 { font-size:14px; font-weight:700; margin-bottom:2px; }
 .summary-header p  { font-size:11px; opacity:.75; font-family:var(--mono); }
 .summary-body { padding:18px; }
-.sum-row {
-display:flex; justify-content:space-between; align-items:center;
-padding:9px 0;
-border-bottom:1px solid var(--border);
-font-size:13px;
-}
+.sum-row { display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border); font-size:13px; }
 .sum-row:last-child { border-bottom:none; }
 .sum-row .s-label { color:var(--ink3); }
 .sum-row .s-value { font-family:var(--mono); font-weight:600; color:var(--ink); }
-.sum-total {
-background: var(--bg);
-border-radius:var(--radius-sm);
-padding:14px;
-margin-top:14px;
-display:flex; justify-content:space-between; align-items:center;
-}
+.sum-total { background: var(--bg); border-radius:var(--radius-sm); padding:14px; margin-top:14px; display:flex; justify-content:space-between; align-items:center; }
 .sum-total .t-label { font-size:12px; font-weight:700; color:var(--ink); text-transform:uppercase; letter-spacing:.5px; }
 .sum-total .t-value { font-family:var(--mono); font-size:22px; font-weight:800; color:var(--blue); letter-spacing:-1px; }
-.sum-time {
-display:grid; grid-template-columns:1fr 1fr 1fr;
-gap:8px; margin-top:14px;
-}
+.sum-time { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:14px; }
 .sum-time-item { text-align:center; background:var(--bg); border-radius:8px; padding:10px; }
 .sum-time-item .st-val { font-size:16px; font-weight:800; color:var(--ink); font-family:var(--mono); }
 .sum-time-item .st-lab { font-size:10px; color:var(--ink4); margin-top:2px; }
-.btn-guardar {
-width:100%; padding:13px;
-background:linear-gradient(135deg, var(--blue), var(--indigo));
-color:white; border:none; border-radius:var(--radius-sm);
-font-size:14px; font-weight:700;
-cursor:pointer; transition:all .2s;
-font-family:var(--font);
-margin-top:14px;
-box-shadow:0 4px 14px rgba(37,99,235,.35);
-}
+.btn-guardar { width:100%; padding:13px; background:linear-gradient(135deg, var(--blue), var(--indigo)); color:white; border:none; border-radius:var(--radius-sm); font-size:14px; font-weight:700; cursor:pointer; transition:all .2s; font-family:var(--font); margin-top:14px; box-shadow:0 4px 14px rgba(37,99,235,.35); }
 .btn-guardar:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(37,99,235,.4); }
-/* ══════════════════════════════════════
-HISTORIAL TABLE
-══════════════════════════════════════ */
-.table-wrap {
-background:var(--white);
-border:1px solid var(--border);
-border-radius:var(--radius);
-box-shadow:var(--shadow-sm);
-overflow:hidden;
-}
-.table-toolbar {
-padding:16px 20px;
-border-bottom:1px solid var(--border);
-display:flex; align-items:center; justify-content:space-between; gap:14px;
-}
-.table-search {
-flex:1; padding:8px 14px;
-background:var(--bg);
-border:1px solid var(--border);
-border-radius:var(--radius-sm);
-font-size:13px; color:var(--ink);
-font-family:var(--font); max-width:320px;
-}
+
+/* ══════════════════════════════════════ TABLE ══════════════════════════════════════ */
+.table-wrap { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); overflow:hidden; }
+.table-toolbar { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.table-search { flex:1; padding:8px 14px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; color:var(--ink); font-family:var(--font); max-width:320px; }
 .table-search:focus { outline:none; border-color:var(--blue); }
 table { width:100%; border-collapse:collapse; }
-thead th {
-padding:11px 18px;
-background:var(--bg);
-border-bottom:1px solid var(--border);
-text-align:left; font-size:11px;
-font-weight:600; color:var(--ink4);
-text-transform:uppercase; letter-spacing:.6px;
-font-family:var(--mono);
-}
+thead th { padding:11px 18px; background:var(--bg); border-bottom:1px solid var(--border); text-align:left; font-size:11px; font-weight:600; color:var(--ink4); text-transform:uppercase; letter-spacing:.6px; font-family:var(--mono); }
 tbody td { padding:13px 18px; border-bottom:1px solid var(--border); font-size:13px; }
 tbody tr:last-child td { border-bottom:none; }
 tbody tr:hover { background:var(--bg); }
@@ -536,308 +317,65 @@ tbody tr:hover { background:var(--bg); }
 .td-sub  { font-size:11px; color:var(--ink4); margin-top:2px; }
 .td-amount { font-family:var(--mono); font-weight:700; color:var(--ink); font-size:14px; }
 .td-actions { display:flex; gap:6px; }
-.tbl-btn {
-padding:5px 11px; border-radius:6px;
-border:none; font-size:11px; font-weight:600;
-cursor:pointer; transition:all .15s;
-font-family:var(--font);
-}
+.tbl-btn { padding:5px 11px; border-radius:6px; border:none; font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; font-family:var(--font); }
 .tbl-btn.view { background:var(--blue-l); color:var(--blue); }
 .tbl-btn.view:hover { background:var(--blue); color:white; }
 .tbl-btn.pdf  { background:var(--teal-l); color:var(--teal); }
 .tbl-btn.pdf:hover  { background:var(--teal); color:white; }
-/* ══════════════════════════════════════
-CONFIGURACIÓN
-══════════════════════════════════════ */
-.config-layout { display:grid; grid-template-columns:220px 1fr; gap:20px; }
-.config-menu {
-background:var(--white);
-border:1px solid var(--border);
-border-radius:var(--radius);
-box-shadow:var(--shadow-sm);
-padding:12px;
-position:sticky; top:80px; height:fit-content;
-}
-.config-menu-item {
-display:flex; align-items:center; gap:10px;
-padding:10px 12px;
-border-radius:var(--radius-sm);
-cursor:pointer; transition:all .15s;
-font-size:13px; font-weight:500; color:var(--ink3);
-border:none; background:none; width:100%; text-align:left;
-font-family:var(--font);
-}
-.config-menu-item:hover { background:var(--bg); color:var(--ink); }
-.config-menu-item.active { background:var(--blue-l); color:var(--blue); font-weight:600; }
-.config-panel {
-background:var(--white);
-border:1px solid var(--border);
-border-radius:var(--radius);
-box-shadow:var(--shadow-sm);
-overflow:hidden;
-}
-.config-panel-header { padding:18px 24px; border-bottom:1px solid var(--border); }
-.config-panel-header h3 { font-size:16px; font-weight:700; color:var(--ink); }
-.config-panel-header p  { font-size:12px; color:var(--ink4); margin-top:3px; }
-.config-panel-body { padding:24px; }
-.config-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
-.cost-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
-.cost-card {
-background:var(--bg);
-border:1px solid var(--border);
-border-radius:var(--radius-sm);
-padding:14px;
-text-align:center;
-}
-.cost-card .cc-icon  { font-size:22px; margin-bottom:6px; }
-.cost-card .cc-label { font-size:10px; color:var(--ink4); font-family:var(--mono); text-transform:uppercase; margin-bottom:6px; }
-.cost-card .cc-value { font-size:20px; font-weight:800; color:var(--blue); font-family:var(--mono); }
-.btn-save {
-padding:10px 24px;
-background:var(--blue); color:white;
-border:none; border-radius:var(--radius-sm);
-font-size:13px; font-weight:700; cursor:pointer;
-transition:all .18s; font-family:var(--font);
-box-shadow:0 2px 8px rgba(37,99,235,.3);
-}
-.btn-save:hover { background:#1d4ed8; transform:translateY(-1px); }
-/* ══════════════════════════════════════
-LICENCIA / PLANES
-══════════════════════════════════════ */
-.plan-card {
-background:var(--white);
-border:1px solid var(--border);
-border-radius:var(--radius-lg);
-padding:24px;
-transition:all .2s;
-}
-.plan-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); }
-.plan-card.featured {
-border:2px solid var(--blue);
-background:linear-gradient(160deg,#f0f7ff,var(--white));
-position:relative;
-}
-.plan-badge {
-position:absolute;
-top:-12px;
-left:50%;
-transform:translateX(-50%);
-background:var(--blue);
-color:white;
-font-size:11px;
-font-weight:700;
-padding:4px 14px;
-border-radius:20px;
-white-space:nowrap;
-font-family:var(--mono);
-}
-.plan-name { font-size:13px; font-weight:700; color:var(--ink4); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
-.plan-price { font-size:34px; font-weight:800; color:var(--ink); letter-spacing:-1.5px; margin-bottom:4px; }
-.plan-price span { font-size:16px; font-weight:500; color:var(--ink4); }
-.plan-period { font-size:12px; color:var(--ink4); margin-bottom:20px; }
-.plan-features { display:flex; flex-direction:column; gap:9px; margin-bottom:24px; }
-.plan-feature { font-size:13px; color:var(--ink2); display:flex; gap:8px; align-items:center; }
-.plan-feature .check { color:var(--green); font-weight:700; }
-.plan-feature .x { color:#cbd5e1; }
-.plan-btn {
-width:100%;
-padding:10px;
-border-radius:var(--radius-sm);
-font-size:13px;
-font-weight:700;
-cursor:pointer;
-font-family:var(--font);
-transition:all .18s;
-}
-.plan-btn.primary { background:var(--blue); color:white; border:none; box-shadow:0 2px 8px rgba(37,99,235,.3); }
-.plan-btn.primary:hover { background:#1d4ed8; transform:translateY(-1px); }
-.plan-btn.secondary { background:var(--bg2); color:var(--ink4); border:1px solid var(--border); cursor:default; }
-.plan-btn.indigo { background:var(--indigo); color:white; border:none; }
-.license-activate {
-background:var(--white);
-border:1px solid var(--border);
-border-radius:var(--radius-lg);
-padding:24px;
-margin-top:28px;
-}
-.license-activate h4 { font-size:16px; font-weight:700; color:var(--ink); margin-bottom:16px; }
-.license-input-group { display:flex; gap:10px; max-width:500px; margin-bottom:12px; }
-.license-input-group input {
-flex:1;
-padding:12px 16px;
-background:var(--bg);
-border:1px solid var(--border);
-border-radius:var(--radius-sm);
-font-size:14px;
-color:var(--ink);
-font-family:var(--mono);
-letter-spacing:2px;
-text-transform:uppercase;
-}
-.license-input-group input:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(37,99,235,.1); }
-.license-note { font-size:12px; color:var(--ink4); margin-top:8px; }
-.license-note strong { color:var(--ink2); }
-/* ══════════════════════════════════════
-FOOTER LINKS
-══════════════════════════════════════ */
-.footer-links {
-display:flex;
-justify-content:center;
-gap:25px;
-flex-wrap:wrap;
-padding:20px 0;
-border-top:1px solid var(--border);
-margin-top:40px;
-}
-.footer-link {
-color:var(--ink3);
-text-decoration:none;
-font-size:13px;
-font-weight:500;
-transition:all .15s;
-}
-.footer-link:hover { color:var(--blue); }
-/* ══════════════════════════════════════
-BOTTOM NAV (mobile only)
-══════════════════════════════════════ */
-.bottom-nav {
-display: none;
-position: fixed;
-bottom: 0; left: 0; right: 0;
-background: var(--white);
-border-top: 1px solid var(--border);
-padding: 6px 0 max(6px, env(safe-area-inset-bottom));
-z-index: 300;
-box-shadow: 0 -4px 20px rgba(15,23,42,.08);
-}
-.bottom-nav-inner {
-display: grid;
-grid-template-columns: repeat(5, 1fr);
-}
-.bn-item {
-display: flex; flex-direction: column;
-align-items: center; justify-content: center;
-gap: 3px; padding: 6px 4px;
-cursor: pointer; border: none;
-background: none; font-family: var(--font);
-transition: all .15s; -webkit-tap-highlight-color: transparent;
-}
-.bn-icon {
-font-size: 22px; line-height: 1;
-transition: transform .15s;
-}
-.bn-label {
-font-size: 10px; font-weight: 600;
-color: var(--ink4); letter-spacing: .2px;
-transition: color .15s;
-}
+
+/* ══════════════════════════════════════ MODALS ══════════════════════════════════════ */
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+.modal.active { display: flex; animation: fadeIn .2s ease; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.modal-content { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); max-width:600px; width:90%; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow-lg); }
+.modal-header { padding:20px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.modal-title { font-size:16px; font-weight:700; color:var(--ink); }
+.modal-close { width:32px; height:32px; border-radius:var(--radius-sm); border:none; background:var(--bg); color:var(--ink3); cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.modal-close:hover { background:var(--rose-l); color:var(--rose); }
+.modal-body { padding:24px; }
+.modal-footer { padding:16px 24px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end; }
+
+/* ══════════════════════════════════════ MOBILE ══════════════════════════════════════ */
+.bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid var(--border); padding: 6px 0 max(6px, env(safe-area-inset-bottom)); z-index: 300; box-shadow: 0 -4px 20px rgba(15,23,42,.08); }
+.bottom-nav-inner { display: grid; grid-template-columns: repeat(5, 1fr); }
+.bn-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 6px 4px; cursor: pointer; border: none; background: none; font-family: var(--font); transition: all .15s; -webkit-tap-highlight-color: transparent; }
+.bn-icon { font-size: 22px; line-height: 1; transition: transform .15s; }
+.bn-label { font-size: 10px; font-weight: 600; color: var(--ink4); letter-spacing: .2px; transition: color .15s; }
 .bn-item.active .bn-icon  { transform: translateY(-2px); }
 .bn-item.active .bn-label { color: var(--blue); }
-/* Hamburger button */
-.hamburger {
-display: none;
-background: none; border: none;
-cursor: pointer; padding: 8px;
-border-radius: var(--radius-sm);
-transition: background .15s;
-}
+.hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; border-radius: var(--radius-sm); transition: background .15s; }
 .hamburger:hover { background: var(--bg2); }
-.hamburger span {
-display: block; width: 20px; height: 2px;
-background: var(--ink2); border-radius: 2px;
-margin: 4px 0; transition: all .25s;
-}
-/* Sidebar overlay (mobile) */
-.sidebar-overlay {
-display: none;
-position: fixed; inset: 0;
-background: rgba(15,23,42,.4);
-backdrop-filter: blur(4px);
-z-index: 250;
-}
+.hamburger span { display: block; width: 20px; height: 2px; background: var(--ink2); border-radius: 2px; margin: 4px 0; transition: all .25s; }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.4); backdrop-filter: blur(4px); z-index: 250; }
 .sidebar-overlay.open { display: block; }
-/* ══════════════════════════════════════
-RESPONSIVE — TABLET (1024px)
-══════════════════════════════════════ */
+
 @media (max-width: 1024px) {
 .layout { grid-template-columns: 200px 1fr; }
 .stats-row { grid-template-columns: 1fr 1fr; }
 .dashboard-grid { grid-template-columns: 1fr; }
-.cot-layout { grid-template-columns: 1fr; }
-.concept-grid { grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); }
-.cost-cards { grid-template-columns: 1fr 1fr; }
-.config-layout { grid-template-columns: 180px 1fr; }
 .summary-panel { position: static; margin-top: 16px; }
 }
-/* ══════════════════════════════════════
-RESPONSIVE — MOBILE (768px)
-══════════════════════════════════════ */
 @media (max-width: 768px) {
-/* Ocultar sidebar, mostrar barra inferior */
 .layout { grid-template-columns: 1fr; }
-.sidebar {
-position: fixed;
-left: -260px; top: 0; bottom: 0;
-width: 260px; z-index: 260;
-transition: left .28s cubic-bezier(.4,0,.2,1);
-box-shadow: none;
-}
-.sidebar.open {
-left: 0;
-box-shadow: var(--shadow-lg);
-}
+.sidebar { position: fixed; left: -260px; top: 0; bottom: 0; width: 260px; z-index: 260; transition: left .28s cubic-bezier(.4,0,.2,1); box-shadow: none; }
+.sidebar.open { left: 0; box-shadow: var(--shadow-lg); }
 .hamburger { display: flex; flex-direction: column; justify-content: center; }
 .bottom-nav { display: block; }
-/* Padding para no tapar contenido con barra inferior */
 .content { padding: 16px 16px 90px; }
-/* Topbar más compacto */
 .topbar { padding: 0 16px; height: 54px; }
 .topbar-title { font-size: 15px; }
 .topbar-sub { display: none; }
 .topbar-btn.ghost { display: none; }
-.topbar-btn.primary { padding: 7px 12px; font-size: 12px; }
-/* Stats: 2 columnas */
 .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
 .stat-card { padding: 14px; }
 .stat-number { font-size: 26px; }
-/* Dashboard grid: 1 col */
 .dashboard-grid { grid-template-columns: 1fr; gap: 14px; }
-/* Cotización: 1 col - MOBILE OPTIMIZED */
-.cot-layout { grid-template-columns: 1fr; gap: 16px; }
 .form-grid { grid-template-columns: 1fr; }
-.form-grid > .f-group[style*="span 2"] { grid-column: span 1; }
-.form-section-body { padding: 16px; }
-.f-input { padding: 12px; font-size: 14px; }
-.summary-panel { position: static; margin-top: 16px; }
-.summary-body { padding: 16px; }
-.sum-total .t-value { font-size: 18px; }
-.sum-time { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
-.sum-time-item { padding: 8px; }
-.sum-time-item .st-val { font-size: 14px; }
-.btn-guardar { padding: 14px; font-size: 15px; }
-/* Catálogo: 1 col */
-.concept-grid { grid-template-columns: 1fr; }
-.filter-chips { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
-.filter-chips::-webkit-scrollbar { display: none; }
-/* Config: 1 col */
-.config-layout { grid-template-columns: 1fr; }
-.cost-cards { grid-template-columns: 1fr 1fr; }
-.config-grid { grid-template-columns: 1fr; }
-/* Tabla: scroll horizontal */
+.summary-panel { position: static; }
 .table-wrap { overflow-x: auto; }
 table { min-width: 600px; }
 .table-toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
 .table-search { max-width: 100%; }
-/* Ocultar columnas menos prioritarias en tabla */
-thead th:nth-child(3),
-tbody td:nth-child(3) { display: none; }
-/* Planes: 1 col */
-.plans-grid { grid-template-columns: 1fr !important; }
-.license-input-group { flex-direction: column; }
-.license-input-group input { width: 100%; }
-/* Footer links */
-.footer-links { gap: 15px; padding: 15px 0; }
-.footer-link { font-size: 12px; }
 }
 </style>
 </head>
@@ -853,44 +391,45 @@ tbody td:nth-child(3) { display: none; }
 </div>
 </div>
 <div class="sidebar-section">Principal</div>
-<button class="nav-item active" onclick="showScreen('dashboard')">
+<button class="nav-item active" onclick="app.mostrarPantalla('dashboard-screen')">
 <span class="nav-icon">⊞</span> Dashboard
 </button>
-<button class="nav-item" onclick="showScreen('cotizacion')">
+<button class="nav-item" onclick="app.mostrarPantalla('nueva-cotizacion-screen')">
 <span class="nav-icon">📝</span> Nueva Cotización
 </button>
-<button class="nav-item" onclick="showScreen('historial')">
+<button class="nav-item" onclick="app.mostrarPantalla('historial-cotizaciones-screen')">
 <span class="nav-icon">📋</span> Historial
-<span class="nav-badge">12</span>
+<span class="nav-badge" id="nav-badge-cotizaciones">0</span>
 </button>
 <div class="sidebar-section">Catálogos</div>
-<button class="nav-item" onclick="showScreen('catalogo')">
+<button class="nav-item" onclick="app.mostrarPantalla('catalogos-screen')">
 <span class="nav-icon">📚</span> Conceptos APU
 </button>
-<button class="nav-item" onclick="showScreen('importar')">
+<button class="nav-item" onclick="app.mostrarPantalla('importar-screen')">
 <span class="nav-icon">📥</span> Importar Excel
 </button>
 <div class="sidebar-section">Herramientas</div>
-<button class="nav-item" onclick="showScreen('curvas')">
+<button class="nav-item" onclick="app.mostrarPantalla('curva-s-screen')">
 <span class="nav-icon">📈</span> Curva S
 </button>
-<button class="nav-item" onclick="showScreen('config')">
+<button class="nav-item" onclick="app.mostrarPantalla('configuracion-screen')">
 <span class="nav-icon">⚙️</span> Configuración
 </button>
-<button class="nav-item" onclick="showScreen('licencia')">
+<button class="nav-item" onclick="app.mostrarPantalla('licencia-screen')">
 <span class="nav-icon">🔑</span> Licencia
 </button>
 <div class="sidebar-footer">
 <div class="license-pill">
 <div class="lp-dot"></div>
 <div>
-<div class="lp-text">Plan PRO</div>
-<div class="lp-sub">Exp: 15 Mar 2026</div>
+<div class="lp-text" id="license-type">Plan DEMO</div>
+<div class="lp-sub" id="license-expiry">Exp: --</div>
 </div>
 </div>
 <button class="btn-salir" onclick="app.cerrarSesion()">🚪 Cerrar Sesión</button>
 </div>
 </aside>
+
 <!-- ══════════════ MAIN ══════════════ -->
 <div class="main">
 <!-- TOPBAR -->
@@ -901,25 +440,27 @@ tbody td:nth-child(3) { display: none; }
 </button>
 <div>
 <div class="topbar-title" id="topbar-title">Dashboard</div>
-<div class="topbar-sub" id="topbar-sub">Resumen general · Hoy, 11 Mar 2026</div>
+<div class="topbar-sub" id="topbar-sub">Resumen general</div>
 </div>
 </div>
 <div class="topbar-right">
-<button class="topbar-btn ghost" onclick="showScreen('catalogo')">📚 Catálogos</button>
-<button class="topbar-btn primary" onclick="showScreen('cotizacion')">＋ Nueva</button>
+<button class="topbar-btn ghost" onclick="app.mostrarPantalla('catalogos-screen')">📚 Catálogos</button>
+<button class="topbar-btn primary" onclick="app.mostrarPantalla('nueva-cotizacion-screen')">＋ Nueva</button>
 </div>
 </div>
+
 <!-- CONTENT -->
 <div class="content">
+
 <!-- ───── DASHBOARD ───── -->
-<div id="screen-dashboard" class="screen active">
+<section id="dashboard-screen" class="screen active">
 <div class="stats-row">
 <div class="stat-card c-blue">
 <div class="stat-top">
 <div class="stat-icon-wrap">📋</div>
 <span class="stat-trend trend-up">+8%</span>
 </div>
-<div class="stat-number">2,847</div>
+<div class="stat-number" id="stat-conceptos">0</div>
 <div class="stat-label">Conceptos en catálogo</div>
 </div>
 <div class="stat-card c-teal">
@@ -927,26 +468,27 @@ tbody td:nth-child(3) { display: none; }
 <div class="stat-icon-wrap">📦</div>
 <span class="stat-trend trend-up">+12%</span>
 </div>
-<div class="stat-number">18,920</div>
+<div class="stat-number" id="stat-materiales">0</div>
 <div class="stat-label">Materiales registrados</div>
 </div>
 <div class="stat-card c-amber">
 <div class="stat-top">
-<div class="stat-icon-wrap">💰</div>
+<div class="stat-icon-wrap">👷</div>
 <span class="stat-trend trend-up">+23%</span>
 </div>
-<div class="stat-number">$4.2M</div>
-<div class="stat-label">Cotizado este mes</div>
+<div class="stat-number" id="stat-mano-obra">0</div>
+<div class="stat-label">Mano de obra</div>
 </div>
 <div class="stat-card c-indigo">
 <div class="stat-top">
-<div class="stat-icon-wrap">✅</div>
+<div class="stat-icon-wrap">🏗️</div>
 <span class="stat-trend trend-same">—</span>
 </div>
-<div class="stat-number">12</div>
-<div class="stat-label">Cotizaciones activas</div>
+<div class="stat-number" id="stat-equipos">0</div>
+<div class="stat-label">Equipos</div>
 </div>
 </div>
+
 <div class="dashboard-grid">
 <div>
 <div class="card" style="margin-bottom:16px;">
@@ -955,34 +497,21 @@ tbody td:nth-child(3) { display: none; }
 <div class="card-title">Actividad Reciente</div>
 <div class="card-sub">Últimas cotizaciones guardadas</div>
 </div>
-<button class="card-action" onclick="showScreen('historial')">Ver todas →</button>
+<button class="card-action" onclick="app.mostrarPantalla('historial-cotizaciones-screen')">Ver todas →</button>
 </div>
 <div class="card-body">
+<div id="recent-activity">
 <div class="activity-item">
 <div class="activity-dot green">📝</div>
 <div class="activity-info">
-<div class="activity-name">Instalación HVAC — Planta Norte</div>
-<div class="activity-meta">Cliente: Grupo AHMSA · hace 2 hrs</div>
-</div>
-<div style="text-align:right;">
-<div class="activity-amount">$842,500</div>
-<span class="activity-status status-ok">Guardada</span>
-</div>
-</div>
-<div class="activity-item">
-<div class="activity-dot blue">🔧</div>
-<div class="activity-info">
-<div class="activity-name">Instalación eléctrica nave industrial</div>
-<div class="activity-meta">Cliente: Mex Steel · hace 5 hrs</div>
-</div>
-<div style="text-align:right;">
-<div class="activity-amount">$1,240,000</div>
-<span class="activity-status status-pend">Pendiente</span>
+<div class="activity-name">Sin actividad reciente</div>
+<div class="activity-meta">Comienza creando una cotización</div>
 </div>
 </div>
 </div>
 </div>
 </div>
+
 <div>
 <div class="card" style="margin-bottom:16px;">
 <div class="card-header">
@@ -990,22 +519,22 @@ tbody td:nth-child(3) { display: none; }
 </div>
 <div class="card-body">
 <div class="quick-actions">
-<div class="qa-btn" onclick="showScreen('cotizacion')">
+<div class="qa-btn" onclick="app.mostrarPantalla('nueva-cotizacion-screen')">
 <span class="qa-icon">📝</span>
 <span class="qa-title">Nueva Cot.</span>
 <span class="qa-desc">Crear desde catálogo</span>
 </div>
-<div class="qa-btn" onclick="showScreen('catalogo')">
+<div class="qa-btn" onclick="app.mostrarPantalla('catalogos-screen')">
 <span class="qa-icon">📚</span>
 <span class="qa-title">Catálogo</span>
 <span class="qa-desc">Buscar conceptos APU</span>
 </div>
-<div class="qa-btn" onclick="showScreen('importar')">
+<div class="qa-btn" onclick="app.mostrarPantalla('importar-screen')">
 <span class="qa-icon">📥</span>
 <span class="qa-title">Importar</span>
 <span class="qa-desc">Subir Excel Neodata</span>
 </div>
-<div class="qa-btn" onclick="showScreen('curvas')">
+<div class="qa-btn" onclick="app.mostrarPantalla('curva-s-screen')">
 <span class="qa-icon">📈</span>
 <span class="qa-title">Curva S</span>
 <span class="qa-desc">Seguimiento de obra</span>
@@ -1013,14 +542,62 @@ tbody td:nth-child(3) { display: none; }
 </div>
 </div>
 </div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-title">Uso del Plan</div>
+<span class="chip active" style="font-size:11px;padding:3px 10px;background:var(--blue);color:white;border-radius:20px;" id="plan-badge">DEMO</span>
 </div>
-</div>
-</div>
-<!-- ───── NUEVA COTIZACIÓN (MOBILE OPTIMIZED) ───── -->
-<div id="screen-cotizacion" class="screen">
-<div class="cot-layout">
+<div class="card-body">
+<div style="display:flex;flex-direction:column;gap:12px;">
 <div>
-<!-- Datos del proyecto -->
+<div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+<span style="font-size:12px;color:var(--ink3);">Conceptos</span>
+<span style="font-size:12px;font-family:var(--mono);font-weight:600;color:var(--ink);" id="uso-conceptos">0/50</span>
+</div>
+<div style="height:5px;background:var(--bg2);border-radius:3px;overflow:hidden;">
+<div style="width:0%;height:100%;background:linear-gradient(90deg,var(--blue),var(--indigo));border-radius:3px;" id="bar-conceptos"></div>
+</div>
+</div>
+<div>
+<div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+<span style="font-size:12px;color:var(--ink3);">Cotizaciones</span>
+<span style="font-size:12px;font-family:var(--mono);font-weight:600;color:var(--ink);" id="uso-cotizaciones">0/5</span>
+</div>
+<div style="height:5px;background:var(--bg2);border-radius:3px;overflow:hidden;">
+<div style="width:0%;height:100%;background:linear-gradient(90deg,var(--teal),#0d9488);border-radius:3px;" id="bar-cotizaciones"></div>
+</div>
+</div>
+<div>
+<div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+<span style="font-size:12px;color:var(--ink3);">Clientes</span>
+<span style="font-size:12px;font-family:var(--mono);font-weight:600;color:var(--ink);" id="uso-clientes">0/3</span>
+</div>
+<div style="height:5px;background:var(--bg2);border-radius:3px;overflow:hidden;">
+<div style="width:0%;height:100%;background:linear-gradient(90deg,var(--amber),#f59e0b);border-radius:3px;" id="bar-clientes"></div>
+</div>
+</div>
+</div>
+<div style="margin-top:16px;padding:12px;background:var(--blue-l);border-radius:var(--radius-sm);text-align:center;">
+<div style="font-size:12px;color:var(--blue);font-weight:600;" id="license-status">Plan DEMO activo</div>
+<div style="font-size:11px;color:var(--ink4);margin-top:2px;" id="license-days">7 días restantes</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ───── NUEVA COTIZACIÓN ───── -->
+<section id="nueva-cotizacion-screen" class="screen">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+<button onclick="app.mostrarPantalla('dashboard-screen')" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;font-family:var(--font);" onmouseover="this.style.background='var(--blue-l)';this.style.color='var(--blue)'" onmouseout="this.style.background='var(--white)';this.style.color='var(--ink2)'">← Volver</button>
+<span style="font-size:13px;font-weight:700;color:var(--ink);">Nueva Cotización</span>
+</div>
+
+<div class="cot-layout" style="display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;">
+<div>
 <div class="form-section">
 <div class="form-section-header">
 <div class="form-section-title">📋 Datos del Proyecto</div>
@@ -1029,84 +606,76 @@ tbody td:nth-child(3) { display: none; }
 <div class="form-grid">
 <div class="f-group" style="grid-column:span 2;">
 <label class="f-label">Descripción del Proyecto *</label>
-<input class="f-input" placeholder="Ej: Instalación eléctrica nave industrial Sector B">
+<input class="f-input" id="cot-descripcion" placeholder="Ej: Instalación eléctrica nave industrial">
 </div>
 <div class="f-group">
 <label class="f-label">Cliente *</label>
-<input class="f-input" placeholder="Seleccionar cliente...">
+<div style="display:grid;grid-template-columns:1fr auto;gap:10px;">
+<select id="cot-cliente" class="f-input"><option value="">Seleccionar cliente...</option></select>
+<button type="button" onclick="app.mostrarModalCliente()" style="background:var(--blue);color:white;border:none;padding:9px 14px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-family:var(--font);">➕</button>
+</div>
+<small id="sin-clientes-msg" style="color:var(--rose);display:none;">⚠️ No hay clientes</small>
 </div>
 <div class="f-group">
 <label class="f-label">Ubicación</label>
-<input class="f-input" placeholder="Ciudad, Estado">
+<input class="f-input" id="cot-ubicacion" placeholder="Ciudad, Estado">
 </div>
 <div class="f-group">
-<label class="f-label">Fecha Inicio</label>
-<input class="f-input" type="date">
+<label class="f-label">Fecha Inicio *</label>
+<input class="f-input" id="cot-fecha-inicio" type="date">
 </div>
 <div class="f-group">
 <label class="f-label">Fecha Fin Solicitada</label>
-<input class="f-input" type="date">
+<input class="f-input" id="cot-fecha-fin" type="date">
 </div>
 </div>
 </div>
 </div>
-<!-- Conceptos seleccionados -->
+
 <div class="form-section">
 <div class="form-section-header">
-<div class="form-section-title">
-📦 Conceptos
-<span style="background:var(--blue);color:white;font-size:11px;padding:2px 8px;border-radius:20px;font-family:var(--mono);">3</span>
+<div class="form-section-title">📦 Conceptos <span id="conceptos-count" style="background:var(--blue);color:white;font-size:11px;padding:2px 8px;border-radius:20px;font-family:var(--mono);">0</span></div>
+<button class="topbar-btn ghost" style="font-size:12px;padding:6px 12px;" onclick="app.mostrarPantalla('catalogos-screen')">＋ Agregar</button>
 </div>
-<button class="topbar-btn ghost" style="font-size:12px;padding:6px 12px;" onclick="showScreen('catalogo')">＋ Agregar Concepto</button>
-</div>
-<div class="form-section-body" style="padding:0;overflow-x:auto;">
-<table style="min-width:600px;">
-<thead>
-<tr>
-<th style="padding:10px 14px;text-align:left;">Código</th>
-<th style="padding:10px 14px;text-align:left;">Descripción</th>
-<th style="padding:10px 14px;text-align:center;">Cant.</th>
-<th style="padding:10px 14px;text-align:center;">Unit.</th>
-<th style="padding:10px 14px;text-align:right;">Subtotal</th>
-<th style="padding:10px 14px;"></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="padding:10px 14px;"><span class="td-id">EL-001-A</span></td>
-<td style="padding:10px 14px;"><div class="td-main">Tablero distribución 480V/220V</div><div class="td-sub">42 circuitos con protecciones</div></td>
-<td style="padding:10px 14px;text-align:center;"><input type="number" value="2" style="width:60px;padding:5px;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:13px;text-align:center;"></td>
-<td style="padding:10px 14px;text-align:center;font-family:var(--mono);font-size:12px;">$24,850</td>
-<td style="padding:10px 14px;text-align:right;" class="td-amount">$49,700</td>
-<td style="padding:10px 14px;text-align:center;"><button class="btn-icon" style="background:var(--rose-l);color:var(--rose);width:28px;height:28px;" title="Eliminar">✕</button></td>
-</tr>
-</tbody>
-</table>
+<div class="form-section-body" style="padding:0;">
+<div id="conceptos-seleccionados" style="padding:20px;">
+<div style="padding:40px;text-align:center;color:var(--ink4);">
+<div style="font-size:48px;margin-bottom:10px;">📭</div>
+<div>No hay conceptos seleccionados</div>
+<div style="font-size:13px;margin-top:5px;">Ve a Catálogos y agrega conceptos</div>
 </div>
 </div>
-<!-- Recursos Adicionales -->
+</div>
+</div>
+
 <div class="form-section">
 <div class="form-section-header">
 <div class="form-section-title">🧱 Recursos Adicionales</div>
 </div>
 <div class="form-section-body" style="padding:0;">
-<div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 20px;overflow-x:auto;">
-<button class="res-tab active" onclick="showResTab(this,'materiales')" style="padding:10px 16px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--blue);border-bottom:2px solid var(--blue);font-family:var(--font);white-space:nowrap;">📦 Materiales</button>
-<button class="res-tab" onclick="showResTab(this,'mano-obra')" style="padding:10px 16px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--ink4);border-bottom:2px solid transparent;font-family:var(--font);white-space:nowrap;">👷 Mano de Obra</button>
-<button class="res-tab" onclick="showResTab(this,'equipos')" style="padding:10px 16px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--ink4);border-bottom:2px solid transparent;font-family:var(--font);white-space:nowrap;">🏗️ Equipos</button>
+<div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 20px;">
+<button class="res-tab active" onclick="showResTab(this,'materiales')" style="padding:10px 16px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--blue);border-bottom:2px solid var(--blue);font-family:var(--font);">📦 Materiales</button>
+<button class="res-tab" onclick="showResTab(this,'mano-obra')" style="padding:10px 16px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--ink4);border-bottom:2px solid transparent;font-family:var(--font);">👷 Mano de Obra</button>
+<button class="res-tab" onclick="showResTab(this,'equipos')" style="padding:10px 16px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--ink4);border-bottom:2px solid transparent;font-family:var(--font);">🏗️ Equipos</button>
 </div>
+
 <div id="res-materiales" class="res-panel" style="padding:16px 20px;">
-<button style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--green-l);color:var(--green);border:1px dashed #86efac;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">＋ Agregar material</button>
+<div id="materiales-lista"></div>
+<button onclick="app.agregarMaterial()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--green-l);color:var(--green);border:1px dashed #86efac;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">＋ Agregar material</button>
 </div>
+
 <div id="res-mano-obra" class="res-panel" style="display:none;padding:16px 20px;">
-<button style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--blue-l);color:var(--blue);border:1px dashed var(--blue-m);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">＋ Agregar puesto</button>
+<div id="mano-obra-lista"></div>
+<button onclick="app.agregarManoObra()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--blue-l);color:var(--blue);border:1px dashed var(--blue-m);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">＋ Agregar puesto</button>
 </div>
+
 <div id="res-equipos" class="res-panel" style="display:none;padding:16px 20px;">
-<button style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--amber-l);color:var(--amber);border:1px dashed #fcd34d;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">＋ Agregar equipo</button>
+<div id="equipos-lista"></div>
+<button onclick="app.agregarEquipo()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--amber-l);color:var(--amber);border:1px dashed #fcd34d;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">＋ Agregar equipo</button>
 </div>
 </div>
 </div>
-<!-- Sobrecostos -->
+
 <div class="form-section">
 <div class="form-section-header">
 <div class="form-section-title">⚙️ Sobrecostos e Indirectos</div>
@@ -1115,25 +684,38 @@ tbody td:nth-child(3) { display: none; }
 <div class="form-grid">
 <div class="f-group">
 <label class="f-label">Ind. Oficina (%)</label>
-<input class="f-input" type="number" value="5" style="font-family:var(--mono);">
+<input class="f-input" id="cot-indirectos-oficina" type="number" value="5" onchange="app.calcularTotalConConceptos()" style="font-family:var(--mono);">
 </div>
 <div class="f-group">
 <label class="f-label">Ind. Campo (%)</label>
-<input class="f-input" type="number" value="15" style="font-family:var(--mono);">
+<input class="f-input" id="cot-indirectos-campo" type="number" value="15" onchange="app.calcularTotalConConceptos()" style="font-family:var(--mono);">
 </div>
 <div class="f-group">
 <label class="f-label">Financiamiento (%)</label>
-<input class="f-input" type="number" value="0.85" style="font-family:var(--mono);">
+<input class="f-input" id="cot-financiamiento" type="number" value="0.85" onchange="app.calcularTotalConConceptos()" style="font-family:var(--mono);">
 </div>
 <div class="f-group">
 <label class="f-label">Utilidad (%)</label>
-<input class="f-input" type="number" value="10" style="font-family:var(--mono);border-color:var(--blue);">
+<input class="f-input" id="cot-utilidad" type="number" value="10" onchange="app.calcularTotalConConceptos()" style="font-family:var(--mono);border-color:var(--blue);">
 </div>
 </div>
 </div>
 </div>
+
+<div id="seccion-impacto-factores" style="display:none;background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--radius);padding:20px;margin-bottom:16px;">
+<h4 style="color:var(--amber);margin:0 0 15px 0;font-size:14px;font-weight:700;">⚠️ Impacto de Factores de Ajuste</h4>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;">
+<div><div style="font-size:11px;color:var(--ink4);">Tiempo Original</div><div style="font-size:18px;font-weight:700;color:var(--ink);" id="impacto-tiempo-original">0 días</div></div>
+<div><div style="font-size:11px;color:var(--ink4);">Tiempo Ajustado</div><div style="font-size:18px;font-weight:700;color:var(--rose);" id="impacto-tiempo-ajustado">0 días</div></div>
+<div><div style="font-size:11px;color:var(--ink4);">Factor Total</div><div style="font-size:18px;font-weight:700;color:var(--ink);" id="impacto-factor-total">1.00x</div></div>
+<div><div style="font-size:11px;color:var(--ink4);">Costo Tiempo Ext.</div><div style="font-size:18px;font-weight:700;color:var(--rose);" id="impacto-costo-tiempo">$0.00</div></div>
 </div>
-<!-- RESUMEN PANEL -->
+</div>
+
+<button onclick="app.abrirFactoresAjuste()" style="width:100%;padding:10px;background:var(--amber-l);color:var(--amber);border:1px solid var(--amber);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:16px;font-family:var(--font);">⚠️ Factores de Ajuste</button>
+<button onclick="app.extraerSoloManoDeObra()" id="btn-extraer-mo" style="display:none;width:100%;padding:10px;background:var(--amber-l);color:var(--amber);border:1px solid var(--amber);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:16px;font-family:var(--font);">👷 Extraer Solo Mano de Obra</button>
+</div>
+
 <div>
 <div class="summary-panel">
 <div class="summary-header">
@@ -1141,285 +723,296 @@ tbody td:nth-child(3) { display: none; }
 <p>Cálculo automático en tiempo real</p>
 </div>
 <div class="summary-body">
-<div class="sum-row"><span class="s-label">Costo Directo</span><span class="s-value">$882,500</span></div>
-<div class="sum-row"><span class="s-label">Ind. Oficina (5%)</span><span class="s-value">$44,125</span></div>
-<div class="sum-row"><span class="s-label">Ind. Campo (15%)</span><span class="s-value">$132,375</span></div>
-<div class="sum-row"><span class="s-label">Financiamiento (0.85%)</span><span class="s-value">$7,501</span></div>
-<div class="sum-row"><span class="s-label">Subtotal + Indirectos</span><span class="s-value">$1,066,501</span></div>
-<div class="sum-row"><span class="s-label">Utilidad (10%)</span><span class="s-value" style="color:var(--green);">$106,650</span></div>
-<div class="sum-row"><span class="s-label">IVA (16%)</span><span class="s-value" style="color:var(--blue);">$187,384</span></div>
+<div class="sum-row"><span class="s-label">Costo Directo</span><span class="s-value" id="resumen-costo-directo">$0.00</span></div>
+<div class="sum-row"><span class="s-label">Ind. Oficina</span><span class="s-value" id="resumen-indirectos-oficina">$0.00</span></div>
+<div class="sum-row"><span class="s-label">Ind. Campo</span><span class="s-value" id="resumen-indirectos-campo">$0.00</span></div>
+<div class="sum-row"><span class="s-label">Financiamiento</span><span class="s-value" id="resumen-financiamiento">$0.00</span></div>
+<div class="sum-row"><span class="s-label">Subtotal</span><span class="s-value" id="resumen-subtotal">$0.00</span></div>
+<div class="sum-row"><span class="s-label">Utilidad</span><span class="s-value" id="resumen-utilidad-costo" style="color:var(--green);">$0.00</span></div>
+<div class="sum-row"><span class="s-label">IVA (16%)</span><span class="s-value" id="resumen-iva" style="color:var(--blue);">$0.00</span></div>
 <div class="sum-total">
 <span class="t-label">Total Final</span>
-<span class="t-value">$1,360,535</span>
+<span class="t-value" id="resumen-total">$0.00</span>
 </div>
 <div class="sum-time">
-<div class="sum-time-item">
-<div class="st-val">42</div>
-<div class="st-lab">Días háb.</div>
+<div class="sum-time-item"><div class="st-val" id="tiempo-dias-habiles">0</div><div class="st-lab">Días háb.</div></div>
+<div class="sum-time-item"><div class="st-val" id="tiempo-semanas">0</div><div class="st-lab">Semanas</div></div>
+<div class="sum-time-item"><div class="st-val" id="tiempo-meses">0</div><div class="st-lab">Meses</div></div>
 </div>
-<div class="sum-time-item">
-<div class="st-val">8.4</div>
-<div class="st-lab">Semanas</div>
-</div>
-<div class="sum-time-item">
-<div class="st-val">1.9</div>
-<div class="st-lab">Meses</div>
-</div>
-</div>
-<button class="btn-guardar">💾 Guardar Cotización</button>
-<button style="width:100%;padding:10px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--ink3);cursor:pointer;margin-top:8px;font-family:var(--font);">⚠️ Factores de Ajuste</button>
+<button class="btn-guardar" onclick="app.guardarCotizacion()">💾 Guardar Cotización</button>
 </div>
 </div>
 </div>
 </div>
-</div>
-<!-- ───── LICENCIA / PLANES (COMPLETO) ───── -->
-<div id="screen-licencia" class="screen">
-<!-- Plan activo -->
-<div style="background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--radius-lg);padding:24px 28px;color:white;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;box-shadow:0 8px 32px rgba(37,99,235,.35);">
-<div>
-<div style="font-size:12px;opacity:.75;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Plan actual</div>
-<div style="font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:4px;">PRO 🚀</div>
-<div style="font-size:13px;opacity:.85;">Activo hasta el <strong>15 Mar 2026</strong> · 4 días restantes</div>
-</div>
-<div style="text-align:right;">
-<div style="font-size:12px;opacity:.7;margin-bottom:8px;font-family:var(--mono);">lecterhdz@gmail.com</div>
-<button style="padding:10px 22px;background:white;color:var(--blue);border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);box-shadow:0 2px 8px rgba(0,0,0,.15);">🔄 Renovar ahora</button>
-</div>
-</div>
-<!-- Planes en cards -->
-<div class="plans-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:28px;">
-<!-- DEMO -->
-<div class="plan-card">
-<div class="plan-name">Demo</div>
-<div class="plan-price">$0</div>
-<div class="plan-period">Para explorar · 7 días</div>
-<div class="plan-features">
-<div class="plan-feature"><span class="check">✓</span> Hasta 50 conceptos</div>
-<div class="plan-feature"><span class="check">✓</span> 3 cotizaciones</div>
-<div class="plan-feature"><span class="check">✓</span> 3 clientes</div>
-<div class="plan-feature"><span class="check">✓</span> PDF básico</div>
-<div class="plan-feature"><span class="x">✗</span> Sin importar Excel</div>
-<div class="plan-feature"><span class="x">✗</span> Sin Curva S</div>
-<div class="plan-feature"><span class="x">✗</span> Sin factores de ajuste</div>
-<div class="plan-feature"><span class="x">✗</span> Sin soporte</div>
-</div>
-<button class="plan-btn secondary">Plan gratuito</button>
-</div>
-<!-- PRO — destacado -->
-<div class="plan-card featured">
-<div class="plan-badge">⭐ PLAN ACTUAL</div>
-<div class="plan-name" style="color:var(--blue);">Pro</div>
-<div class="plan-price">$499<span>/mes</span></div>
-<div class="plan-period">Para profesionistas · Ahorra 37% anual</div>
-<div class="plan-features">
-<div class="plan-feature"><span class="check">✓</span> <strong>Conceptos ilimitados</strong></div>
-<div class="plan-feature"><span class="check">✓</span> <strong>Cotizaciones ilimitadas</strong></div>
-<div class="plan-feature"><span class="check">✓</span> Clientes ilimitados</div>
-<div class="plan-feature"><span class="check">✓</span> Importar Excel / Neodata</div>
-<div class="plan-feature"><span class="check">✓</span> Curva S básica incluida</div>
-<div class="plan-feature"><span class="check">✓</span> Factores de ajuste</div>
-<div class="plan-feature"><span class="check">✓</span> PDF profesional con logo</div>
-<div class="plan-feature"><span class="check">✓</span> Soporte por email</div>
-</div>
-<button class="plan-btn primary">🔄 Renovar — $499</button>
-</div>
-<!-- ENTERPRISE -->
-<div class="plan-card">
-<div class="plan-name" style="color:var(--indigo);">Enterprise</div>
-<div class="plan-price">$999<span>/mes</span></div>
-<div class="plan-period">Para despachos y constructoras · Ahorra 35% anual</div>
-<div class="plan-features">
-<div class="plan-feature"><span class="check">✓</span> Todo lo de PRO</div>
-<div class="plan-feature"><span class="check">✓</span> <strong>Múltiples usuarios</strong></div>
-<div class="plan-feature"><span class="check">✓</span> Catálogo compartido</div>
-<div class="plan-feature"><span class="check">✓</span> Historial de precios</div>
-<div class="plan-feature"><span class="check">✓</span> Curva S avanzada (EVM)</div>
-<div class="plan-feature"><span class="check">✓</span> Reportes APU</div>
-<div class="plan-feature"><span class="check">✓</span> Marca personalizada</div>
-<div class="plan-feature"><span class="check">✓</span> Soporte prioritario 24hrs</div>
-</div>
-<button class="plan-btn indigo">📩 Contactar ventas</button>
-</div>
-</div>
-<!-- Activar clave -->
-<div class="license-activate">
-<h4>🔑 Activar con clave de licencia</h4>
-<div class="license-input-group">
-<input type="email" placeholder="tu@email.com" style="flex:1;font-family:var(--font);letter-spacing:normal;text-transform:none;">
-<input type="text" placeholder="XXXX-XXXX-XXXX-XXXX" style="flex:2;">
-<button class="plan-btn primary" style="width:auto;padding:12px 24px;">Activar</button>
-</div>
-<div class="license-note">¿Compraste una licencia? Ingresa tu email y clave para activarla. Contacto: <strong>lecterhdz@gmail.com</strong></div>
-</div>
-</div>
-<!-- ───── FOOTER LINKS ───── -->
-<div class="footer-links">
-    <a href="landing.html" class="footer-link">🏠 Inicio</a>
-    <a href="planes.html" class="footer-link">💎 Planes y Precios</a>
-    <a href="terminos.html" class="footer-link">📄 Términos y Condiciones</a>
-    <a href="privacidad.html" class="footer-link">🔒 Política de Privacidad</a>
-    <a href="mailto:lecterhdz@gmail.com" class="footer-link">📧 Contacto</a>
-</div>
+</section>
 
-<!-- Footer copyright -->
-<div style="text-align:center;padding-top:20px;border-top:1px solid var(--border);margin-top:20px;">
-    <p style="font-size:12px;color:var(--ink4);">
-        &copy; 2026 SmartCot v2.0 — Todos los derechos reservados
-    </p>
-    <p style="font-size:11px;color:var(--ink4);margin-top:8px;">
-        Desarrollado con ❤️ para la industria mexicana
-    </p>
+<!-- ───── CATÁLOGOS ───── -->
+<section id="catalogos-screen" class="screen">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+<button onclick="app.mostrarPantalla('dashboard-screen')" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;font-family:var(--font);">← Volver</button>
+<span id="conceptos-count-catalogo" style="font-size:12px;background:var(--green-l);color:var(--green);font-weight:600;padding:5px 12px;border-radius:20px;font-family:var(--mono);">0 seleccionados</span>
 </div>
+<div class="search-bar" style="display:flex;gap:10px;margin-bottom:20px;">
+<input id="buscar-catalogo" placeholder="🔍 Buscar por código o descripción..." style="flex:1;padding:11px 16px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--ink);font-family:var(--font);" onkeyup="app.buscarEnCatalogo()">
+<button class="topbar-btn primary" onclick="app.buscarEnCatalogo()">🔍 Buscar</button>
+</div>
+<div class="filter-chips" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+<button class="chip active" onclick="app.filtrarCatalogo('todos')" style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;border:none;background:var(--blue);color:white;">📋 Todos</button>
+<button class="chip inactive" onclick="app.filtrarCatalogo('Eléctrico')" style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:var(--white);color:var(--ink3);">⚡ Eléctrico</button>
+<button class="chip inactive" onclick="app.filtrarCatalogo('Mecánico')" style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:var(--white);color:var(--ink3);">🔧 Mecánico</button>
+<button class="chip inactive" onclick="app.filtrarCatalogo('HVAC')" style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:var(--white);color:var(--ink3);">❄️ HVAC</button>
+</div>
+<div id="lista-catalogo" class="concept-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;"></div>
+</section>
+
+<!-- ───── HISTORIAL ───── -->
+<section id="historial-cotizaciones-screen" class="screen">
+<div class="table-wrap">
+<div class="table-toolbar">
+<input class="table-search" id="buscar-cotizacion" placeholder="🔍 Buscar cotizaciones..." onkeyup="historialCotizaciones.buscar()">
+<button class="topbar-btn primary" onclick="historialCotizaciones.cargar()">🔄 Actualizar</button>
+</div>
+<table>
+<thead>
+<tr><th>#</th><th>Proyecto</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Acciones</th></tr>
+</thead>
+<tbody id="historial-cotizaciones-tabla">
+<tr><td colspan="6" style="padding:40px;text-align:center;color:var(--ink4);">Cargando cotizaciones...</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- ───── CURVA S ───── -->
+<section id="curva-s-screen" class="screen">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+<button onclick="app.mostrarPantalla('dashboard-screen')" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;font-family:var(--font);">← Volver</button>
+<span style="font-size:13px;font-weight:700;color:var(--ink);">Curva S - Seguimiento de Obra</span>
+</div>
+<div class="card">
+<div class="card-body">
+<select id="curva-s-cotizacion" class="f-input" style="width:100%;margin-bottom:15px;"><option value="">Cargando cotizaciones...</option></select>
+<div style="display:flex;gap:10px;margin-bottom:20px;">
+<button class="topbar-btn primary" onclick="curvaS.cargarCotizacion()">📊 Cargar</button>
+<button class="topbar-btn ghost" onclick="curvaS.exportarReportePDF()">📄 Exportar PDF</button>
+<button class="topbar-btn ghost" onclick="curvaS.generarCurvaAvanzada()">📈 Curva Avanzada</button>
+</div>
+<div id="curva-s-info-cotizacion"></div>
+<div style="position:relative;height:400px;margin:20px 0;"><canvas id="curva-s-chart"></canvas></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-bottom:25px;">
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:11px;color:var(--ink4);">Variación de Tiempo</div><div style="font-size:24px;font-weight:700;color:var(--blue);" id="variacion-tiempo">0%</div></div>
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:11px;color:var(--ink4);">Índice Desempeño</div><div style="font-size:24px;font-weight:700;color:var(--green);" id="indice-tiempo">1.00</div></div>
+</div>
+<div id="curva-s-avanzada-seccion" style="display:none;margin-top:30px;">
+<h3 style="color:var(--ink);margin-bottom:20px;">📊 Curva S Avanzada (EVM)</h3>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:20px;">
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:10px;color:var(--ink4);">PV</div><div style="font-size:18px;font-weight:700;color:var(--blue);" id="evm-pv">$0.00</div></div>
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:10px;color:var(--ink4);">EV</div><div style="font-size:18px;font-weight:700;color:var(--green);" id="evm-ev">$0.00</div></div>
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:10px;color:var(--ink4);">AC</div><div style="font-size:18px;font-weight:700;color:var(--amber);" id="evm-ac">$0.00</div></div>
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:10px;color:var(--ink4);">CPI</div><div style="font-size:18px;font-weight:700;" id="evm-cpi">0.00</div></div>
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:10px;color:var(--ink4);">SPI</div><div style="font-size:18px;font-weight:700;" id="evm-spi">0.00</div></div>
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:10px;color:var(--ink4);">EAC</div><div style="font-size:18px;font-weight:700;color:var(--rose);" id="evm-eac">$0.00</div></div>
+</div>
+</div>
+<div style="background:var(--bg);padding:20px;border-radius:var(--radius);margin-top:20px;">
+<h4 style="color:var(--ink);margin:0 0 15px 0;">📝 Registrar Avance Semanal</h4>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;">
+<input type="number" id="avance-semana" class="f-input" placeholder="Semana" min="1">
+<input type="number" id="avance-porcentaje" class="f-input" placeholder="Avance (%)" min="0" max="100" step="0.1">
+<input type="number" id="avance-monto" class="f-input" placeholder="Monto ($)" min="0" step="0.01">
+</div>
+<div style="display:flex;gap:10px;margin-top:15px;">
+<button class="topbar-btn primary" onclick="curvaS.guardarAvance()" style="flex:1;">💾 Guardar Avance</button>
+<button class="topbar-btn ghost" onclick="curvaS.actualizarGrafica()" style="flex:1;">🔄 Actualizar</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ───── CONFIGURACIÓN ───── -->
+<section id="configuracion-screen" class="screen">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+<button onclick="app.mostrarPantalla('dashboard-screen')" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;font-family:var(--font);">← Volver</button>
+<span style="font-size:13px;font-weight:700;color:var(--ink);">Configuración</span>
+</div>
+<div class="card">
+<div class="card-body">
+<h3 style="color:var(--ink);margin-bottom:20px;">💰 Costos de Mano de Obra</h3>
+<div id="costos-actuales-display" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:20px;">
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:10px;color:var(--ink4);">👷 Ayudante</div><div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-ayudante">$0.00</div></div>
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:10px;color:var(--ink4);">🔧 Oficial</div><div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-oficial">$0.00</div></div>
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:10px;color:var(--ink4);">⚡ Técnico</div><div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-tecnico">$0.00</div></div>
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;"><div style="font-size:10px;color:var(--ink4);">📋 Supervisor</div><div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-supervisor">$0.00</div></div>
+</div>
+<div class="form-grid" style="margin-bottom:20px;">
+<div class="f-group"><label class="f-label">👷 Ayudante ($/jornada)</label><input class="f-input" id="costo-ayudante" type="number" onchange="app.actualizarDisplayCostos()"></div>
+<div class="f-group"><label class="f-label">🔧 Oficial ($/jornada)</label><input class="f-input" id="costo-oficial" type="number" onchange="app.actualizarDisplayCostos()"></div>
+<div class="f-group"><label class="f-label">⚡ Técnico ($/jornada)</label><input class="f-input" id="costo-tecnico" type="number" onchange="app.actualizarDisplayCostos()"></div>
+<div class="f-group"><label class="f-label">📋 Supervisor ($/jornada)</label><input class="f-input" id="costo-supervisor" type="number" onchange="app.actualizarDisplayCostos()"></div>
+</div>
+<button onclick="app.guardarCostosManoObra()" class="topbar-btn primary">💾 Guardar Costos</button>
+</div>
+</div>
+</section>
+
+<!-- ───── LICENCIA ───── -->
+<section id="licencia-screen" class="screen">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+<button onclick="app.mostrarPantalla('dashboard-screen')" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;font-family:var(--font);">← Volver</button>
+<span style="font-size:13px;font-weight:700;color:var(--ink);">Licencia y Planes</span>
+</div>
+<div class="card">
+<div class="card-body">
+<div style="background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--radius-lg);padding:24px;color:white;margin-bottom:28px;">
+<div style="font-size:12px;opacity:.75;font-family:var(--mono);text-transform:uppercase;margin-bottom:6px;">Plan actual</div>
+<div style="font-size:28px;font-weight:800;margin-bottom:4px;" id="licencia-plan-actual">DEMO</div>
+<div style="font-size:13px;opacity:.85;">Activo hasta el <strong id="licencia-expiry">--</strong></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;margin-bottom:28px;">
+<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;">
+<div style="font-size:13px;font-weight:700;color:var(--ink4);text-transform:uppercase;margin-bottom:4px;">Demo</div>
+<div style="font-size:34px;font-weight:800;color:var(--ink);margin-bottom:4px;">$0</div>
+<div style="font-size:12px;color:var(--ink4);margin-bottom:20px;">Para explorar</div>
+<button style="width:100%;padding:10px;background:var(--bg2);color:var(--ink4);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:default;font-family:var(--font);">Plan gratuito</button>
+</div>
+<div style="background:linear-gradient(160deg,#f0f7ff,var(--white));border:2px solid var(--blue);border-radius:var(--radius-lg);padding:24px;position:relative;">
+<div style="font-size:13px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:4px;">Pro</div>
+<div style="font-size:34px;font-weight:800;color:var(--ink);margin-bottom:4px;">$499<span style="font-size:16px;font-weight:500;color:var(--ink4);">/mes</span></div>
+<div style="font-size:12px;color:var(--ink4);margin-bottom:20px;">Para profesionistas</div>
+<button onclick="app.comprarPlan('PRO')" style="width:100%;padding:10px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);">🔄 Renovar — $499</button>
+</div>
+<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;">
+<div style="font-size:13px;font-weight:700;color:var(--indigo);text-transform:uppercase;margin-bottom:4px;">Enterprise</div>
+<div style="font-size:34px;font-weight:800;color:var(--ink);margin-bottom:4px;">$999<span style="font-size:16px;font-weight:500;color:var(--ink4);">/mes</span></div>
+<div style="font-size:12px;color:var(--ink4);margin-bottom:20px;">Para despachos</div>
+<button onclick="app.comprarPlan('ENTERPRISE')" style="width:100%;padding:10px;background:var(--indigo);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);">📩 Contactar ventas</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ───── IMPORTAR ───── -->
+<section id="importar-screen" class="screen">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+<button onclick="app.mostrarPantalla('dashboard-screen')" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;font-family:var(--font);">← Volver</button>
+<span style="font-size:13px;font-weight:700;color:var(--ink);">Importar Datos desde Excel</span>
+</div>
+<div class="card">
+<div class="card-body">
+<div style="background:var(--white);border:2px dashed var(--border2);border-radius:var(--radius-lg);padding:48px 32px;text-align:center;margin-bottom:20px;cursor:pointer;" onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-l)'" onmouseout="this.style.borderColor='var(--border2)';this.style.background='var(--white)'">
+<div style="font-size:52px;margin-bottom:16px;">📊</div>
+<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:8px;">Arrastra tu archivo Excel aquí</div>
+<div style="font-size:13px;color:var(--ink4);margin-bottom:20px;">Formatos soportados: <strong>.xlsx</strong> · <strong>.xls</strong> · exportaciones de <strong>Neodata</strong></div>
+<input type="file" id="excel-file" accept=".xlsx,.xls" style="display:none;" onchange="importadorSmartCot.iniciarImportacion()">
+<button onclick="document.getElementById('excel-file').click()" style="padding:10px 24px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);">📁 Seleccionar archivo</button>
+</div>
+<div id="import-progress" style="display:none;background:var(--bg);border-radius:var(--radius-sm);padding:20px;margin-bottom:20px;">
+<div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span>Progreso:</span><span id="progress-percent">0%</span></div>
+<div style="height:8px;background:var(--border2);border-radius:4px;overflow:hidden;"><div id="progress-bar" style="height:100%;background:var(--green);width:0%;transition:width .3s;border-radius:4px;"></div></div>
+<div id="progress-log" style="margin-top:15px;font-size:12px;color:var(--ink4);max-height:150px;overflow-y:auto;"></div>
+</div>
+<div style="display:flex;gap:10px;">
+<button class="topbar-btn primary" onclick="importadorSmartCot.iniciarImportacion()" style="flex:1;">🚀 Iniciar Importación</button>
+<button class="topbar-btn ghost" onclick="app.mostrarPantalla('dashboard-screen')" style="flex:1;">↩️ Volver</button>
+</div>
+</div>
+</div>
+</section>
 
 </div><!-- /content -->
 </div><!-- /main -->
+</div><!-- /layout -->
 
 <!-- Overlay para cerrar sidebar en móvil -->
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <!-- Barra inferior — solo móvil -->
 <nav class="bottom-nav">
-    <div class="bottom-nav-inner">
-        <button class="bn-item active" id="bn-dashboard" onclick="showScreen('dashboard');closeSidebar()">
-            <span class="bn-icon">⊞</span>
-            <span class="bn-label">Inicio</span>
-        </button>
-        <button class="bn-item" id="bn-catalogo" onclick="showScreen('catalogo');closeSidebar()">
-            <span class="bn-icon">📚</span>
-            <span class="bn-label">Catálogo</span>
-        </button>
-        <button class="bn-item" id="bn-cotizacion" onclick="showScreen('cotizacion');closeSidebar()" style="position:relative;">
-            <!-- Botón central destacado -->
-            <span style="
-                position:absolute;top:-14px;
-                width:50px;height:50px;border-radius:50%;
-                background:linear-gradient(135deg,var(--blue),var(--indigo));
-                display:flex;align-items:center;justify-content:center;
-                font-size:22px;
-                box-shadow:0 4px 16px rgba(37,99,235,.4);
-                border:3px solid var(--white);
-            ">📝</span>
-            <span class="bn-icon" style="opacity:0;">📝</span>
-            <span class="bn-label" style="margin-top:12px;">Nueva</span>
-        </button>
-        <button class="bn-item" id="bn-historial" onclick="showScreen('historial');closeSidebar()">
-            <span class="bn-icon">📋</span>
-            <span class="bn-label">Historial</span>
-        </button>
-        <button class="bn-item" id="bn-config" onclick="showScreen('config');closeSidebar()">
-            <span class="bn-icon">⚙️</span>
-            <span class="bn-label">Config</span>
-        </button>
-    </div>
+<div class="bottom-nav-inner">
+<button class="bn-item active" id="bn-dashboard" onclick="app.mostrarPantalla('dashboard-screen');closeSidebar()">
+<span class="bn-icon">⊞</span>
+<span class="bn-label">Inicio</span>
+</button>
+<button class="bn-item" id="bn-catalogo" onclick="app.mostrarPantalla('catalogos-screen');closeSidebar()">
+<span class="bn-icon">📚</span>
+<span class="bn-label">Catálogo</span>
+</button>
+<button class="bn-item" id="bn-cotizacion" onclick="app.mostrarPantalla('nueva-cotizacion-screen');closeSidebar()" style="position:relative;">
+<span style="position:absolute;top:-14px;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--indigo));display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(37,99,235,.4);border:3px solid var(--white);">📝</span>
+<span class="bn-icon" style="opacity:0;">📝</span>
+<span class="bn-label" style="margin-top:12px;">Nueva</span>
+</button>
+<button class="bn-item" id="bn-historial" onclick="app.mostrarPantalla('historial-cotizaciones-screen');closeSidebar()">
+<span class="bn-icon">📋</span>
+<span class="bn-label">Historial</span>
+</button>
+<button class="bn-item" id="bn-config" onclick="app.mostrarPantalla('configuracion-screen');closeSidebar()">
+<span class="bn-icon">⚙️</span>
+<span class="bn-label">Config</span>
+</button>
+</div>
 </nav>
 
-</div><!-- /layout -->
+<!-- ══════════════ MODALS ══════════════ -->
+<div id="modal-cliente" class="modal">
+<div class="modal-content">
+<div class="modal-header">
+<div class="modal-title">👤 Agregar Cliente Rápido</div>
+<button class="modal-close" onclick="app.cerrarModalCliente()">✕</button>
+</div>
+<div class="modal-body">
+<div class="f-group"><label class="f-label">Nombre del Cliente *</label><input class="f-input" id="modal-cliente-nombre" placeholder="Nombre de la empresa o persona"></div>
+<div class="f-group" style="margin-top:15px;"><label class="f-label">Email</label><input class="f-input" id="modal-cliente-email" type="email" placeholder="cliente@email.com"></div>
+<div class="f-group" style="margin-top:15px;"><label class="f-label">Teléfono</label><input class="f-input" id="modal-cliente-telefono" placeholder="55-1234-5678"></div>
+<div class="f-group" style="margin-top:15px;"><label class="f-label">Notas (opcional)</label><textarea class="f-input" id="modal-cliente-notas" placeholder="Dirección, RFC, comentarios..." style="min-height:80px;"></textarea></div>
+</div>
+<div class="modal-footer">
+<button onclick="app.cerrarModalCliente()" class="topbar-btn ghost">❌ Cancelar</button>
+<button onclick="app.guardarClienteRapido()" class="topbar-btn primary">💾 Guardar y Seleccionar</button>
+</div>
+</div>
+</div>
 
-<!-- ══════════════════════════════════════
-SCRIPTS DE NAVEGACIÓN
-══════════════════════════════════════ -->
-<script>
-// Mapeo de títulos por pantalla
-const titles = {
-    dashboard:  ['Dashboard',        'Resumen general · Hoy, ' + new Date().toLocaleDateString('es-MX')],
-    cotizacion: ['Nueva Cotización', 'Crea y calcula tu cotización'],
-    historial:  ['Historial',        'Todas las cotizaciones guardadas'],
-    catalogo:   ['Catálogo APU',     'Busca y agrega conceptos'],
-    importar:   ['Importar Excel',   'Sube tu archivo Neodata'],
-    curvas:     ['Curva S',          'Seguimiento de obra'],
-    config:     ['Configuración',    'Ajustes generales'],
-    licencia:   ['Licencia / Planes','Gestión de suscripción'],
-    detalle:    ['Cotización #0012', 'Instalación HVAC Planta Norte'],
-};
+<div id="modal-factores" class="modal">
+<div class="modal-content">
+<div class="modal-header">
+<div class="modal-title">📊 Factores de Ajuste de Rendimientos</div>
+<button class="modal-close" onclick="document.getElementById('modal-factores').classList.remove('active')">✕</button>
+</div>
+<div class="modal-body">
+<div class="f-group"><label class="f-label">Altura / Elevación</label><select id="factor-altura" class="f-input" onchange="app.aplicarFactores();app.calcularCostoTiempoExtendido();"><option value="1">Sin altura (0-3m) - 100%</option><option value="1.15">Altura media (3-5m) - 115%</option><option value="1.25">Altura alta (5-10m) - 125%</option><option value="1.40">Altura muy alta (+10m) - 140%</option></select></div>
+<div class="f-group" style="margin-top:15px;"><label class="f-label">Condiciones Climáticas</label><select id="factor-clima" class="f-input" onchange="app.aplicarFactores();app.calcularCostoTiempoExtendido();"><option value="1">Normal - 100%</option><option value="1.10">Calor extremo (>35°C) - 110%</option><option value="1.10">Frío extremo (<5°C) - 110%</option><option value="1.15">Lluvia / Humedad - 115%</option></select></div>
+<div class="f-group" style="margin-top:15px;"><label class="f-label">Dificultad de Acceso</label><select id="factor-acceso" class="f-input" onchange="app.aplicarFactores();app.calcularCostoTiempoExtendido();"><option value="1">Acceso libre - 100%</option><option value="1.10">Acceso restringido - 110%</option><option value="1.20">Espacio confinado - 120%</option><option value="1.25">Área operativa - 125%</option></select></div>
+<div class="f-group" style="margin-top:15px;"><label class="f-label">🔒 Nivel de Seguridad Requerido</label><select id="factor-seguridad" class="f-input" onchange="app.aplicarFactores();app.calcularCostoTiempoExtendido();" style="border-color:var(--amber);"><option value="1">Estándar (Sin permisos especiales) - 100%</option><option value="1.05">Permiso de trabajo básico - 105%</option><option value="1.10">ATS + Liberación de área - 110%</option><option value="1.15">Permiso de altura + Espacio confinado - 115%</option><option value="1.20">Área clasificada + Múltiples permisos - 120%</option><option value="1.25">Paro de planta + Todos los permisos - 125%</option></select><small style="color:var(--amber);font-size:10px;display:block;margin-top:5px;">Incluye: tramitar permisos, ATS, liberación de área, supervisiones, etc.</small></div>
+<div style="margin-top:20px;background:var(--blue-l);padding:15px;border-radius:var(--radius-sm);"><div style="font-size:11px;color:var(--blue);margin-bottom:10px;">📈 Impacto en Tiempo de Ejecución</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div><div style="font-size:10px;color:var(--ink4);">Tiempo Original</div><div style="font-size:18px;font-weight:700;" id="tiempo-original">0 días</div></div><div><div style="font-size:10px;color:var(--ink4);">Tiempo Ajustado</div><div style="font-size:18px;font-weight:700;color:var(--rose);" id="tiempo-ajustado">0 días</div></div></div></div>
+</div>
+<div class="modal-footer">
+<button onclick="document.getElementById('modal-factores').classList.remove('active')" class="topbar-btn ghost">❌ Cancelar</button>
+<button onclick="app.guardarFactores()" class="topbar-btn primary">✅ Aplicar Factores</button>
+</div>
+</div>
+</div>
 
-// Mapeo de navegación inferior
-const bottomNavMap = ['dashboard','catalogo','cotizacion','historial','config'];
+<div id="modal-extraer-mo" class="modal">
+<div class="modal-content">
+<div class="modal-header">
+<div class="modal-title">👷 Extraer Solo Mano de Obra</div>
+<button class="modal-close" onclick="app.cancelarExtraerManoDeObra()">✕</button>
+</div>
+<div class="modal-body">
+<div style="background:var(--amber-l);padding:15px;border-radius:var(--radius-sm);margin-bottom:20px;border-left:4px solid var(--amber);"><p style="color:var(--amber);font-size:12px;margin:0;">ℹ️ Esto creará UNA NUEVA cotización solo con la mano de obra de los conceptos seleccionados.</p></div>
+<div id="resumen-mano-obra-extraer" style="background:var(--bg);padding:15px;border-radius:var(--radius-sm);margin-bottom:20px;max-height:400px;overflow-y:auto;"></div>
+</div>
+<div class="modal-footer">
+<button onclick="app.cancelarExtraerManoDeObra()" class="topbar-btn ghost">❌ Cancelar</button>
+<button onclick="app.confirmarExtraerManoDeObra()" class="topbar-btn primary">✅ Sí, Extraer Mano de Obra</button>
+</div>
+</div>
+</div>
 
-// Función principal para cambiar pantallas
-function showScreen(id) {
-    // Screens
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    const screen = document.getElementById('screen-' + id);
-    if (screen) screen.classList.add('active');
-    
-    // Sidebar nav items
-    document.querySelectorAll('.nav-item').forEach(n => {
-        const oc = n.getAttribute('onclick') || '';
-        n.classList.toggle('active', oc.includes("'" + id + "'"));
-    });
-    
-    // Bottom nav
-    bottomNavMap.forEach(key => {
-        const el = document.getElementById('bn-' + key);
-        if (el) el.classList.toggle('active', key === id);
-    });
-    
-    // Topbar
-    const t = titles[id] || [id, ''];
-    document.getElementById('topbar-title').textContent = t[0];
-    document.getElementById('topbar-sub').textContent   = t[1];
-    
-    window.scrollTo({ top:0, behavior:'smooth' });
-    closeSidebar();
-}
-
-// Toggle sidebar en móvil
-function toggleSidebar() {
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    const isOpen  = sidebar.classList.contains('open');
-    if (isOpen) {
-        closeSidebar();
-    } else {
-        sidebar.classList.add('open');
-        overlay.classList.add('open');
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-// Cerrar sidebar
-function closeSidebar() {
-    document.querySelector('.sidebar').classList.remove('open');
-    document.getElementById('sidebar-overlay').classList.remove('open');
-    document.body.style.overflow = '';
-}
-
-// Filter chips
-document.querySelectorAll('.chip').forEach(chip => {
-    chip.addEventListener('click', function() {
-        document.querySelectorAll('.chip').forEach(c => c.className = 'chip inactive');
-        this.className = 'chip active';
-    });
-});
-
-// Tabs de recursos en cotización
-function showResTab(btn, panel) {
-    document.querySelectorAll('.res-tab').forEach(t => {
-        t.style.color = 'var(--ink4)';
-        t.style.borderBottom = '2px solid transparent';
-    });
-    btn.style.color = 'var(--blue)';
-    btn.style.borderBottom = '2px solid var(--blue)';
-    document.querySelectorAll('.res-panel').forEach(p => p.style.display = 'none');
-    document.getElementById('res-' + panel).style.display = 'block';
-}
-
-// Escape key cierra sidebar
-document.addEventListener('keydown', e => { 
-    if (e.key === 'Escape') closeSidebar(); 
-});
-
-// Inicializar pantalla activa
-document.addEventListener('DOMContentLoaded', function() {
-    showScreen('dashboard');
-    console.log('✅ SmartCot v2.0 — Diseño Moderno cargado');
-});
-</script>
-
-<!-- ══════════════════════════════════════
-SCRIPTS DE LA APLICACIÓN
-══════════════════════════════════════ -->
+<!-- ══════════════ SCRIPTS ══════════════ -->
 <script src="licencias.js"></script>
 <script src="auth.js"></script>
 <script src="db.js"></script>
@@ -1436,135 +1029,93 @@ SCRIPTS DE LA APLICACIÓN
 <script src="app.js"></script>
 <script type="module" src="firebase-config.js"></script>
 
-<!-- Service Worker -->
 <script>
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('✅ SW registrado:', reg.scope))
-        .catch(err => console.log('⚠️ SW error:', err));
+// Toggle sidebar en móvil
+function toggleSidebar() {
+const sidebar = document.querySelector('.sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+const isOpen  = sidebar.classList.contains('open');
+if (isOpen) { closeSidebar(); } else {
+sidebar.classList.add('open');
+overlay.classList.add('open');
+document.body.style.overflow = 'hidden';
+}
+}
+function closeSidebar() {
+document.querySelector('.sidebar').classList.remove('open');
+document.getElementById('sidebar-overlay').classList.remove('open');
+document.body.style.overflow = '';
+}
+
+// Tabs de recursos en cotización
+function showResTab(btn, panel) {
+document.querySelectorAll('.res-tab').forEach(t => {
+t.style.color = 'var(--ink4)';
+t.style.borderBottom = '2px solid transparent';
+});
+btn.style.color = 'var(--blue)';
+btn.style.borderBottom = '2px solid var(--blue)';
+document.querySelectorAll('.res-panel').forEach(p => p.style.display = 'none');
+document.getElementById('res-' + panel).style.display = 'block';
+}
+
+// Filter chips
+document.querySelectorAll('.chip').forEach(chip => {
+chip.addEventListener('click', function() {
+document.querySelectorAll('.chip').forEach(c => {
+c.className = 'chip inactive';
+c.style.background = 'var(--white)';
+c.style.color = 'var(--ink3)';
+c.style.border = '1px solid var(--border)';
+});
+this.className = 'chip active';
+this.style.background = 'var(--blue)';
+this.style.color = 'white';
+this.style.border = 'none';
+});
+});
+
+// Escape key cierra modals y sidebar
+document.addEventListener('keydown', e => {
+if (e.key === 'Escape') {
+closeSidebar();
+document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+}
+});
+
+// Actualizar topbar title según pantalla
+const screenTitles = {
+'dashboard-screen': ['Dashboard', 'Resumen general'],
+'nueva-cotizacion-screen': ['Nueva Cotización', 'Crea y calcula tu cotización'],
+'catalogos-screen': ['Catálogo APU', 'Busca y agrega conceptos'],
+'historial-cotizaciones-screen': ['Historial', 'Todas las cotizaciones guardadas'],
+'curva-s-screen': ['Curva S', 'Seguimiento de obra'],
+'configuracion-screen': ['Configuración', 'Ajustes generales'],
+'licencia-screen': ['Licencia / Planes', 'Gestión de suscripción'],
+'importar-screen': ['Importar Excel', 'Sube tu archivo Neodata']
+};
+
+// Override de mostrarPantalla para actualizar UI
+const originalMostrarPantalla = window.app?.mostrarPantalla;
+if (originalMostrarPantalla) {
+window.app.mostrarPantalla = async function(id) {
+await originalMostrarPantalla.call(this, id);
+const titleData = screenTitles[id] || [id, ''];
+document.getElementById('topbar-title').textContent = titleData[0];
+document.getElementById('topbar-sub').textContent = titleData[1];
+// Update nav active state
+document.querySelectorAll('.nav-item').forEach(n => {
+const oc = n.getAttribute('onclick') || '';
+n.classList.toggle('active', oc.includes("'" + id + "'"));
+});
+// Update bottom nav
+['dashboard','catalogo','cotizacion','historial','config'].forEach(key => {
+const el = document.getElementById('bn-' + key);
+if (el) el.classList.toggle('active', key === id.replace('-screen', '').replace('nueva-', '').replace('cotizaciones-', ''));
+});
+closeSidebar();
+};
 }
 </script>
-<!-- MODAL CLIENTE RÁPIDO -->
-<div id="modal-cliente" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <div class="modal-title">👤 Agregar Cliente Rápido</div>
-            <button class="modal-close" onclick="app.cerrarModalCliente()">✕</button>
-        </div>
-        <div class="modal-body">
-            <div class="f-group">
-                <label class="f-label">Nombre del Cliente *</label>
-                <input class="f-input" id="modal-cliente-nombre" placeholder="Nombre de la empresa o persona">
-            </div>
-            <div class="f-group">
-                <label class="f-label">Email</label>
-                <input class="f-input" id="modal-cliente-email" type="email" placeholder="cliente@email.com">
-            </div>
-            <div class="f-group">
-                <label class="f-label">Teléfono</label>
-                <input class="f-input" id="modal-cliente-telefono" placeholder="55-1234-5678">
-            </div>
-            <div class="f-group">
-                <label class="f-label">Notas (opcional)</label>
-                <textarea class="f-input" id="modal-cliente-notas" placeholder="Dirección, RFC, comentarios..." style="min-height:80px;"></textarea>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="topbar-btn ghost" onclick="app.cerrarModalCliente()">❌ Cancelar</button>
-            <button class="topbar-btn primary" onclick="app.guardarClienteRapido()">💾 Guardar y Seleccionar</button>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL FACTORES DE AJUSTE -->
-<div id="modal-factores" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <div class="modal-title">📊 Factores de Ajuste de Rendimientos</div>
-            <button class="modal-close" onclick="document.getElementById('modal-factores').classList.remove('active')">✕</button>
-        </div>
-        <div class="modal-body">
-            <div class="f-group">
-                <label class="f-label">Altura / Elevación</label>
-                <select id="factor-altura" class="f-input" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();">
-                    <option value="1">Sin altura (0-3m) - 100%</option>
-                    <option value="1.15">Altura media (3-5m) - 115%</option>
-                    <option value="1.25">Altura alta (5-10m) - 125%</option>
-                    <option value="1.40">Altura muy alta (+10m) - 140%</option>
-                </select>
-            </div>
-            <div class="f-group">
-                <label class="f-label">Condiciones Climáticas</label>
-                <select id="factor-clima" class="f-input" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();">
-                    <option value="1">Normal - 100%</option>
-                    <option value="1.10">Calor extremo (>35°C) - 110%</option>
-                    <option value="1.10">Frío extremo (<5°C) - 110%</option>
-                    <option value="1.15">Lluvia / Humedad - 115%</option>
-                </select>
-            </div>
-            <div class="f-group">
-                <label class="f-label">Dificultad de Acceso</label>
-                <select id="factor-acceso" class="f-input" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();">
-                    <option value="1">Acceso libre - 100%</option>
-                    <option value="1.10">Acceso restringido - 110%</option>
-                    <option value="1.20">Espacio confinado - 120%</option>
-                    <option value="1.25">Área operativa - 125%</option>
-                </select>
-            </div>
-            <div class="f-group">
-                <label class="f-label">🔒 Nivel de Seguridad Requerido</label>
-                <select id="factor-seguridad" class="f-input" onchange="app.aplicarFactores(); app.calcularCostoTiempoExtendido();" style="border-color:var(--amber);">
-                    <option value="1">Estándar (Sin permisos especiales) - 100%</option>
-                    <option value="1.05">Permiso de trabajo básico - 105%</option>
-                    <option value="1.10">ATS + Liberación de área - 110%</option>
-                    <option value="1.15">Permiso de altura + Espacio confinado - 115%</option>
-                    <option value="1.20">Área clasificada + Múltiples permisos - 120%</option>
-                    <option value="1.25">Paro de planta + Todos los permisos - 125%</option>
-                </select>
-                <small style="color:var(--amber);font-size:10px;display:block;margin-top:5px;">Incluye: tramitar permisos, ATS, liberación de área, supervisiones, etc.</small>
-            </div>
-            <div style="background:var(--blue-l);padding:15px;border-radius:var(--radius-sm);margin-top:15px;">
-                <div style="font-size:11px;color:var(--blue);margin-bottom:10px;">📈 Impacto en Tiempo de Ejecución</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                    <div>
-                        <div style="font-size:10px;color:var(--ink4);">Tiempo Original</div>
-                        <div style="font-size:16px;font-weight:700;" id="tiempo-original">0 días</div>
-                    </div>
-                    <div>
-                        <div style="font-size:10px;color:var(--ink4);">Tiempo Ajustado</div>
-                        <div style="font-size:16px;font-weight:700;color:var(--rose);" id="tiempo-ajustado">0 días</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="topbar-btn ghost" onclick="document.getElementById('modal-factores').classList.remove('active')">❌ Cancelar</button>
-            <button class="topbar-btn primary" onclick="app.guardarFactores()">✅ Aplicar Factores</button>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL EXTRAER MANO DE OBRA -->
-<div id="modal-extraer-mo" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <div class="modal-title">👷 Extraer Solo Mano de Obra</div>
-            <button class="modal-close" onclick="app.cancelarExtraerManoDeObra()">✕</button>
-        </div>
-        <div class="modal-body">
-            <div style="background:var(--amber-l);padding:15px;border-radius:var(--radius-sm);margin-bottom:15px;">
-                <p style="color:var(--amber);font-size:12px;margin:0;">
-                    ℹ️ Esto creará UNA NUEVA cotización solo con la mano de obra de los conceptos seleccionados.
-                </p>
-            </div>
-            <div id="resumen-mano-obra-extraer" style="background:var(--bg);padding:15px;border-radius:var(--radius-sm);margin-bottom:15px;max-height:400px;overflow-y:auto;"></div>
-        </div>
-        <div class="modal-footer">
-            <button class="topbar-btn ghost" onclick="app.cancelarExtraerManoDeObra()">❌ Cancelar</button>
-            <button class="topbar-btn primary" onclick="app.confirmarExtraerManoDeObra()">✅ Sí, Extraer Mano de Obra</button>
-        </div>
-    </div>
-</div>
 </body>
 </html>
-
