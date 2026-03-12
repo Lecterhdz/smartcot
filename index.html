@@ -929,220 +929,271 @@ table { min-width: 600px; }
 </div>
 </section>
 
-// ─────────────────────────────────────────────────────────────────
-// CONFIGURACIÓN - FUNCIONES ACTUALIZADAS
-// ─────────────────────────────────────────────────────────────────
+<!-- ───── CONFIGURACIÓN ───── -->
+<section id="configuracion-screen" class="screen">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+<button onclick="app.mostrarPantalla('dashboard-screen')" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;font-family:var(--font);">← Volver</button>
+<span style="font-size:13px;font-weight:700;color:var(--ink);">Configuración</span>
+</div>
 
-// Cargar configuración completa
-cargarConfiguracion: async function() {
-try {
-if (!window.db) return;
+<div class="card">
+<div class="card-body">
 
-// Cargar datos de empresa
-const config = await window.db.configuracion.toArray();
-const configObj = {};
-config.forEach(function(c) { configObj[c.clave] = c.valor; });
+<!-- ═══════════════════════════════════════════════════════════════
+     DATOS DE LA EMPRESA
+     ═══════════════════════════════════════════════════════════════ -->
+<div style="margin-bottom:30px;">
+<h3 style="color:var(--ink);margin-bottom:20px;">🏢 Datos de la Empresa</h3>
+<div class="form-grid" style="margin-bottom:20px;">
+<div class="f-group">
+<label class="f-label">Nombre de la Empresa</label>
+<input class="f-input" id="config-empresa" type="text" placeholder="Ej: Constructora ABC S.A. de C.V." style="font-family:var(--font);">
+</div>
+<div class="f-group">
+<label class="f-label">RFC</label>
+<input class="f-input" id="config-rfc" type="text" placeholder="ABC123456XYZ" style="font-family:var(--mono);text-transform:uppercase;">
+</div>
+</div>
+<div class="form-grid" style="margin-bottom:20px;">
+<div class="f-group">
+<label class="f-label">Email de Contacto</label>
+<input class="f-input" id="config-email" type="email" placeholder="contacto@empresa.com" style="font-family:var(--font);">
+</div>
+<div class="f-group">
+<label class="f-label">Teléfono</label>
+<input class="f-input" id="config-telefono" type="tel" placeholder="55-1234-5678" style="font-family:var(--font);">
+</div>
+</div>
+<div class="f-group" style="margin-bottom:20px;">
+<label class="f-label">Dirección</label>
+<textarea class="f-input" id="config-direccion" placeholder="Calle, Número, Colonia, Ciudad, Estado, CP" style="min-height:80px;font-family:var(--font);"></textarea>
+</div>
+<button onclick="app.guardarConfiguracionEmpresa()" class="topbar-btn primary">💾 Guardar Datos de Empresa</button>
+</div>
 
-// Empresa
-const elEmpresa = document.getElementById('config-empresa');
-const elRfc = document.getElementById('config-rfc');
-const elEmail = document.getElementById('config-email');
-const elTelefono = document.getElementById('config-telefono');
-const elDireccion = document.getElementById('config-direccion');
-if (elEmpresa && configObj.empresa) elEmpresa.value = configObj.empresa;
-if (elRfc && configObj.rfc) elRfc.value = configObj.rfc;
-if (elEmail && configObj.email) elEmail.value = configObj.email;
-if (elTelefono && configObj.telefono) elTelefono.value = configObj.telefono;
-if (elDireccion && configObj.direccion) elDireccion.value = configObj.direccion;
+<div style="border-top:1px solid var(--border);margin:30px 0;"></div>
 
-// Parámetros
-const elIva = document.getElementById('config-iva');
-const elUtilidad = document.getElementById('config-utilidad');
-const elIndOficina = document.getElementById('config-indirectos-oficina');
-const elIndCampo = document.getElementById('config-indirectos-campo');
-if (elIva && configObj.iva) elIva.value = configObj.iva;
-if (elUtilidad && configObj.utilidad) elUtilidad.value = configObj.utilidad;
-if (elIndOficina && configObj.indirectosOficina) elIndOficina.value = configObj.indirectosOficina;
-if (elIndCampo && configObj.indirectosCampo) elIndCampo.value = configObj.indirectosCampo;
+<!-- ═══════════════════════════════════════════════════════════════
+     COSTOS DE MANO DE OBRA
+     ═══════════════════════════════════════════════════════════════ -->
+<div style="margin-bottom:30px;">
+<h3 style="color:var(--ink);margin-bottom:20px;">💰 Costos de Mano de Obra</h3>
+<div style="background:var(--blue-l);padding:15px;border-radius:var(--radius-sm);margin-bottom:20px;border-left:4px solid var(--blue);">
+<p style="color:var(--blue);font-size:13px;margin:0;">
+ℹ️ Estos costos se aplicarán automáticamente a todos los conceptos del catálogo.
+<br><strong>Disponible en planes PRO y ENTERPRISE.</strong>
+</p>
+</div>
 
-// Marca (solo ENTERPRISE)
-const elColor = document.getElementById('config-color');
-const elSeccionMarca = document.getElementById('seccion-marca-personalizada');
-if (elColor && configObj.marca_colores) elColor.value = configObj.marca_colores;
-const licencia = window.licencia.cargar();
-if (elSeccionMarca) {
-elSeccionMarca.style.display = (licencia?.tipo === 'ENTERPRISE') ? 'block' : 'none';
+<!-- Display de costos actuales -->
+<div id="costos-actuales-display" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:20px;">
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;">
+<div style="font-size:10px;color:var(--ink4);">👷 Ayudante</div>
+<div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-ayudante">$0.00</div>
+<div style="font-size:9px;color:var(--ink4);margin-top:5px;">por jornada</div>
+</div>
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;">
+<div style="font-size:10px;color:var(--ink4);">🔧 Oficial</div>
+<div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-oficial">$0.00</div>
+<div style="font-size:9px;color:var(--ink4);margin-top:5px;">por jornada</div>
+</div>
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;">
+<div style="font-size:10px;color:var(--ink4);">⚡ Técnico</div>
+<div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-tecnico">$0.00</div>
+<div style="font-size:9px;color:var(--ink4);margin-top:5px;">por jornada</div>
+</div>
+<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;">
+<div style="font-size:10px;color:var(--ink4);">📋 Supervisor</div>
+<div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-supervisor">$0.00</div>
+<div style="font-size:9px;color:var(--ink4);margin-top:5px;">por jornada</div>
+</div>
+</div>
+
+<!-- Inputs para editar costos -->
+<div class="form-grid" style="margin-bottom:20px;">
+<div class="f-group">
+<label class="f-label">👷 Ayudante ($/jornada)</label>
+<input class="f-input" id="costo-ayudante" type="number" min="0" step="0.01" placeholder="250" onchange="app.actualizarDisplayCostos()" style="font-family:var(--mono);">
+</div>
+<div class="f-group">
+<label class="f-label">🔧 Oficial ($/jornada)</label>
+<input class="f-input" id="costo-oficial" type="number" min="0" step="0.01" placeholder="350" onchange="app.actualizarDisplayCostos()" style="font-family:var(--mono);">
+</div>
+<div class="f-group">
+<label class="f-label">⚡ Técnico ($/jornada)</label>
+<input class="f-input" id="costo-tecnico" type="number" min="0" step="0.01" placeholder="450" onchange="app.actualizarDisplayCostos()" style="font-family:var(--mono);">
+</div>
+<div class="f-group">
+<label class="f-label">📋 Supervisor ($/jornada)</label>
+<input class="f-input" id="costo-supervisor" type="number" min="0" step="0.01" placeholder="550" onchange="app.actualizarDisplayCostos()" style="font-family:var(--mono);">
+</div>
+</div>
+
+<div style="display:flex;gap:10px;flex-wrap:wrap;">
+<button onclick="app.guardarCostosManoObra()" class="topbar-btn primary">💾 Guardar Costos</button>
+<button onclick="app.aplicarCostosAConceptos()" class="topbar-btn ghost" title="Aplicar a todos los conceptos existentes">🔄 Aplicar a Catálogo</button>
+</div>
+</div>
+
+<div style="border-top:1px solid var(--border);margin:30px 0;"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PARÁMETROS DE COTIZACIÓN
+     ═══════════════════════════════════════════════════════════════ -->
+<div style="margin-bottom:30px;">
+<h3 style="color:var(--ink);margin-bottom:20px;">⚙️ Parámetros de Cotización</h3>
+<div class="form-grid" style="margin-bottom:20px;">
+<div class="f-group">
+<label class="f-label">IVA (%)</label>
+<input class="f-input" id="config-iva" type="number" min="0" max="100" step="0.01" value="16" style="font-family:var(--mono);">
+</div>
+<div class="f-group">
+<label class="f-label">Utilidad Predeterminada (%)</label>
+<input class="f-input" id="config-utilidad" type="number" min="0" max="100" step="0.01" value="10" style="font-family:var(--mono);">
+</div>
+</div>
+<div class="form-grid" style="margin-bottom:20px;">
+<div class="f-group">
+<label class="f-label">Indirectos Oficina (%)</label>
+<input class="f-input" id="config-indirectos-oficina" type="number" min="0" max="100" step="0.01" value="5" style="font-family:var(--mono);">
+</div>
+<div class="f-group">
+<label class="f-label">Indirectos Campo (%)</label>
+<input class="f-input" id="config-indirectos-campo" type="number" min="0" max="100" step="0.01" value="15" style="font-family:var(--mono);">
+</div>
+</div>
+<button onclick="app.guardarParametrosCotizacion()" class="topbar-btn primary">💾 Guardar Parámetros</button>
+</div>
+
+<div style="border-top:1px solid var(--border);margin:30px 0;"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MARCA PERSONALIZADA (ENTERPRISE)
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="seccion-marca-personalizada" style="display:none;margin-bottom:30px;">
+<h3 style="color:var(--ink);margin-bottom:20px;">🏷️ Marca Personalizada</h3>
+<div style="background:var(--amber-l);padding:15px;border-radius:var(--radius-sm);margin-bottom:20px;border-left:4px solid var(--amber);">
+<p style="color:var(--amber);font-size:13px;margin:0;">
+🔒 Solo disponible en plan ENTERPRISE
+</p>
+</div>
+<div class="f-group" style="margin-bottom:20px;">
+<label class="f-label">Logo de Empresa</label>
+<input class="f-input" id="config-logo" type="file" accept="image/*" style="font-family:var(--font);">
+<small style="color:var(--ink4);font-size:11px;display:block;margin-top:5px;">PNG o JPG, máximo 500KB. Se mostrará en reportes PDF.</small>
+</div>
+<div class="f-group" style="margin-bottom:20px;">
+<label class="f-label">Color Corporativo</label>
+<input class="f-input" id="config-color" type="color" value="#1a1a1a" style="height:50px;cursor:pointer;">
+</div>
+<button onclick="app.guardarMarcaPersonalizada()" class="topbar-btn primary">💾 Guardar Marca</button>
+</div>
+
+<div style="border-top:1px solid var(--border);margin:30px 0;"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     RESPALDO DE DATOS
+     ═══════════════════════════════════════════════════════════════ -->
+<div style="margin-bottom:30px;">
+<h3 style="color:var(--ink);margin-bottom:20px;">💾 Respaldo de Datos</h3>
+<div style="background:var(--bg);padding:20px;border-radius:var(--radius-sm);margin-bottom:20px;">
+<p style="color:var(--ink3);font-size:13px;margin-bottom:15px;">
+Exporta todos tus datos (conceptos, cotizaciones, clientes, configuración) para evitar perderlos.
+</p>
+<div style="display:flex;gap:10px;flex-wrap:wrap;">
+<button onclick="app.exportarDatos()" class="topbar-btn primary">📤 Exportar Datos</button>
+<button onclick="document.getElementById('import-file').click()" class="topbar-btn ghost">📥 Importar Datos</button>
+<input type="file" id="import-file" accept=".json" style="display:none;" onchange="app.importarDatos(event)">
+</div>
+</div>
+<div style="background:var(--rose-l);padding:15px;border-radius:var(--radius-sm);border-left:4px solid var(--rose);">
+<p style="color:var(--rose);font-size:13px;margin:0;">
+⚠️ <strong>Precaución:</strong> Importar datos sobrescribirá la información actual. Asegúrate de tener un respaldo antes de continuar.
+</p>
+</div>
+</div>
+
+<div style="border-top:1px solid var(--border);margin:30px 0;"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     GESTIÓN DE LICENCIA
+     ═══════════════════════════════════════════════════════════════ -->
+<div style="margin-bottom:30px;">
+<h3 style="color:var(--ink);margin-bottom:20px;">🔑 Gestión de Licencia</h3>
+<div id="license-status-box" style="background:var(--bg);padding:20px;border-radius:var(--radius-sm);margin-bottom:20px;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+<div>
+<div style="font-size:12px;color:var(--ink4);margin-bottom:5px;">Plan Actual</div>
+<div style="font-size:24px;font-weight:700;color:var(--ink);" id="config-plan-actual">DEMO</div>
+</div>
+<div style="text-align:right;">
+<div style="font-size:12px;color:var(--ink4);margin-bottom:5px;">Expiración</div>
+<div style="font-size:18px;font-weight:700;color:var(--blue);" id="config-expiracion">--</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:15px;">
+<div style="background:var(--bg2);padding:10px;border-radius:var(--radius-sm);text-align:center;">
+<div style="font-size:10px;color:var(--ink4);">Conceptos</div>
+<div style="font-size:16px;font-weight:700;color:var(--ink);" id="config-uso-conceptos">0/50</div>
+</div>
+<div style="background:var(--bg2);padding:10px;border-radius:var(--radius-sm);text-align:center;">
+<div style="font-size:10px;color:var(--ink4);">Cotizaciones</div>
+<div style="font-size:16px;font-weight:700;color:var(--ink);" id="config-uso-cotizaciones">0/5</div>
+</div>
+<div style="background:var(--bg2);padding:10px;border-radius:var(--radius-sm);text-align:center;">
+<div style="font-size:10px;color:var(--ink4);">Clientes</div>
+<div style="font-size:16px;font-weight:700;color:var(--ink);" id="config-uso-clientes">0/3</div>
+</div>
+</div>
+</div>
+<div class="f-group" style="margin-bottom:15px;">
+<label class="f-label">Clave de Licencia</label>
+<input class="f-input" id="config-clave-licencia" type="text" placeholder="XXXX-XXXX-XXXX-XXXX" style="font-family:var(--mono);letter-spacing:2px;text-transform:uppercase;">
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;">
+<button onclick="app.activarLicencia()" class="topbar-btn primary">🔓 Activar Licencia</button>
+<button onclick="app.mostrarPantalla('licencia-screen')" class="topbar-btn ghost">📋 Ver Planes</button>
+</div>
+</div>
+
+<div style="border-top:1px solid var(--border);margin:30px 0;"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ZONA DE PELIGRO
+     ═══════════════════════════════════════════════════════════════ -->
+<div style="margin-bottom:30px;">
+<h3 style="color:var(--rose);margin-bottom:20px;">🚨 Zona de Peligro</h3>
+<div style="background:var(--rose-l);padding:20px;border-radius:var(--radius-sm);border:1px solid var(--rose);">
+<p style="color:var(--rose);font-size:13px;margin-bottom:15px;">
+⚠️ <strong>Acciones irreversibles:</strong> Estas acciones no se pueden deshacer. Asegúrate de tener un respaldo antes de continuar.
+</p>
+<div style="display:flex;gap:10px;flex-wrap:wrap;">
+<button onclick="app.limpiarDatosCotizaciones()" class="topbar-btn" style="background:var(--rose);color:white;border:none;">🗑️ Eliminar Cotizaciones</button>
+<button onclick="app.limpiarDatosConceptos()" class="topbar-btn" style="background:var(--rose);color:white;border:none;">🗑️ Eliminar Conceptos</button>
+<button onclick="app.resetearTodo()" class="topbar-btn" style="background:var(--rose);color:white;border:none;">☢️ Resetear Todo</button>
+</div>
+</div>
+</div>
+
+<!-- Botón volver -->
+<button onclick="app.mostrarPantalla('dashboard-screen')" class="topbar-btn ghost" style="width:100%;margin-top:20px;">↩️ Volver al Dashboard</button>
+
+</div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCRIPTS DE CONFIGURACIÓN
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+// Actualizar vista de licencia al cargar configuración
+document.addEventListener('DOMContentLoaded', function() {
+if (window.app && window.app.cargarConfiguracion) {
+window.app.cargarConfiguracion();
 }
-
-// Cargar costos de mano de obra
-await this.cargarCostosManoObra();
-
-// Actualizar info de licencia
-this.actualizarInfoLicenciaConfig();
-
-console.log('✅ Configuración cargada');
-} catch (error) {
-console.error('❌ Error cargando configuración:', error);
-}
-},
-
-// Guardar datos de empresa
-guardarConfiguracionEmpresa: async function() {
-try {
-const empresa = document.getElementById('config-empresa')?.value;
-const rfc = document.getElementById('config-rfc')?.value;
-const email = document.getElementById('config-email')?.value;
-const telefono = document.getElementById('config-telefono')?.value;
-const direccion = document.getElementById('config-direccion')?.value;
-
-const configData = [
-{ clave: 'empresa', valor: empresa },
-{ clave: 'rfc', valor: rfc },
-{ clave: 'email', valor: email },
-{ clave: 'telefono', valor: telefono },
-{ clave: 'direccion', valor: direccion }
-];
-
-await window.db.configuracion.bulkPut(configData);
-this.notificacion('✅ Datos de empresa guardados', 'exito');
-} catch (error) {
-console.error('❌ Error guardando empresa:', error);
-this.notificacion('❌ Error: ' + error.message, 'error');
-}
-},
-
-// Guardar parámetros de cotización
-guardarParametrosCotizacion: async function() {
-try {
-const iva = parseFloat(document.getElementById('config-iva')?.value) || 16;
-const utilidad = parseFloat(document.getElementById('config-utilidad')?.value) || 10;
-const indirectosOficina = parseFloat(document.getElementById('config-indirectos-oficina')?.value) || 5;
-const indirectosCampo = parseFloat(document.getElementById('config-indirectos-campo')?.value) || 15;
-
-const configData = [
-{ clave: 'iva', valor: iva },
-{ clave: 'utilidad', valor: utilidad },
-{ clave: 'indirectosOficina', valor: indirectosOficina },
-{ clave: 'indirectosCampo', valor: indirectosCampo }
-];
-
-await window.db.configuracion.bulkPut(configData);
-this.notificacion('✅ Parámetros de cotización guardados', 'exito');
-} catch (error) {
-console.error('❌ Error guardando parámetros:', error);
-this.notificacion('❌ Error: ' + error.message, 'error');
-}
-},
-
-// Actualizar info de licencia en configuración
-actualizarInfoLicenciaConfig: async function() {
-try {
-const licencia = window.licencia.cargar();
-const plan = window.licencia.PLANES[licencia?.tipo || 'DEMO'] || window.licencia.PLANES.DEMO;
-
-const elPlan = document.getElementById('config-plan-actual');
-const elExpiracion = document.getElementById('config-expiracion');
-const elUsoConceptos = document.getElementById('config-uso-conceptos');
-const elUsoCotizaciones = document.getElementById('config-uso-cotizaciones');
-const elUsoClientes = document.getElementById('config-uso-clientes');
-
-if (elPlan) elPlan.textContent = licencia?.tipo || 'DEMO';
-if (elExpiracion) {
-if (licencia?.expiracion) {
-elExpiracion.textContent = new Date(licencia.expiracion).toLocaleDateString('es-MX');
-elExpiracion.style.color = licencia.expirada ? 'var(--rose)' : 'var(--blue)';
-} else {
-elExpiracion.textContent = 'N/A';
-}
-}
-
-// Contadores
-if (!window.db) return;
-const conceptos = await window.db.conceptos.count();
-const cotizaciones = await window.db.cotizaciones.count();
-const clientes = await window.db.clientes.count();
-
-if (elUsoConceptos) elUsoConceptos.textContent = conceptos + '/' + plan.limiteConceptos;
-if (elUsoCotizaciones) elUsoCotizaciones.textContent = cotizaciones + '/' + plan.limiteCotizaciones;
-if (elUsoClientes) elUsoClientes.textContent = clientes + '/' + plan.limiteClientes;
-} catch (error) {
-console.error('❌ Error actualizando info licencia:', error);
-}
-},
-
-// Activar licencia desde configuración
-activarLicencia: async function() {
-try {
-const clave = document.getElementById('config-clave-licencia')?.value.trim();
-const email = document.getElementById('config-email')?.value.trim();
-
-if (!clave) {
-this.notificacion('⚠️ Ingresa una clave de licencia', 'advertencia');
-return;
-}
-
-// Simular activación (reemplazar con tu lógica real)
-const resultado = await window.licencia.activar(clave, email);
-
-if (resultado.activo) {
-this.notificacion('✅ Licencia activada exitosamente', 'exito');
-this.actualizarInfoLicenciaConfig();
-} else {
-this.notificacion('❌ ' + resultado.razon, 'error');
-}
-} catch (error) {
-console.error('❌ Error activando licencia:', error);
-this.notificacion('❌ Error: ' + error.message, 'error');
-}
-},
-
-// Limpiar datos de cotizaciones
-limpiarDatosCotizaciones: async function() {
-if (confirm('¿Estás seguro de eliminar TODAS las cotizaciones? Esta acción no se puede deshacer.')) {
-try {
-await window.db.cotizaciones.clear();
-this.notificacion('🗑️ Cotizaciones eliminadas', 'exito');
-this.cargarEstadisticas();
-} catch (error) {
-console.error('❌ Error eliminando cotizaciones:', error);
-this.notificacion('❌ Error: ' + error.message, 'error');
-}
-}
-},
-
-// Limpiar datos de conceptos
-limpiarDatosConceptos: async function() {
-if (confirm('¿Estás seguro de eliminar TODOS los conceptos? Esta acción no se puede deshacer.')) {
-try {
-await window.db.conceptos.clear();
-this.notificacion('🗑️ Conceptos eliminados', 'exito');
-this.cargarEstadisticas();
-} catch (error) {
-console.error('❌ Error eliminando conceptos:', error);
-this.notificacion('❌ Error: ' + error.message, 'error');
-}
-}
-},
-
-// Resetear todo
-resetearTodo: async function() {
-if (confirm('⚠️ ¿ESTÁS SEGURO? Esto eliminará TODOS los datos de la aplicación. Esta acción NO se puede deshacer.')) {
-if (confirm('¿Última advertencia? ¿Realmente deseas continuar?')) {
-try {
-await window.db.cotizaciones.clear();
-await window.db.conceptos.clear();
-await window.db.clientes.clear();
-await window.db.configuracion.clear();
-this.notificacion('☢️ Aplicación reseteada', 'advertencia');
-setTimeout(function() { window.location.reload(); }, 2000);
-} catch (error) {
-console.error('❌ Error reseteando:', error);
-this.notificacion('❌ Error: ' + error.message, 'error');
-}
-}
-}
-}
-
+});
+</script>
+    
 <!-- ───── LICENCIA ───── -->
 <section id="licencia-screen" class="screen">
 <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
@@ -1497,6 +1548,7 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
 
 
