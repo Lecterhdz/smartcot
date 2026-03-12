@@ -404,36 +404,91 @@ window.licencia = {
     // ─────────────────────────────────────────────────────────────────
     // ACTIVAR LICENCIA DESDE UI
     // ─────────────────────────────────────────────────────────────────
-    activarDesdeUI: function() {
-        var email = document.getElementById('licencia-email').value.trim();
-        var clave = document.getElementById('licencia-clave').value.trim();
-        
-        if (!email || !clave) {
-            if (window.app) {
-                window.app.notificacion('⚠️ Completa email y clave', 'error');
-            }
-            return;
-        }
-        
-        var resultado = this.validarClave(clave, email);
-        
-        if (resultado.valido) {
-            if (window.app) {
-                window.app.notificacion('✅ Licencia ' + resultado.plan + ' activada exitosamente', 'exito');
-                window.app.actualizarInfoLicencia(resultado.licencia);
+    activarDesdeUI: async function() {
+        try {
+            console.log('🔑 Activando licencia desde UI...');
+            
+            // ⚠️ VERIFICAR QUE LOS ELEMENTOS EXISTAN ANTES DE ACCEDER
+            const elEmail = document.getElementById('licencia-email-activar');
+            const elClave = document.getElementById('licencia-clave-activar');
+            
+            if (!elEmail || !elClave) {
+                console.error('❌ Campos de activación no encontrados en el HTML');
+                alert('⚠️ Error: No se encontraron los campos de activación.\n\nVerifica que el HTML tenga:\n- id="licencia-email-activar"\n- id="licencia-clave-activar"');
+                return;
             }
             
-            var modal = document.getElementById('modal-licencia');
-            if (modal) {
-                modal.style.display = 'none';
+            // ⚠️ OBTENER VALORES CON FALLBACK SEGURO
+            const email = (elEmail.value || '').trim();
+            const clave = (elClave.value || '').trim().toUpperCase();
+            
+            // ⚠️ VALIDAR QUE NO ESTÉN VACÍOS
+            if (!email) {
+                alert('⚠️ Ingresa tu email de registro');
+                elEmail.focus();
+                return;
             }
             
-            setTimeout(function() {
-                window.location.reload();
-            }, 2000);
-        } else {
-            if (window.app) {
-                window.app.notificacion('❌ ' + resultado.razon, 'error');
+            if (!clave) {
+                alert('⚠️ Ingresa tu clave de licencia');
+                elClave.focus();
+                return;
+            }
+            
+            // ⚠️ VALIDAR FORMATO DE CLAVE (XXXX-XXXX-XXXX-XXXX)
+            if (!/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i.test(clave)) {
+                alert('⚠️ Formato de clave inválido\n\nDebe ser: XXXX-XXXX-XXXX-XXXX\n(Ej: DEMO-ABCD-1234-EFGH)');
+                elClave.focus();
+                return;
+            }
+            
+            // ⚠️ MOSTRAR ESTADO DE CARGA
+            const btnActivar = elClave.parentElement.querySelector('button') || 
+                              document.querySelector('button[onclick*="activarDesdeUI"]');
+            if (btnActivar) {
+                btnActivar.disabled = true;
+                btnActivar.textContent = '⏳ Activando...';
+            }
+            
+            // ⚠️ INTENTAR ACTIVAR
+            const resultado = await this.activar(clave, email);
+            
+            if (resultado.activo) {
+                alert('✅ ¡Licencia ' + resultado.tipo + ' activada exitosamente!\n\nExpira: ' + 
+                      new Date(resultado.expiracion).toLocaleDateString('es-MX'));
+                
+                // Limpiar campos
+                elEmail.value = '';
+                elClave.value = '';
+                
+                // Recargar UI
+                if (window.app && typeof window.app.actualizarInfoLicenciaUI === 'function') {
+                    await window.app.actualizarInfoLicenciaUI();
+                }
+                
+                // Recargar página para aplicar cambios
+                setTimeout(function() {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                alert('❌ Error al activar: ' + (resultado.razon || 'Licencia inválida'));
+            }
+            
+            // ⚠️ RESTAURAR BOTÓN
+            if (btnActivar) {
+                btnActivar.disabled = false;
+                btnActivar.textContent = 'Activar';
+            }
+            
+        } catch (error) {
+            console.error('❌ Error en activarDesdeUI:', error);
+            alert('❌ Error al activar licencia: ' + error.message);
+            
+            // Restaurar botón en caso de error
+            const btnActivar = document.querySelector('button[onclick*="activarDesdeUI"]');
+            if (btnActivar) {
+                btnActivar.disabled = false;
+                btnActivar.textContent = 'Activar';
             }
         }
     }
