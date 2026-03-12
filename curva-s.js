@@ -511,13 +511,16 @@ window.curvaS = {
             });
             
             // ⚠️ POSICIONAR LÍNEA VERTICAL EN SEMANA ACTUAL
-            if (semanaActual > 0 && semanaActual <= this.datos.semanas.length) {
-                // Crear array con nulls y poner 100 en la posición de la semana actual
+            if (semanaActual >= 0 && this.grafica && this.datos.semanas?.length > 0) {
+                // Crear array con nulls y poner 100 SOLO en la posición de la semana actual
                 const lineaData = new Array(this.datos.semanas.length).fill(null);
-                lineaData[semanaActual - 1] = 100;  // Línea hasta 100%
+                lineaData[semanaActual] = 100;  // Línea vertical hasta 100%
                 
+                // Actualizar el dataset 3 (índice 2) con los datos de la línea
                 this.grafica.data.datasets[2].data = lineaData;
-                this.grafica.update();
+                
+                // Forzar actualización de la gráfica
+                this.grafica.update('none');  // 'none' para animación suave
             }
             console.log('✅ Gráfica inicializada');
 
