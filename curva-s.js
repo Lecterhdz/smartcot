@@ -280,66 +280,63 @@ window.curvaS = {
             this.datos.montoEjecutado = new Array(this.datos.semanas.length).fill(0);
         }
     },
-    
+
     // ─────────────────────────────────────────────────────────────────
-    // GENERAR GRÁFICA
+    // INICIALIZAR GRÁFICA (CORREGIDO - CANVAS + PROYECCIÓN)
     // ─────────────────────────────────────────────────────────────────
-    generarGrafica: function(canvasId) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) {
-            console.error('❌ Canvas no encontrado:', canvasId);
-            return;
-        }
-        
-        // Verificar que Chart.js está cargado
-        if (typeof Chart === 'undefined') {
-            console.error('❌ Chart.js no está cargado');
-            return;
-        }
-        
-        console.log('📊 Generando gráfica con datos:', {
-            semanas: this.datos.semanas,
-            programado: this.datos.avanceProgramado,
-            ejecutado: this.datos.avanceEjecutado
-        });
-        
-        // Destruir gráfica anterior si existe
-        if (this.grafica) {
-            this.grafica.destroy();
-            this.grafica = null;
-        }
-        
-        // Asegurar que el canvas tenga dimensiones
-        canvas.width = canvas.offsetWidth || 800;
-        canvas.height = canvas.offsetHeight || 400;
-        
+    inicializarGrafica: function() {
         try {
-            this.grafica = new Chart(canvas, {
+            console.log('📈 Inicializando gráfica de Curva S...');
+            
+            // ⚠️ VERIFICAR QUE EL CANVAS EXISTA ANTES DE ACCEDER
+            const canvas = document.getElementById('curva-s-chart');
+            if (!canvas) {
+                console.error('❌ Canvas no encontrado: curva-s-chart');
+                console.log('🔍 Verifica que el ID en HTML sea exactamente "curva-s-chart"');
+                return;
+            }
+            
+            // ⚠️ VERIFICAR QUE EL CONTEXTO 2D ESTÉ DISPONIBLE
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                console.error('❌ No se pudo obtener el contexto 2D del canvas');
+                return;
+            }
+            
+            // ⚠️ DESTRUIR GRÁFICA ANTERIOR SI EXISTE
+            if (this.grafica) {
+                this.grafica.destroy();
+                this.grafica = null;
+            }
+            
+            // ⚠️ CONFIGURAR TAMAÑO DEL CANVAS
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            // ⚠️ CREAR GRÁFICA CON CHART.JS
+            this.grafica = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: this.datos.semanas,
+                    labels: [],
                     datasets: [
                         {
-                            label: 'Programado (%)',
-                            data: this.datos.avanceProgramado,
-                            borderColor: '#2196F3',
-                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            label: 'Programado',
+                            data: [],
+                            borderColor: '#7c6ff0',
+                            backgroundColor: 'rgba(124, 111, 240, 0.1)',
                             borderWidth: 3,
-                            tension: 0.4,
                             fill: true,
-                            pointRadius: 5,
-                            pointHoverRadius: 7
+                            tension: 0.4
                         },
                         {
-                            label: 'Ejecutado (%)',
-                            data: this.datos.avanceEjecutado,
-                            borderColor: '#4CAF50',
-                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            label: 'Real',
+                            data: [],
+                            borderColor: '#4d8ef0',
+                            backgroundColor: 'rgba(77, 142, 240, 0.1)',
                             borderWidth: 3,
-                            tension: 0.4,
+                            borderDash: [6, 3],
                             fill: true,
-                            pointRadius: 5,
-                            pointHoverRadius: 7
+                            tension: 0.4
                         }
                     ]
                 },
@@ -348,54 +345,76 @@ window.curvaS = {
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
+                            display: true,
                             position: 'top',
                             labels: {
+                                color: '#e8edf5',
                                 font: {
-                                    size: 14
+                                    family: "'Outfit', sans-serif",
+                                    size: 12
                                 }
                             }
                         },
                         tooltip: {
+                            backgroundColor: '#1e2330',
+                            titleColor: '#e8edf5',
+                            bodyColor: '#c4cde0',
+                            borderColor: '#2a3347',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true,
                             callbacks: {
                                 label: function(context) {
-                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%';
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
                                 }
                             }
                         }
                     },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                                callback: function(value) {
-                                    return value + '%';
-                                },
-                                font: {
-                                    size: 12
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Avance (%)',
-                                font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                }
-                            }
-                        },
                         x: {
+                            grid: {
+                                color: '#2a3347'
+                            },
                             ticks: {
+                                color: '#8a97b4',
                                 font: {
-                                    size: 12
+                                    family: "'JetBrains Mono', monospace",
+                                    size: 10
                                 }
                             },
                             title: {
                                 display: true,
                                 text: 'Semanas',
+                                color: '#5a6a8a',
                                 font: {
-                                    size: 14,
-                                    weight: 'bold'
+                                    family: "'Outfit', sans-serif",
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                color: '#2a3347'
+                            },
+                            ticks: {
+                                color: '#8a97b4',
+                                font: {
+                                    family: "'JetBrains Mono', monospace",
+                                    size: 10
+                                },
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Avance %',
+                                color: '#5a6a8a',
+                                font: {
+                                    family: "'Outfit', sans-serif",
+                                    size: 11
                                 }
                             }
                         }
@@ -403,10 +422,11 @@ window.curvaS = {
                 }
             });
             
-            console.log('✅ Gráfica generada exitosamente');
+            console.log('✅ Gráfica de Curva S inicializada correctamente');
             
         } catch (error) {
-            console.error('❌ Error generando gráfica:', error);
+            console.error('❌ Error inicializando gráfica:', error);
+            console.error('Stack:', error.stack);
         }
     },
     
