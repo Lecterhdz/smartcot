@@ -948,7 +948,7 @@ table { min-width: 600px; }
       </div>
 
       <!-- 3️⃣ INFO PROYECTO / COTIZACIÓN / TIEMPO (Tercero) -->
-      <div id="curva-s-info-cotizacion" style="background:var(--bg);padding:15px;border-radius:var(--radius-sm);margin-bottom:20px;display:none;">
+      <div id="curva-s-info-cotizacion" style="background:var(--bg);padding:15px;border-radius:var(--radius-sm);margin-bottom:20px;">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
           <div>
             <div style="font-size:10px;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Proyecto</div>
@@ -966,156 +966,6 @@ table { min-width: 600px; }
             <div style="font-size:10px;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Avance Global</div>
             <div style="font-size:14px;font-weight:600;color:var(--green);" id="info-avance">42% Real / 55% Prog.</div>
           </div>
-        </div>
-      </div>
-
-      <!-- 4️⃣ GRÁFICA SVG CON INDICADOR DE SEMANA ACTUAL (Cuarto) -->
-      <div style="position:relative;height:400px;margin:20px 0;background:var(--bg);border-radius:var(--radius-sm);padding:20px;">
-        <svg viewBox="0 0 700 320" style="width:100%;height:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
-          <!-- Gradientes para áreas -->
-          <defs>
-            <linearGradient id="gradProg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#7c6ff0" stop-opacity=".20"/>
-              <stop offset="100%" stop-color="#7c6ff0" stop-opacity="0"/>
-            </linearGradient>
-            <linearGradient id="gradReal" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#4d8ef0" stop-opacity=".18"/>
-              <stop offset="100%" stop-color="#4d8ef0" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          
-          <!-- Ejes principales -->
-          <line x1="60" y1="20" x2="60" y2="260" stroke="var(--border2)" stroke-width="1"/>
-          <line x1="60" y1="260" x2="670" y2="260" stroke="var(--border2)" stroke-width="1"/>
-          
-          <!-- Grid horizontales (más sutiles para tema oscuro) -->
-          <line x1="60" y1="210" x2="670" y2="210" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,4"/>
-          <line x1="60" y1="160" x2="670" y2="160" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,4"/>
-          <line x1="60" y1="110" x2="670" y2="110" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,4"/>
-          <line x1="60" y1="60" x2="670" y2="60" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,4"/>
-          
-          <!-- Labels Y (colores claros para tema oscuro) -->
-          <text x="50" y="264" text-anchor="end" font-size="9" fill="var(--ink4)" font-family="var(--mono)">0%</text>
-          <text x="50" y="214" text-anchor="end" font-size="9" fill="var(--ink4)" font-family="var(--mono)">25%</text>
-          <text x="50" y="164" text-anchor="end" font-size="9" fill="var(--ink4)" font-family="var(--mono)">50%</text>
-          <text x="50" y="114" text-anchor="end" font-size="9" fill="var(--ink4)" font-family="var(--mono)">75%</text>
-          <text x="50" y="64" text-anchor="end" font-size="9" fill="var(--ink4)" font-family="var(--mono)">100%</text>
-          
-          <!-- Labels X - Semanas (colores claros) -->
-          <text x="60" y="278" text-anchor="middle" font-size="9" fill="var(--ink4)" font-family="var(--mono)">S0</text>
-          <text x="145" y="278" text-anchor="middle" font-size="9" fill="var(--ink4)" font-family="var(--mono)">S2</text>
-          <text x="230" y="278" text-anchor="middle" font-size="9" fill="var(--ink4)" font-family="var(--mono)">S4</text>
-          <text x="315" y="278" text-anchor="middle" font-size="9" fill="var(--ink4)" font-family="var(--mono)">S6</text>
-          <text x="400" y="278" text-anchor="middle" font-size="9" fill="var(--ink4)" font-family="var(--mono)">S8</text>
-          <text x="485" y="278" text-anchor="middle" font-size="9" fill="var(--ink4)" font-family="var(--mono)">S10</text>
-          <text x="570" y="278" text-anchor="middle" font-size="9" fill="var(--ink4)" font-family="var(--mono)">S12</text>
-          <text x="655" y="278" text-anchor="middle" font-size="9" fill="var(--ink4)" font-family="var(--mono)">S14</text>
-          
-          <!-- Curva programada (área + línea) - colores ajustados para dark -->
-          <path d="M60,260 C90,258 120,252 150,240 C180,228 210,208 240,185 C270,162 300,135 330,115 C360,95 390,78 420,68 C450,60 480,58 510,57 C540,57 570,57 600,57 C630,57 660,57 670,57 L670,260 Z"
-                fill="url(#gradProg)" stroke="none"/>
-          <path d="M60,260 C90,258 120,252 150,240 C180,228 210,208 240,185 C270,162 300,135 330,115 C360,95 390,78 420,68 C450,60 480,58 510,57 C540,57 570,57 600,57 C630,57 660,57 670,57"
-                fill="none" stroke="var(--indigo)" stroke-width="2.5" stroke-linejoin="round"/>
-          
-          <!-- Curva real (hasta semana actual) - línea punteada -->
-          <path d="M60,260 C85,259 110,255 140,246 C170,237 200,220 228,198 C250,180 275,158 300,140 C320,126 340,118 365,108"
-                fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-dasharray="6,3" stroke-linejoin="round"/>
-          
-          <!-- Área real -->
-          <path d="M60,260 C85,259 110,255 140,246 C170,237 200,220 228,198 C250,180 275,158 300,140 C320,126 340,118 365,108 L365,260 Z"
-                fill="url(#gradReal)" stroke="none"/>
-          
-          <!-- 🔴 LÍNEA VERTICAL "ACTUAL" - Indicador de semana registrada -->
-          <line x1="365" y1="30" x2="365" y2="260" stroke="var(--rose)" stroke-width="1.5" stroke-dasharray="5,3"/>
-          <text x="368" y="42" font-size="9" fill="var(--rose)" font-weight="700" font-family="var(--font)">◀ ACTUAL</text>
-          
-          <!-- Puntos de datos actuales -->
-          <circle cx="365" cy="108" r="5" fill="var(--blue)" stroke="var(--white)" stroke-width="2"/>
-          <circle cx="365" cy="139" r="5" fill="var(--indigo)" stroke="var(--white)" stroke-width="2"/>
-          
-          <!-- Etiquetas de puntos (con fondo para mejor legibilidad en dark) -->
-          <rect x="375" y="100" width="48" height="18" rx="4" fill="var(--blue)" stroke="var(--border2)" stroke-width="1"/>
-          <text x="399" y="112" text-anchor="middle" font-size="9" fill="white" font-family="var(--mono)" font-weight="600">42% Real</text>
-          
-          <rect x="375" y="131" width="48" height="18" rx="4" fill="var(--indigo)" stroke="var(--border2)" stroke-width="1"/>
-          <text x="399" y="143" text-anchor="middle" font-size="9" fill="white" font-family="var(--mono)" font-weight="600">55% Prog</text>
-          
-          <!-- Leyenda -->
-          <g transform="translate(60,10)">
-            <rect x="0" y="0" width="140" height="24" rx="4" fill="var(--bg2)" stroke="var(--border)" stroke-width="1"/>
-            <line x1="10" y1="12" x2="30" y2="12" stroke="var(--indigo)" stroke-width="2.5"/>
-            <text x="35" y="16" font-size="9" fill="var(--ink2)" font-family="var(--font)">Programado</text>
-            <line x1="70" y1="12" x2="90" y2="12" stroke="var(--blue)" stroke-width="2.5" stroke-dasharray="4,2"/>
-            <text x="95" y="16" font-size="9" fill="var(--ink2)" font-family="var(--font)">Real</text>
-          </g>
-        </svg>
-      </div>
-
-      <!-- 5️⃣ TABLA DE AVANCE POR SEMANA (Quinto) -->
-      <div style="margin-bottom:20px;">
-        <h4 style="color:var(--ink);margin:0 0 12px 0;font-size:14px;font-weight:700;">📊 Avance por Semana</h4>
-        <div style="overflow-x:auto;">
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr style="background:var(--bg);">
-                <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Semana</th>
-                <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Programado</th>
-                <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Real</th>
-                <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Δ</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style="border-bottom:1px solid var(--border);">
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--ink3);">S1</td>
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--indigo);">5%</td>
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--blue);">4%</td>
-                <td style="padding:10px 14px;font-size:11px;color:var(--rose);font-family:var(--mono);">-1%</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--border);">
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--ink3);">S2</td>
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--indigo);">10%</td>
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--blue);">9%</td>
-                <td style="padding:10px 14px;font-size:11px;color:var(--rose);font-family:var(--mono);">-1%</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--border);">
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--ink3);">S4</td>
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--indigo);">22%</td>
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--blue);">20%</td>
-                <td style="padding:10px 14px;font-size:11px;color:var(--rose);font-family:var(--mono);">-2%</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--border);">
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--ink3);">S6</td>
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--indigo);">38%</td>
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--blue);">33%</td>
-                <td style="padding:10px 14px;font-size:11px;color:var(--rose);font-family:var(--mono);">-5%</td>
-              </tr>
-              <!-- 🔴 FILA RESALTADA - Semana actual registrada -->
-              <tr style="background:var(--blue-l);border-radius:6px;">
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--blue);">S8 ◀</td>
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--indigo);">55%</td>
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--blue);">42%</td>
-                <td style="padding:10px 14px;font-size:11px;font-weight:700;color:var(--rose);font-family:var(--mono);">-13%</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--border);color:var(--ink4);">
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;">S10</td>
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;">72%</td>
-                <td style="padding:10px 14px;font-size:12px;">—</td>
-                <td style="padding:10px 14px;">—</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--border);color:var(--ink4);">
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;">S12</td>
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;">88%</td>
-                <td style="padding:10px 14px;font-size:12px;">—</td>
-                <td style="padding:10px 14px;">—</td>
-              </tr>
-              <tr style="color:var(--ink4);">
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;">S14</td>
-                <td style="padding:10px 14px;font-family:var(--mono);font-size:12px;">100%</td>
-                <td style="padding:10px 14px;font-size:12px;">—</td>
-                <td style="padding:10px 14px;">—</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
 
@@ -1796,6 +1646,7 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
 
 
