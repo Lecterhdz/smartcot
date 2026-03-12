@@ -511,26 +511,31 @@ window.curvaS = {
                 }
             });
             
-
             // ─────────────────────────────────────────────────────────────────
             // POSICIONAR LÍNEA VERTICAL EN SEMANA ACTUAL
             // ─────────────────────────────────────────────────────────────────
-            // ⚠️ NO volver a declarar semanaActual, ya existe arriba
-            // ⚠️ Ajustar índice: la variable original tiene +1, los arrays usan base 0
-            const indexSemana = semanaActual - 1;
+            // ⚠️ Encontrar última semana con avance > 0
+            let ultimaSemanaConAvance = -1;
+            for (let i = this.datos.avanceEjecutado.length - 1; i >= 0; i--) {
+                if (this.datos.avanceEjecutado[i] > 0) {
+                    ultimaSemanaConAvance = i;
+                    break;
+                }
+            }
             
-            if (indexSemana >= 0 && this.grafica && this.datos.semanas?.length > 0 && indexSemana < this.datos.semanas.length) {
+            // ⚠️ Si hay avance y la gráfica existe, posicionar línea
+            if (ultimaSemanaConAvance >= 0 && this.grafica && this.datos.semanas?.length > 0) {
                 // Crear array con nulls y poner 100 SOLO en la posición de la semana actual
                 const lineaData = new Array(this.datos.semanas.length).fill(null);
-                lineaData[indexSemana] = 100;  // Línea vertical hasta 100%
+                lineaData[ultimaSemanaConAvance] = 100;  // Línea vertical hasta 100%
                 
-                // Actualizar el dataset 3 (índice 2) con los datos de la línea
+                // Actualizar el dataset 2 (índice 2) con los datos de la línea
                 if (this.grafica.data.datasets[2]) {
                     this.grafica.data.datasets[2].data = lineaData;
-                    this.grafica.update('none');  // 'none' para animación suave
-                    console.log('✅ Línea vertical posicionada en semana', semanaActual);
+                    this.grafica.update('none');  // 'none' para actualización sin animación
+                    console.log('✅ Línea vertical posicionada en semana', ultimaSemanaConAvance + 1);
                 } else {
-                    console.warn('⚠️ Dataset de línea vertical no encontrado');
+                    console.warn('⚠️ Dataset de línea vertical no encontrado en gráfica');
                 }
             }
             console.log('✅ Gráfica inicializada');
