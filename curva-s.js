@@ -99,6 +99,61 @@ window.curvaS = {
     },
 
     // ─────────────────────────────────────────────────────────────────
+    // GENERAR TABLA DE AVANCE CON SEMANA ACTUAL RESALTADA
+    // ─────────────────────────────────────────────────────────────────
+    generarTablaAvance: function() {
+        try {
+            const tbody = document.querySelector('#curva-s-screen table tbody');
+            if (!tbody) {
+                console.error('❌ No se encontró tbody para tabla de avance');
+                return;
+            }
+            
+            // ⚠️ ENCONTRAR SEMANA ACTUAL (última con avance > 0)
+            let semanaActual = 0;
+            for (let i = this.datos.avanceEjecutado.length - 1; i >= 0; i--) {
+                if (this.datos.avanceEjecutado[i] > 0) {
+                    semanaActual = i + 1;  // Las semanas empiezan en 1
+                    break;
+                }
+            }
+            
+            console.log('📍 Semana actual para tabla:', semanaActual);
+            
+            // ⚠️ GENERAR FILAS
+            let html = '';
+            this.datos.semanas.forEach((semana, index) => {
+                const numSemana = index + 1;
+                const programado = this.datos.avanceProgramado[index] || 0;
+                const ejecutado = this.datos.avanceEjecutado[index] || 0;
+                const desviacion = ejecutado - programado;
+                
+                // ⚠️ CLASE ESPECIAL PARA SEMANA ACTUAL
+                const esSemanaActual = (numSemana === semanaActual);
+                const claseFila = esSemanaActual ? 'style="background:var(--blue-l);font-weight:700;"' : '';
+                const indicador = esSemanaActual ? ' ◀' : '';
+                
+                // ⚠️ COLOR DE DESVIACIÓN
+                let colorDesviacion = desviacion >= 0 ? 'var(--green)' : 'var(--rose)';
+                
+                html += '<tr ' + claseFila + '>' +
+                    '<td style="padding:8px 14px;font-family:var(--mono);font-size:12px;">S' + numSemana + indicador + '</td>' +
+                    '<td style="padding:8px 14px;font-family:var(--mono);font-size:12px;color:var(--indigo);">' + programado.toFixed(1) + '%</td>' +
+                    '<td style="padding:8px 14px;font-family:var(--mono);font-size:12px;color:var(--blue);">' + (ejecutado > 0 ? ejecutado.toFixed(1) + '%' : '—') + '</td>' +
+                    '<td style="padding:8px 14px;font-size:11px;color:' + colorDesviacion + ';font-family:var(--mono);font-weight:600;">' + 
+                        (ejecutado > 0 ? (desviacion >= 0 ? '+' : '') + desviacion.toFixed(1) + '%' : '—') + 
+                    '</td>' +
+                    '</tr>';
+            });
+            
+            tbody.innerHTML = html;
+            console.log('✅ Tabla de avance generada');
+        } catch (error) {
+            console.error('❌ Error generando tabla:', error);
+        }
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
     // CARGAR COTIZACIÓN SELECCIONADA
     // ─────────────────────────────────────────────────────────────────
     cargarCotizacion: async function() {
@@ -161,7 +216,8 @@ window.curvaS = {
             this.mostrarInfoCotizacion(cotizacion, fechaInicio, fechaFinEstimada, fechaFinSolicitada);
 
             console.log('✅ Cotización cargada en Curva S');
-
+            // ⚠️ AGREGAR ESTO AL FINAL
+            this.generarTablaAvance();  // ✅ Generar tabla con semana actual resaltada
         } catch (error) {
             console.error('❌ Error cargando cotización:', error);
             alert('❌ Error: ' + error.message);
@@ -315,15 +371,26 @@ window.curvaS = {
             var colorTooltipBg = this._css('--white');
             var colorTooltipTxt = this._css('--ink');
 
+            // Configurar tamaño
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            // ⚠️ CALCULAR SEMANA ACTUAL (última con avance registrado)
+            const semanaActual = this.datos.avanceEjecutado.findIndex((v, i) => {
+                return v > 0 && (this.datos.avanceEjecutado[i + 1] === 0 || i === this.datos.avanceEjecutado.length - 1);
+            }) + 1;
+            
+            console.log('📍 Semana actual detectada:', semanaActual);
+            
             this.grafica = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: [],
+                    labels: this.datos.semanas,
                     datasets: [
                         {
                             label: 'Programado (%)',
-                            data: [],
-                            borderColor: this._css('--indigo'),
+                            data: this.datos.avanceProgramado,
+                            borderColor: '#7c6ff0',
                             backgroundColor: 'rgba(124,111,240,0.08)',
                             borderWidth: 3,
                             fill: true,
@@ -333,17 +400,30 @@ window.curvaS = {
                         },
                         {
                             label: 'Ejecutado (%)',
-                            data: [],
-                            borderColor: this._css('--blue'),
+                            data: this.datos.avanceEjecutado,
+                            borderColor: '#4d8ef0',
                             backgroundColor: 'rgba(77,142,240,0.08)',
                             borderWidth: 3,
                             borderDash: [6, 3],
                             fill: true,
                             tension: 0.4,
-                            pointRadius: 4,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#4d8ef0',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2                           
                             pointHoverRadius: 7,
                             spanGaps: false
                         }
+                        // ⚠️ DATASET PARA LÍNEA VERTICAL DE SEMANA ACTUAL
+                        {
+                            label: 'Semana Actual',
+                             new Array(this.datos.semanas.length).fill(null),
+                            borderColor: '#f0436a',
+                            borderWidth: 2,
+                            borderDash: [4, 3],  // ✅ PUNTEADA ROJA
+                            pointRadius: 0,
+                            fill: false
+                        }                        
                     ]
                 },
                 options: {
@@ -354,57 +434,60 @@ window.curvaS = {
                             display: true,
                             position: 'top',
                             labels: {
-                                color: colorTick,
+                                color: '#e8edf5',
                                 font: { family: "'Outfit', sans-serif", size: 12 },
                                 padding: 20
                             }
                         },
                         tooltip: {
-                            backgroundColor: colorTooltipBg,
-                            titleColor: colorTooltipTxt,
-                            bodyColor: colorTitle,
-                            borderColor: this._css('--border'),
+                            backgroundColor: '#1e2330',
+                            titleColor: '#e8edf5',
+                            bodyColor: '#c4cde0',
+                            borderColor: '#2a3347',
                             borderWidth: 1,
                             padding: 12,
                             callbacks: {
                                 label: function(ctx) {
-                                    if (ctx.parsed.y === null) return ctx.dataset.label + ': Sin datos';
-                                    return ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%';
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
                                 }
                             }
                         }
                     },
                     scales: {
                         x: {
-                            grid: { color: colorGrid },
+                            grid: { color: '#2a3347' },
                             ticks: {
-                                color: colorTick,
+                                color: '#8a97b4',
                                 font: { family: "'JetBrains Mono', monospace", size: 10 }
                             },
                             title: {
                                 display: true, text: 'Semanas',
-                                color: colorTitle,
+                                color: '#5a6a8a',
                                 font: { family: "'Outfit', sans-serif", size: 11 }
                             }
                         },
                         y: {
                             beginAtZero: true, max: 100,
-                            grid: { color: colorGrid },
+                            grid: { color: '#2a3347' },
                             ticks: {
-                                color: colorTick,
+                                color: '#8a97b4',
                                 font: { family: "'JetBrains Mono', monospace", size: 10 },
                                 callback: function(v) { return v + '%'; }
                             },
                             title: {
                                 display: true, text: 'Avance %',
-                                color: colorTitle,
+                                color: '#5a6a8a',
                                 font: { family: "'Outfit', sans-serif", size: 11 }
                             }
                         }
                     }
                 }
             });
-
+            // ⚠️ AGREGAR LÍNEA VERTICAL EN SEMANA ACTUAL DESPUÉS DE CREAR GRÁFICA
+            if (semanaActual > 0 && semanaActual <= this.datos.semanas.length) {
+                this.grafica.data.datasets[2].data[semanaActual - 1] = 100;  // Línea hasta 100%
+                this.grafica.update();
+            }
             console.log('✅ Gráfica inicializada');
 
         } catch (error) {
