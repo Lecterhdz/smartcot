@@ -413,6 +413,109 @@ window.licencia = {
         };
         return diasPorPlan[tipo] || 7;
     },
+
+    // ─────────────────────────────────────────────────────────────────
+    // ACTIVAR LICENCIA (FUNCIÓN FALTANTE - AGREGAR ESTO)
+    // ─────────────────────────────────────────────────────────────────
+    activar: async function(clave, email) {
+        try {
+            console.log('🔑 Procesando activación:', clave);
+            
+            // ⚠️ VALIDAR FORMATO DE CLAVE (ACEPTA AMBOS FORMATOS)
+            const formato1 = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
+            const formato2 = /^[A-Z]+-[A-Z0-9]{6}-\d{13}-[A-Z0-9]{8}$/i;
+            
+            if (!formato1.test(clave) && !formato2.test(clave)) {
+                return {
+                    activo: false,
+                    razon: 'Formato de clave inválido'
+                };
+            }
+            
+            // ⚠️ PARSEAR LA CLAVE
+            const partes = clave.split('-');
+            let tipo = 'DEMO';
+            let expiracion = null;
+            
+            if (partes.length === 4 && formato2.test(clave)) {
+                // Formato real: PLAN-CODE6-TIMESTAMP-CODE8
+                tipo = partes[0].toUpperCase();
+                const timestamp = parseInt(partes[2]);
+                
+                // Calcular expiración desde timestamp
+                const fechaCreacion = new Date(timestamp);
+                const diasValidez = this._obtenerDiasPorPlan(tipo);
+                expiracion = new Date(fechaCreacion);
+                expiracion.setDate(expiracion.getDate() + diasValidez);
+                
+                console.log('📅 Licencia creada:', fechaCreacion.toLocaleDateString());
+                console.log('📅 Licencia expira:', expiracion.toLocaleDateString());
+            } else {
+                // Formato demo o fallback
+                tipo = 'DEMO';
+                expiracion = new Date();
+                expiracion.setDate(expiracion.getDate() + 7);
+            }
+            
+            // ⚠️ VALIDAR TIPO DE PLAN
+            if (!this.PLANES[tipo]) {
+                return {
+                    activo: false,
+                    razon: 'Tipo de plan no válido: ' + tipo
+                };
+            }
+            
+            // ⚠️ GUARDAR LICENCIA
+            const licencia = {
+                clave: clave,
+                tipo: tipo,
+                email: email || '',
+                expiracion: expiracion.toISOString(),
+                activa: true,
+                fechaActivacion: new Date().toISOString()
+            };
+            
+            localStorage.setItem('smartcot_licencia', JSON.stringify(licencia));
+            
+            console.log('✅ Licencia activada:', licencia);
+            
+            return {
+                activo: true,
+                tipo: tipo,
+                expiracion: expiracion.toISOString(),
+                diasRestantes: this._diasRestantes(expiracion)
+            };
+            
+        } catch (error) {
+            console.error('❌ Error activando licencia:', error);
+            return {
+                activo: false,
+                razon: 'Error: ' + error.message
+            };
+        }
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // OBTENER DÍAS POR PLAN (FUNCIÓN AUXILIAR)
+    // ─────────────────────────────────────────────────────────────────
+    _obtenerDiasPorPlan: function(tipo) {
+        const diasPorPlan = {
+            'DEMO': 7,
+            'PRO': 365,
+            'ENTERPRISE': 365
+        };
+        return diasPorPlan[tipo] || 7;
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // CALCULAR DÍAS RESTANTES (FUNCIÓN AUXILIAR)
+    // ─────────────────────────────────────────────────────────────────
+    _diasRestantes: function(fechaExpiracion) {
+        const ahora = new Date();
+        const expiracion = new Date(fechaExpiracion);
+        const diferencia = expiracion - ahora;
+        return Math.max(0, Math.ceil(diferencia / (1000 * 60 * 60 * 24)));
+    },
     
     // ─────────────────────────────────────────────────────────────────
     // ACTIVAR LICENCIA DESDE UI (CORREGIDO - AMBOS FORMATOS)
