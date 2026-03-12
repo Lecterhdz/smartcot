@@ -83,7 +83,94 @@ window.curvaS = {
             console.error('❌ Error cargando cotizaciones:', error);
         }
     },
+       
+  
+    // ─────────────────────────────────────────────────────────────────
+    // CARGAR COTIZACIÓN SELECCIONADA (VERSIÓN MEJORADA)
+    // ─────────────────────────────────────────────────────────────────
+    cargarCotizacion: async function() {
+        try {
+            const cotizacionId = document.getElementById('curva-s-cotizacion')?.value;
+            
+            if (!cotizacionId) {
+                alert('⚠️ Selecciona una cotización');
+                return;
+            }
     
+            this.limpiarValoresEVM();
+            const cotizacion = await window.db.cotizaciones.get(parseInt(cotizacionId));
+            
+            if (!cotizacion) {
+                alert('❌ Cotización no encontrada');
+                return;
+            }
+            
+            console.log('✅ Cotización cargada:', cotizacion);
+            
+            this.datos.cotizacionId = cotizacionId;
+            this.datos.cotizacionNumero = cotizacion.id;
+            
+            // Obtener nombre del cliente
+            if (cotizacion.clienteId) {
+                const cliente = await window.db.clientes.get(parseInt(cotizacion.clienteId));
+                this.datos.cliente = cliente ? cliente.nombre : 'Sin cliente';
+            } else {
+                this.datos.cliente = 'Sin cliente';
+            }
+            
+            // Calcular semanas totales
+            const semanasTotales = Math.ceil(cotizacion.tiempoEjecucion?.semanas || 0) || 1;
+            const montoTotal = cotizacion.totalFinal || 0;
+            
+            // Calcular fechas
+            const fechaInicio = cotizacion.fechaInicio ? new Date(cotizacion.fechaInicio) : new Date();
+            const fechaFinEstimada = new Date(fechaInicio);
+            fechaFinEstimada.setDate(fechaFinEstimada.getDate() + (semanasTotales * 7));
+            const fechaFinSolicitada = cotizacion.fechaFinSolicitada ? new Date(cotizacion.fechaFinSolicitada) : null;
+            
+            // Generar curva programada
+            this.generarCurvaProgramada(semanasTotales, montoTotal, fechaInicio, fechaFinEstimada);
+            
+            // Cargar avance ejecutado
+            await this.cargarAvanceEjecutado();
+            
+            // ⚠️ ESPERAR A QUE EL CANVAS SEA VISIBLE ANTES DE GENERAR GRÁFICA
+            setTimeout(() => {
+                this.generarGrafica('curva-s-chart');
+            }, 300);
+            
+            // Calcular y mostrar variaciones
+            this.calcularVariaciones();
+            
+            // Mostrar información de la cotización
+            this.mostrarInfoCotizacion(cotizacion, fechaInicio, fechaFinEstimada, fechaFinSolicitada);
+            
+            // ⚠️ NUEVO: ACTUALIZAR COMPONENTES VISUALES CON DATOS REALES
+            const semanaActual = 8; // ← Esto debería venir de tus datos de avance
+            this.actualizarIndicadorSemana(semanaActual);
+            this.resaltarFilaSemana(semanaActual);
+            
+            // ⚠️ ACTUALIZAR VALORES EVM (usar datos reales de tu cotización)
+            if (cotizacion.evm) {
+                this.actualizarValoresEVM(cotizacion.evm);
+            }
+            
+            // ⚠️ ACTUALIZAR CURVA DE INVERSIÓN
+            const avanceReal = cotizacion.avanceEjecutado || 0;
+            const inversionEjecutada = (avanceReal / 100) * montoTotal;
+            this.actualizarCurvaInversion(inversionEjecutada, montoTotal);
+            
+            // ⚠️ MOSTRAR SECCIÓN EVM SI HAY DATOS
+            const seccionEVM = document.getElementById('curva-s-avanzada-seccion');
+            if (seccionEVM && cotizacion.evm) {
+                seccionEVM.style.display = 'block';
+            }
+            
+        } catch (error) {
+            console.error('❌ Error cargando cotización:', error);
+            alert('❌ Error: ' + error.message);
+        }
+    },
     // ─────────────────────────────────────────────────────────────────
     // ACTUALIZAR INDICADOR DE SEMANA ACTUAL EN GRÁFICA SVG
     // ─────────────────────────────────────────────────────────────────
@@ -217,97 +304,7 @@ window.curvaS = {
       } catch (error) {
         console.error('❌ Error actualizando curva de inversión:', error);
       }
-    },    
-    
-    // ─────────────────────────────────────────────────────────────────
-    // CARGAR COTIZACIÓN SELECCIONADA
-    // ─────────────────────────────────────────────────────────────────
-    cargarCotizacion: async function() {
-        try {
-            const cotizacionId = document.getElementById('curva-s-cotizacion')?.value;
-            
-            if (!cotizacionId) {
-                alert('⚠️ Selecciona una cotización');
-                return;
-            }
-
-            // ⚠️ LIMPIAR VALORES ANTERIORES ANTES DE CARGAR NUEVA COTIZACIÓN
-            this.limpiarValoresEVM();
-            const cotizacion = await window.db.cotizaciones.get(parseInt(cotizacionId));
-            
-            if (!cotizacion) {
-                alert('❌ Cotización no encontrada');
-                return;
-            }
-            
-            console.log('✅ Cotización cargada:', cotizacion);
-            
-            this.datos.cotizacionId = cotizacionId;
-            this.datos.cotizacionNumero = cotizacion.id;
-            
-            // Obtener nombre del cliente
-            if (cotizacion.clienteId) {
-                const cliente = await window.db.clientes.get(parseInt(cotizacion.clienteId));
-                this.datos.cliente = cliente ? cliente.nombre : 'Sin cliente';
-            } else {
-                this.datos.cliente = 'Sin cliente';
-            }
-            
-            // Calcular semanas totales desde tiempo de ejecución
-            const semanasTotales = Math.ceil(cotizacion.tiempoEjecucion?.semanas || 0) || 1;
-            const montoTotal = cotizacion.totalFinal || 0;
-            
-            // Calcular fechas
-            const fechaInicio = cotizacion.fechaInicio ? new Date(cotizacion.fechaInicio) : new Date();
-            const fechaFinEstimada = new Date(fechaInicio);
-            fechaFinEstimada.setDate(fechaFinEstimada.getDate() + (semanasTotales * 7));
-            
-            // Calcular fecha fin solicitada por cliente (si existe)
-            const fechaFinSolicitada = cotizacion.fechaFinSolicitada ? new Date(cotizacion.fechaFinSolicitada) : null;
-            
-            // Generar curva programada CON FECHAS
-            this.generarCurvaProgramada(semanasTotales, montoTotal, fechaInicio, fechaFinEstimada);
-            
-            // Cargar avance ejecutado
-            await this.cargarAvanceEjecutado();
-            
-            // Generar gráfica (ESPERAR a que el canvas esté visible)
-            setTimeout(() => {
-                this.generarGrafica('curva-s-chart');
-            }, 300);
-            
-            // Calcular y mostrar variaciones
-            this.calcularVariaciones();
-            
-            // Mostrar información de la cotización
-            this.mostrarInfoCotizacion(cotizacion, fechaInicio, fechaFinEstimada, fechaFinSolicitada);
-
-            // ⚠️ NUEVO: ACTUALIZAR COMPONENTES VISUALES CON DATOS REALES
-            const semanaActual = 8; // ← Esto debería venir de tus datos de avance
-            this.actualizarIndicadorSemana(semanaActual);
-            this.resaltarFilaSemana(semanaActual);
-            
-            // ⚠️ ACTUALIZAR VALORES EVM (usar datos reales de tu cotización)
-            if (cotizacion.evm) {
-                this.actualizarValoresEVM(cotizacion.evm);
-            }
-            
-            // ⚠️ ACTUALIZAR CURVA DE INVERSIÓN
-            const avanceReal = cotizacion.avanceEjecutado || 0;
-            const inversionEjecutada = (avanceReal / 100) * montoTotal;
-            this.actualizarCurvaInversion(inversionEjecutada, montoTotal);
-            
-            // ⚠️ MOSTRAR SECCIÓN EVM SI HAY DATOS
-            const seccionEVM = document.getElementById('curva-s-avanzada-seccion');
-            if (seccionEVM && cotizacion.evm) {
-                seccionEVM.style.display = 'block';
-            }  
-        } catch (error) {
-            console.error('❌ Error cargando cotización:', error);
-            alert('❌ Error: ' + error.message);
-        }
-    },
-    
+    },     
     // ─────────────────────────────────────────────────────────────────
     // MOSTRAR INFORMACIÓN DE COTIZACIÓN
     // ─────────────────────────────────────────────────────────────────
