@@ -969,6 +969,26 @@ table { min-width: 600px; }
         </div>
       </div>
 
+    <!-- ───── TABLA DE AVANCE POR SEMANA (AGREGAR DESPUÉS DE LA GRÁFICA) ───── -->
+    <div style="margin:20px 0;">
+        <h4 style="color:var(--ink);margin:0 0 12px 0;font-size:14px;font-weight:700;">📊 Avance por Semana</h4>
+        <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="background:var(--bg);">
+                        <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Semana</th>
+                        <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Programado</th>
+                        <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Real</th>
+                        <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Δ</th>
+                    </tr>
+                </thead>
+                <tbody id="curva-s-tabla-avance">
+                    <!-- Se llena dinámicamente con JavaScript -->
+                    <tr><td colspan="4" style="padding:20px;text-align:center;color:var(--ink4);">Cargando datos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>        
       <!-- 6️⃣ CURVA S AVANZADA - EVM (Sexto - con colores corregidos para dark) -->
       <div id="curva-s-avanzada-seccion" style="display:none;">
         <h4 style="color:var(--ink);margin:20px 0 15px 0;font-size:14px;font-weight:700;">📊 Curva S Avanzada (EVM)</h4>
@@ -1646,6 +1666,7 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
 
 
