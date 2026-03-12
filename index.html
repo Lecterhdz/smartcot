@@ -1122,49 +1122,6 @@ Exporta todos tus datos (conceptos, cotizaciones, clientes, configuración) para
 <div style="border-top:1px solid var(--border);margin:30px 0;"></div>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     GESTIÓN DE LICENCIA
-     ═══════════════════════════════════════════════════════════════ -->
-<div style="margin-bottom:30px;">
-<h3 style="color:var(--ink);margin-bottom:20px;">🔑 Gestión de Licencia</h3>
-<div id="license-status-box" style="background:var(--bg);padding:20px;border-radius:var(--radius-sm);margin-bottom:20px;">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-<div>
-<div style="font-size:12px;color:var(--ink4);margin-bottom:5px;">Plan Actual</div>
-<div style="font-size:24px;font-weight:700;color:var(--ink);" id="config-plan-actual">DEMO</div>
-</div>
-<div style="text-align:right;">
-<div style="font-size:12px;color:var(--ink4);margin-bottom:5px;">Expiración</div>
-<div style="font-size:18px;font-weight:700;color:var(--blue);" id="config-expiracion">--</div>
-</div>
-</div>
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:15px;">
-<div style="background:var(--bg2);padding:10px;border-radius:var(--radius-sm);text-align:center;">
-<div style="font-size:10px;color:var(--ink4);">Conceptos</div>
-<div style="font-size:16px;font-weight:700;color:var(--ink);" id="config-uso-conceptos">0/50</div>
-</div>
-<div style="background:var(--bg2);padding:10px;border-radius:var(--radius-sm);text-align:center;">
-<div style="font-size:10px;color:var(--ink4);">Cotizaciones</div>
-<div style="font-size:16px;font-weight:700;color:var(--ink);" id="config-uso-cotizaciones">0/5</div>
-</div>
-<div style="background:var(--bg2);padding:10px;border-radius:var(--radius-sm);text-align:center;">
-<div style="font-size:10px;color:var(--ink4);">Clientes</div>
-<div style="font-size:16px;font-weight:700;color:var(--ink);" id="config-uso-clientes">0/3</div>
-</div>
-</div>
-</div>
-<div class="f-group" style="margin-bottom:15px;">
-<label class="f-label">Clave de Licencia</label>
-<input class="f-input" id="config-clave-licencia" type="text" placeholder="XXXX-XXXX-XXXX-XXXX" style="font-family:var(--mono);letter-spacing:2px;text-transform:uppercase;">
-</div>
-<div style="display:flex;gap:10px;flex-wrap:wrap;">
-<button onclick="app.activarLicencia()" class="topbar-btn primary">🔓 Activar Licencia</button>
-<button onclick="app.mostrarPantalla('licencia-screen')" class="topbar-btn ghost">📋 Ver Planes</button>
-</div>
-</div>
-
-<div style="border-top:1px solid var(--border);margin:30px 0;"></div>
-
-<!-- ═══════════════════════════════════════════════════════════════
      ZONA DE PELIGRO
      ═══════════════════════════════════════════════════════════════ -->
 <div style="margin-bottom:30px;">
@@ -1318,7 +1275,7 @@ window.app.cargarConfiguracion();
 <!-- Footer Links -->
 <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border);">
 <div style="display:flex;justify-content:center;gap:20px;flex-wrap:wrap;">
-<a href="planes.html" style="color:var(--ink3);text-decoration:none;font-size:13px;font-weight:500;font-family:var(--font);transition:color .15s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--ink3)'">📋 Ver todos los planes</a>
+<a href="landing.html" style="color:var(--ink3);text-decoration:none;font-size:13px;font-weight:500;font-family:var(--font);transition:color .15s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--ink3)'">📋 Ver todos los planes</a>
 <a href="terminos.html" style="color:var(--ink3);text-decoration:none;font-size:13px;font-weight:500;font-family:var(--font);transition:color .15s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--ink3)'">📄 Términos y Condiciones</a>
 <a href="privacidad.html" style="color:var(--ink3);text-decoration:none;font-size:13px;font-weight:500;font-family:var(--font);transition:color .15s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--ink3)'">🔒 Política de Privacidad</a>
 <a href="mailto:lecterhdz@gmail.com" style="color:var(--ink3);text-decoration:none;font-size:13px;font-weight:500;font-family:var(--font);transition:color .15s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--ink3)'">📧 Contacto</a>
@@ -1554,6 +1511,7 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
 
 
