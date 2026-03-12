@@ -168,9 +168,8 @@ mostrarPantalla: async function(id) {
             if (window.curvaS) {
                 // ⚠️ ESPERAR A QUE LA PANTALLA SEA VISIBLE ANTES DE INICIALIZAR
                 setTimeout(function() {
-                    curvaS.inicializarGrafica();
-                    curvaS.calcularProyeccion();
-                }, 300);  // ✅ 300ms para asegurar que el canvas es visible
+                    curvaS.init(); 
+                }, 500);  // ✅ 500ms para asegurar que el canvas es visible
             }
             break;
         // ⚠️ AGREGAR ESTE CASO PARA CONFIGURACIÓN
@@ -2551,6 +2550,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
