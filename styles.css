@@ -609,3 +609,127 @@ tbody tr:hover { background: var(--bg); }
 
   tbody td { padding: 10px 12px; font-size: 13px; }
 }
+
+/* ══════════════════════════════════════
+   RESPONSIVE — NUEVA COTIZACIÓN (MÓVIL)
+   ══════════════════════════════════════ */
+@media (max-width: 1024px) {
+.cot-layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+}
+
+.summary-panel {
+    position: static !important;
+    margin-top: 16px !important;
+    order: -1; /* Mueve el resumen arriba en tablets */
+}
+}
+
+@media (max-width: 768px) {
+/* Layout principal */
+.cot-layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+}
+
+/* Form grid - 1 columna */
+.form-grid {
+    grid-template-columns: 1fr !important;
+}
+
+.form-grid > .f-group[style*="span 2"] {
+    grid-column: span 1 !important;
+}
+
+/* Inputs más grandes para touch */
+.f-input {
+    padding: 12px 14px !important;
+    font-size: 14px !important;
+    min-height: 44px !important;
+}
+
+/* Tabs con scroll horizontal */
+.form-section-body > div:first-child {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    white-space: nowrap !important;
+}
+
+/* Botones full-width */
+.btn-guardar,
+.res-panel button {
+    width: 100% !important;
+    min-height: 48px !important;
+    font-size: 15px !important;
+}
+
+/* Summary panel - normal position */
+.summary-panel {
+    position: static !important;
+    margin-top: 16px !important;
+}
+
+/* Total más compacto */
+.sum-total .t-value {
+    font-size: 18px !important;
+}
+
+/* Time grid */
+.sum-time {
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 6px !important;
+}
+
+.sum-time-item {
+    padding: 8px !important;
+}
+
+.sum-time-item .st-val {
+    font-size: 14px !important;
+}
+
+.sum-time-item .st-lab {
+    font-size: 9px !important;
+}
+
+/* Impacto factores - 2 columnas */
+#seccion-impacto-factores > div:first-child {
+    grid-template-columns: repeat(2, 1fr) !important;
+}
+
+/* Padding reducido */
+.form-section-body {
+    padding: 16px !important;
+}
+
+.content {
+    padding: 16px 16px 100px !important;
+}
+}
+
+@media (max-width: 480px) {
+/* Pantallas muy pequeñas */
+.topbar-title {
+    font-size: 14px !important;
+}
+
+.stat-number {
+    font-size: 24px !important;
+}
+
+.summary-header h3 {
+    font-size: 15px !important;
+}
+
+.sum-total .t-value {
+    font-size: 16px !important;
+}
+
+/* Botón de volver más compacto */
+button[onclick*="dashboard-screen"] {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+}
+}
+
