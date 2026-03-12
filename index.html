@@ -1061,7 +1061,8 @@ table { min-width: 600px; }
           <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
             <div style="flex:1;min-width:200px;">
               <div style="height:80px;position:relative;background:linear-gradient(90deg,var(--blue-l),var(--indigo));border-radius:8px;overflow:hidden;">
-                <div style="position:absolute;bottom:0;left:0;width:42%;height:100%;background:linear-gradient(180deg,var(--blue),var(--indigo));border-radius:8px;"></div>
+                  <!-- ⚠️ AGREGAR id="curva-inversion-barra" AQUÍ -->
+                  <div id="curva-inversion-barra" style="position:absolute;bottom:0;left:0;width:42%;height:100%;background:linear-gradient(180deg,var(--blue),var(--indigo));border-radius:8px;"></div>
                 <div style="position:absolute;top:8px;right:12px;font-size:11px;color:white;font-weight:600;">42%</div>
               </div>
               <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--ink4);font-family:var(--mono);">
@@ -1069,12 +1070,6 @@ table { min-width: 600px; }
                 <span>Actual</span>
                 <span>Final</span>
               </div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:11px;color:var(--ink4);">Inversión Ejecutada</div>
-              <div style="font-size:20px;font-weight:700;color:var(--blue);" id="curva-inversion-ejecutada">$353,850</div>
-              <div style="font-size:11px;color:var(--ink4);margin-top:8px;">Inversión Total</div>
-              <div style="font-size:20px;font-weight:700;color:var(--ink);" id="curva-inversion-total">$842,500</div>
             </div>
           </div>
         </div>
@@ -1666,6 +1661,7 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
 
 
