@@ -419,7 +419,7 @@ window.curvaS = {
                         // ⚠️ DATASET PARA LÍNEA VERTICAL DE SEMANA ACTUAL
                         {
                             label: 'Semana Actual',
-                             new Array(this.datos.semanas.length).fill(null),
+                            data: new Array(this.datos.semanas.length).fill(null),
                             borderColor: '#f0436a',
                             borderWidth: 2,
                             borderDash: [4, 3],  // ✅ PUNTEADA ROJA
