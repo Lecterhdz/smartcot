@@ -485,9 +485,14 @@ window.curvaS = {
                     }
                 }
             });
-            // ⚠️ AGREGAR LÍNEA VERTICAL EN SEMANA ACTUAL DESPUÉS DE CREAR GRÁFICA
+            // ⚠️ POSICIONAR LÍNEA VERTICAL EN SEMANA ACTUAL
+            const semanaActual = this.datos.avanceEjecutado.findIndex(v => v > 0) + 1;
             if (semanaActual > 0 && semanaActual <= this.datos.semanas.length) {
-                this.grafica.data.datasets[2].data[semanaActual - 1] = 100;  // Línea hasta 100%
+                // Crear array con nulls y poner 100 en la posición de la semana actual
+                const lineaData = new Array(this.datos.semanas.length).fill(null);
+                lineaData[semanaActual - 1] = 100;  // Línea hasta 100%
+                
+                this.grafica.data.datasets[2].data = lineaData;
                 this.grafica.update();
             }
             console.log('✅ Gráfica inicializada');
