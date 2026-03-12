@@ -385,35 +385,37 @@ window.curvaS = {
             this.grafica = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: this.datos.semanas,
+                    labels: this.datos.semanas || [],
                     datasets: [
                         {
-                            label: 'Programado (%)',
-                            data: this.datos.avanceProgramado,
+                            label: 'Programado',
+                            data: this.datos.avanceProgramado || [],
                             borderColor: '#7c6ff0',
-                            backgroundColor: 'rgba(124,111,240,0.08)',
+                            backgroundColor: 'rgba(124, 111, 240, 0.1)',
                             borderWidth: 3,
                             fill: true,
                             tension: 0.4,
-                            pointRadius: 3,
-                            pointHoverRadius: 6
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#7c6ff0',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2
                         },
                         {
-                            label: 'Ejecutado (%)',
-                            data: this.datos.avanceEjecutado,
+                            label: 'Real',
+                            data: this.datos.avanceEjecutado || [],
                             borderColor: '#4d8ef0',
-                            backgroundColor: 'rgba(77,142,240,0.08)',
+                            backgroundColor: 'rgba(77, 142, 240, 0.1)',
                             borderWidth: 3,
                             borderDash: [6, 3],
                             fill: true,
                             tension: 0.4,
                             pointRadius: 5,
+                            pointHoverRadius: 7,
                             pointBackgroundColor: '#4d8ef0',
                             pointBorderColor: '#fff',
-                            pointBorderWidth: 2,                           
-                            pointHoverRadius: 7,
-                            spanGaps: false
-                        }
+                            pointBorderWidth: 2
+                        },
                         // ⚠️ DATASET PARA LÍNEA VERTICAL DE SEMANA ACTUAL
                         {
                             label: 'Semana Actual',
