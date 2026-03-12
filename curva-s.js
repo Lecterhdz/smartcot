@@ -984,50 +984,127 @@ window.curvaS = {
         }
     },
     // ─────────────────────────────────────────────────────────────────
-    // GENERAR CURVA DE INVERSIÓN (CORREGIDO)
+    // GENERAR CURVA DE INVERSIÓN (CORREGIDO - PORCENTAJE VISUAL)
     // ─────────────────────────────────────────────────────────────────
     generarCurvaInversion: async function() {
         try {
+            console.log('💰 Generando curva de inversión...');
+            
             const cotizacionId = document.getElementById('curva-s-cotizacion')?.value;
-            if (!cotizacionId) return;
+            if (!cotizacionId) {
+                console.warn('⚠️ No hay cotización seleccionada');
+                return;
+            }
             
             const cotizacion = await window.db.cotizaciones.get(parseInt(cotizacionId));
-            if (!cotizacion) return;
+            if (!cotizacion) {
+                console.warn('⚠️ Cotización no encontrada');
+                return;
+            }
             
             const avances = await window.db.avanceObra
                 .where('cotizacionId')
                 .equals(parseInt(cotizacionId))
                 .sortBy('semana');
             
-            if (avances.length === 0) return;
+            console.log('📊 Avances encontrados:', avances.length);
             
-            // ⚠️ BAC = Presupuesto Total del Proyecto
-            const BAC = parseFloat(cotizacion.totalFinal) || 0;
-            
-            // ⚠️ AC = Suma acumulada de montos ejecutados
-            const AC = avances.reduce((sum, a) => sum + (parseFloat(a.montoEjecutado) || 0), 0);
-            
-            // ⚠️ ACTUALIZAR UI
-            const elEjecutada = document.getElementById('curva-inversion-ejecutada');
-            const elTotal = document.getElementById('curva-inversion-total');
-            
-            if (elEjecutada) elEjecutada.textContent = calculator.formatoMoneda(AC);
-            if (elTotal) elTotal.textContent = calculator.formatoMoneda(BAC);
-            
-            // Actualizar barra visual
-            const barra = document.querySelector('#curva-s-screen .card-body div[style*="linear-gradient"] div[style*="position:absolute"]');
-            if (barra && BAC > 0) {
-                const porcentaje = Math.min(100, Math.max(0, (AC / BAC) * 100));
-                barra.style.width = porcentaje + '%';
-                const label = barra.parentElement.querySelector('div[style*="position:absolute;top:8px"]');
-                if (label) label.textContent = porcentaje.toFixed(0) + '%';
+            if (avances.length === 0) {
+                // Sin avances: mostrar 0
+                this.actualizarCurvaInversion(0, cotizacion.totalFinal || 0);
+                return;
             }
             
-            console.log('💰 Curva de Inversión:', { AC, BAC });
+            // ⚠️ BAC = Presupuesto Total del Proyecto (usar Number() para evitar strings)
+            const BAC = Number(cotizacion.totalFinal) || 0;
+            
+            // ⚠️ AC = Suma acumulada REAL de montosEjecutados (usar Number())
+            let AC = 0;
+            avances.forEach(function(avance) {
+                const monto = Number(avance.montoEjecutado) || 0;
+                AC += monto;
+                console.log('  Semana', avance.semana, '+$', monto.toLocaleString(), '= AC:', AC.toLocaleString());
+            });
+            
+            console.log('💰 Curva de Inversión:', { 
+                AC: AC, 
+                BAC: BAC, 
+                porcentaje: BAC > 0 ? ((AC / BAC) * 100).toFixed(2) + '%' : '0%' 
+            });
+            
+            // ⚠️ ACTUALIZAR UI CON FUNCIÓN SEPARADA (para reutilización)
+            this.actualizarCurvaInversion(AC, BAC);
+            
         } catch (error) {
             console.error('❌ Error en curva de inversión:', error);
         }
     },
+    
+    // ─────────────────────────────────────────────────────────────────
+    // ACTUALIZAR CURVA DE INVERSIÓN (FUNCIÓN SEPARADA - REUTILIZABLE)
+    // ─────────────────────────────────────────────────────────────────
+    actualizarCurvaInversion: function(inversionEjecutada, inversionTotal) {
+        try {
+            console.log('🔄 Actualizando UI curva de inversión:', { inversionEjecutada, inversionTotal });
+            
+            // ⚠️ FORZAR CONVERSIÓN A NÚMEROS (evitar strings)
+            const AC = Number(inversionEjecutada) || 0;
+            const BAC = Number(inversionTotal) || 0;
+            
+            // ⚠️ ACTUALIZAR TEXTOS PRIMERO
+            const elEjecutada = document.getElementById('curva-inversion-ejecutada');
+            const elTotal = document.getElementById('curva-inversion-total');
+            
+            if (elEjecutada) {
+                elEjecutada.textContent = calculator?.formatoMoneda?.(AC) || '$' + AC.toLocaleString('es-MX');
+            }
+            if (elTotal) {
+                elTotal.textContent = calculator?.formatoMoneda?.(BAC) || '$' + BAC.toLocaleString('es-MX');
+            }
+            
+            // ⚠️ CALCULAR PORCENTAJE CORRECTAMENTE (con validación)
+            let porcentaje = 0;
+            if (BAC > 0) {
+                porcentaje = (AC / BAC) * 100;
+                porcentaje = Math.min(100, Math.max(0, porcentaje)); // Limitar entre 0 y 100
+            }
+            
+            console.log('📊 Porcentaje calculado:', porcentaje.toFixed(2) + '%');
+            
+            // ⚠️ ACTUALIZAR BARRA VISUAL - USAR ID ESPECÍFICO SI EXISTE
+            // Opción 1: Buscar por ID si lo agregamos al HTML
+            let barra = document.getElementById('curva-inversion-barra');
+            
+            // Opción 2: Fallback al querySelector original (más robusto)
+            if (!barra) {
+                barra = document.querySelector('#curva-s-screen .card-body div[style*="linear-gradient"] div[style*="position:absolute"]');
+            }
+            
+            if (barra) {
+                barra.style.width = porcentaje + '%';
+                
+                // Actualizar etiqueta de porcentaje con 1 decimal para precisión
+                const label = barra.parentElement?.querySelector('div[style*="position:absolute;top:8px"]');
+                if (label) {
+                    label.textContent = porcentaje.toFixed(1) + '%';  // ← Mostrar "4.7%" en vez de "2%"
+                }
+            } else {
+                console.warn('⚠️ No se encontró la barra de progreso para actualizar');
+            }
+            
+            // ⚠️ ACTUALIZAR INDICADOR DE PROGRESO ADICIONAL (si existe)
+            const elProgreso = document.getElementById('curva-inversion-progreso');
+            if (elProgreso) {
+                elProgreso.textContent = porcentaje.toFixed(1) + '%';
+            }
+            
+            console.log('✅ Curva de inversión actualizada:', porcentaje.toFixed(2) + '%');
+            
+        } catch (error) {
+            console.error('❌ Error actualizando curva de inversión:', error);
+        }
+    },
+    
     // ─────────────────────────────────────────────────────────────────
     // PROYECTAR FECHA DE TERMINACIÓN
     // ─────────────────────────────────────────────────────────────────
