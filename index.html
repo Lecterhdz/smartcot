@@ -901,6 +901,26 @@ table { min-width: 600px; }
         <button class="topbar-btn ghost" onclick="curvaS.exportarReportePDF()">📄 Exportar PDF</button>
         <button class="topbar-btn ghost" onclick="curvaS.generarCurvaAvanzada()">📈 Curva Avanzada</button>
       </div>
+
+        <!-- ───── INDICADORES DE DESEMPEÑO (NUEVO) ───── -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;margin-bottom:20px;">
+            <div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;border-left:4px solid var(--blue);">
+                <div style="font-size:10px;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;margin-bottom:5px;">Semana Actual</div>
+                <div style="font-size:24px;font-weight:700;color:var(--blue);" id="indicador-semana-actual">—</div>
+            </div>
+            <div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;border-left:4px solid var(--green);">
+                <div style="font-size:10px;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;margin-bottom:5px;">Desviación</div>
+                <div style="font-size:24px;font-weight:700;color:var(--green);" id="indicador-desviacion">—</div>
+            </div>
+            <div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;border-left:4px solid var(--indigo);">
+                <div style="font-size:10px;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;margin-bottom:5px;">SPI</div>
+                <div style="font-size:24px;font-weight:700;color:var(--indigo);" id="indicador-spi">—</div>
+            </div>
+            <div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;border-left:4px solid var(--amber);">
+                <div style="font-size:10px;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;margin-bottom:5px;">CPI</div>
+                <div style="font-size:24px;font-weight:700;color:var(--amber);" id="indicador-cpi">—</div>
+            </div>
+        </div>        
     <!-- Canvas con ID CORRECTO -->
     <div style="position:relative;height:400px;margin:20px 0;">
         <canvas id="curva-s-chart"></canvas>  <!-- ✅ ESTE ID DEBE SER EXACTO -->
@@ -1641,6 +1661,7 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
 
 
