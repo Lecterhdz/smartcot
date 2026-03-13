@@ -541,15 +541,15 @@ generarTablaAvance: function() {
                     },
                     scales: {
                         x: {
-                            grid: { color: '#2a3347' },
-                            ticks: { color: '#8a97b4', font: { family: "'JetBrains Mono',monospace", size: 10 } },
-                            title: { display: true, text: 'Semanas', color: '#5a6a8a', font: { family: "'Outfit',sans-serif", size: 11 } }
+                            grid: { color: '#334155' },
+                            ticks: { color: '#e8edf5', font: { family: "'JetBrains Mono',monospace", size: 11 } },
+                            title: { display: true, text: 'Semanas', color: '#5a6a8a', font: { family: "'Outfit',sans-serif", size: 12, weight: 'bold'  } }
                         },
                         y: {
                             beginAtZero: true, max: 100,
-                            grid: { color: '#2a3347' },
-                            ticks: { color: '#8a97b4', font: { family: "'JetBrains Mono',monospace", size: 10 }, callback: function(v) { return v + '%'; } },
-                            title: { display: true, text: 'Avance %', color: '#5a6a8a', font: { family: "'Outfit',sans-serif", size: 11 } }
+                            grid: { color: '#334155' },
+                            ticks: { color: '#e8edf5', font: { family: "'JetBrains Mono',monospace", size: 11 }, callback: function(v) { return v + '%'; } },
+                            title: { display: true, text: 'Avance %', color: '#5a6a8a', font: { family: "'Outfit',sans-serif", size: 12, weight: 'bold' } }
                         }
                     }
                 }
