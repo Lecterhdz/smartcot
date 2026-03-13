@@ -1225,9 +1225,14 @@ generarTablaAvance: function() {
             // ─────────────────────────────────────────────────────────
             conclusion += 'RECOMENDACIÓN GENERAL:\n';
             if (cpi >= 1.0 && spi >= 1.0) {
-                conclusion += '✅ PROYECTO SALUDABLE: El proyecto muestra un desempeño óptimo en costo y tiempo. Continuar con la ejecución planificada, manteniendo el monitoreo periódico de los indicadores EVM. Considerar documentar las mejores prácticas aplicadas para futuros proyectos.';
+                conclusion += '✅ PROYECTO SALUDABLE: El proyecto muestra un desempeño óptimo en costo y tiempo. ';
+                conclusion += 'Continuar con la ejecución planificada, manteniendo el monitoreo periódico de los ';
+                conclusion += 'indicadores EVM. Considerar documentar las mejores prácticas aplicadas para futuros proyectos.';
             } else if (cpi < 1.0 && spi < 1.0) {
-                conclusion += '🔴 PROYECTO EN RIESGO CRÍTICO: El proyecto presenta desviaciones significativas en costo y tiempo. Se recomienda: (1) Convocar una reunión de revisión con el equipo y stakeholders, (2) Realizar un análisis de causa raíz de las desviaciones, (3) Desarrollar un plan de recuperación con hitos intermedios, (4) Considerar solicitud de cambio de presupuesto o cronograma si las desviaciones son justificadas.';
+                conclusion += '🔴 PROYECTO EN RIESGO CRÍTICO: El proyecto presenta desviaciones significativas en costo y tiempo. ';
+                conclusion += 'Se recomienda: (1) Convocar una reunión de revisión con el equipo y stakeholders, (2) Realizar un ';
+                conclusion += 'análisis de causa raíz de las desviaciones, (3) Desarrollar un plan de recuperación con hitos ';
+                conclusion += 'intermedios, (4) Considerar solicitud de cambio de presupuesto o cronograma si las desviaciones son justificadas.';
                 color = '#dc2626';
             } else if (cpi >= 1.0 && spi < 1.0) {
                 conclusion += '🟡 PROYECTO CON RETRASO PERO CONTROLADO EN COSTO: El proyecto está atrasado pero dentro del presupuesto. Se recomienda: (1) Evaluar la posibilidad de asignar recursos adicionales (crashing), (2) Revisar dependencias para aplicar fast-tracking, (3) Priorizar actividades de la ruta crítica, (4) Comunicar el impacto en el cronograma al cliente.';
