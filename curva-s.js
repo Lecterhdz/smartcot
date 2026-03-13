@@ -235,9 +235,6 @@ generarTablaAvance: function() {
 
             // ⚠️ GENERAR TABLA DE AVANCE (DESPUÉS DE CARGAR DATOS)
             this.generarTablaAvance();
-            
-            // ⚠️ AHORA SÍ POSICIONAR LÍNEA VERTICAL (la gráfica ya existe)
-            this.posicionarLineaSemanaActual();
 
             // Variaciones y tabla
             this.calcularVariaciones();
