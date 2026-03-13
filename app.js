@@ -1965,6 +1965,63 @@ guardarClienteRapido: async function() {
 },
 
 // ─────────────────────────────────────────────────────────────────
+// BLOQUEAR SECCIONES DE CONFIGURACIÓN SEGÚN PLAN
+// ─────────────────────────────────────────────────────────────────
+bloquearSeccionesConfiguracion: function(esPro, esEnterprise) {
+    // ⚠️ PARÁMETROS DE COTIZACIÓN (PRO+)
+    const seccionParametros = document.getElementById('seccion-parametros-cotizacion');
+    if (seccionParametros) {
+        seccionParametros.style.opacity = esPro ? '1' : '0.5';
+        seccionParametros.style.pointerEvents = esPro ? 'auto' : 'none';
+        if (!esPro) {
+            seccionParametros.innerHTML += '<div style="position:absolute;top:10px;right:10px;background:var(--amber-l);color:var(--amber);padding:4px 8px;border-radius:4px;font-size:10px;font-weight:700;">🔒 PRO</div>';
+        }
+    }
+    
+    // ⚠️ COSTOS MANO DE OBRA (PRO+)
+    const seccionCostosMO = document.getElementById('seccion-costos-mano-obra');
+    if (seccionCostosMO) {
+        seccionCostosMO.style.opacity = esPro ? '1' : '0.5';
+        seccionCostosMO.style.pointerEvents = esPro ? 'auto' : 'none';
+        if (!esPro) {
+            seccionCostosMO.innerHTML += '<div style="position:absolute;top:10px;right:10px;background:var(--amber-l);color:var(--amber);padding:4px 8px;border-radius:4px;font-size:10px;font-weight:700;">🔒 PRO</div>';
+        }
+    }
+    
+    // ⚠️ MARCA PERSONALIZADA (ENTERPRISE)
+    const seccionMarca = document.getElementById('seccion-marca-personalizada');
+    if (seccionMarca) {
+        seccionMarca.style.opacity = esEnterprise ? '1' : '0.5';
+        seccionMarca.style.pointerEvents = esEnterprise ? 'auto' : 'none';
+        if (!esEnterprise) {
+            seccionMarca.innerHTML += '<div style="position:absolute;top:10px;right:10px;background:var(--rose-l);color:var(--rose);padding:4px 8px;border-radius:4px;font-size:10px;font-weight:700;">🔒 ENTERPRISE</div>';
+        }
+    }
+    
+    // ⚠️ RESPALDO IMPORTAR/EXPORTAR (PRO+)
+    const seccionRespaldo = document.getElementById('seccion-respaldo');
+    if (seccionRespaldo) {
+        seccionRespaldo.style.opacity = esPro ? '1' : '0.5';
+        seccionRespaldo.style.pointerEvents = esPro ? 'auto' : 'none';
+        if (!esPro) {
+            seccionRespaldo.innerHTML += '<div style="position:absolute;top:10px;right:10px;background:var(--amber-l);color:var(--amber);padding:4px 8px;border-radius:4px;font-size:10px;font-weight:700;">🔒 PRO</div>';
+        }
+    }
+    
+    // ⚠️ ZONA DE PELIGRO (ENTERPRISE)
+    const seccionPeligro = document.getElementById('seccion-zona-peligro');
+    if (seccionPeligro) {
+        seccionPeligro.style.opacity = esEnterprise ? '1' : '0.5';
+        seccionPeligro.style.pointerEvents = esEnterprise ? 'auto' : 'none';
+        if (!esEnterprise) {
+            seccionPeligro.innerHTML += '<div style="position:absolute;top:10px;right:10px;background:var(--rose-l);color:var(--rose);padding:4px 8px;border-radius:4px;font-size:10px;font-weight:700;">🔒 ENTERPRISE</div>';
+        }
+    }
+    
+    console.log('🔒 Secciones de configuración bloqueadas según plan');
+},
+    
+// ─────────────────────────────────────────────────────────────────
 // CONFIGURACIÓN
 // ─────────────────────────────────────────────────────────────────
 cargarConfiguracion: async function() {
