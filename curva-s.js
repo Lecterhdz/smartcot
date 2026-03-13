@@ -449,43 +449,57 @@ generarTablaAvance: function() {
     inicializarGrafica: function() {
         try {
             var canvas = document.getElementById('curva-s-chart');
-            if (!canvas) {
-                console.error('❌ Canvas curva-s-chart no encontrado');
-                return;
-            }
-
+            if (!canvas) { console.error('❌ Canvas curva-s-chart no encontrado'); return; }
             var ctx = canvas.getContext('2d');
-            if (!ctx) {
-                console.error('❌ No se pudo obtener contexto 2D');
-                return;
-            }
+            if (!ctx) { console.error('❌ No se pudo obtener contexto 2D'); return; }
 
-            // Destruir gráfica anterior si existe
-            if (this.grafica) {
-                this.grafica.destroy();
-                this.grafica = null;
-            }
+            if (this.grafica) { this.grafica.destroy(); this.grafica = null; }
 
-            // Colores del tema activo
-            var colorGrid    = this._css('--border');
-            var colorTick    = this._css('--ink4');
-            var colorTitle   = this._css('--ink3');
-            var colorTooltipBg = this._css('--white');
-            var colorTooltipTxt = this._css('--ink');
-
-            // Configurar tamaño
-            canvas.width = canvas.offsetWidth;
+            canvas.width  = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
-            
-            // ⚠️ CALCULAR SEMANA ACTUAL (última con avance registrado)
-            const semanaActual = this.datos.avanceEjecutado.findIndex((v, i) => {
-                return v > 0 && (this.datos.avanceEjecutado[i + 1] === 0 || i === this.datos.avanceEjecutado.length - 1);
-            }) + 1;
-            
-            console.log('📍 Semana actual detectada:', semanaActual);
-            
+
+            // ── Encontrar última semana con avance > 0 ──────────────────────
+            var ultimaSemanaIndex = -1;
+            for (var i = this.datos.avanceEjecutado.length - 1; i >= 0; i--) {
+                var v = this.datos.avanceEjecutado[i];
+                if (v !== null && v !== undefined && v > 0) { ultimaSemanaIndex = i; break; }
+            }
+            this._ultimaSemanaIndex = ultimaSemanaIndex;
+            console.log('📍 Línea vertical en semana:', ultimaSemanaIndex + 1);
+
+            // ── Plugin que dibuja la línea roja punteada SOBRE el canvas ────
+            var pluginLineaVertical = {
+                id: 'lineaVerticalSemanaActual',
+                afterDraw: function(chart) {
+                    var idx = window.curvaS._ultimaSemanaIndex;
+                    if (idx === undefined || idx < 0) return;
+                    var xAxis = chart.scales.x;
+                    var yAxis = chart.scales.y;
+                    if (!xAxis || !yAxis) return;
+                    var xPos = xAxis.getPixelForValue(idx);
+                    if (isNaN(xPos)) return;
+                    var c = chart.ctx;
+                    c.save();
+                    c.beginPath();
+                    c.setLineDash([6, 4]);
+                    c.strokeStyle = '#f0436a';
+                    c.lineWidth   = 2;
+                    c.moveTo(xPos, yAxis.top);
+                    c.lineTo(xPos, yAxis.bottom);
+                    c.stroke();
+                    c.setLineDash([]);
+                    c.fillStyle    = '#f0436a';
+                    c.font         = 'bold 11px "Outfit",sans-serif';
+                    c.textAlign    = 'center';
+                    c.textBaseline = 'bottom';
+                    c.fillText('▼ Hoy', xPos, yAxis.top - 2);
+                    c.restore();
+                }
+            };
+
             this.grafica = new Chart(ctx, {
                 type: 'line',
+                plugins: [pluginLineaVertical],
                 data: {
                     labels: this.datos.semanas || [],
                     datasets: [
@@ -493,65 +507,37 @@ generarTablaAvance: function() {
                             label: 'Programado',
                             data: this.datos.avanceProgramado || [],
                             borderColor: '#7c6ff0',
-                            backgroundColor: 'rgba(124, 111, 240, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 4,
-                            pointHoverRadius: 6
+                            backgroundColor: 'rgba(124,111,240,0.1)',
+                            borderWidth: 3, fill: true, tension: 0.4,
+                            pointRadius: 4, pointHoverRadius: 6
                         },
                         {
                             label: 'Real',
                             data: this.datos.avanceEjecutado || [],
                             borderColor: '#4d8ef0',
-                            backgroundColor: 'rgba(77, 142, 240, 0.1)',
-                            borderWidth: 3,
-                            borderDash: [6, 3],  // ✅ Línea punteada para curva real
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 5,
-                            pointHoverRadius: 7,
+                            backgroundColor: 'rgba(77,142,240,0.1)',
+                            borderWidth: 3, borderDash: [6, 3],
+                            fill: true, tension: 0.4,
+                            pointRadius: 5, pointHoverRadius: 7,
                             pointBackgroundColor: '#4d8ef0',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2
-                        },
-                        // ⚠️ NUEVO: Dataset para línea vertical de semana actual
-                        {
-                            label: 'Semana Actual',
-                            data: [],  // Se llena dinámicamente abajo
-                            borderColor: '#f0436a',  // Rose del tema oscuro
-                            borderWidth: 2,
-                            borderDash: [4, 3],  // ✅ Punteado
-                            pointRadius: 0,
-                            fill: false,
-                            yAxisID: 'y',
-                            spanGaps: true  // ← IMPORTANTE: para que dibuje línea con nulls
+                            pointBorderColor: '#fff', pointBorderWidth: 2
                         }
                     ]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                color: '#e8edf5',
-                                font: { family: "'Outfit', sans-serif", size: 12 },
-                                padding: 20
-                            }
+                            display: true, position: 'top',
+                            labels: { color: '#e8edf5', font: { family: "'Outfit',sans-serif", size: 12 }, padding: 20 }
                         },
                         tooltip: {
-                            backgroundColor: '#1e2330',
-                            titleColor: '#e8edf5',
-                            bodyColor: '#c4cde0',
-                            borderColor: '#2a3347',
-                            borderWidth: 1,
-                            padding: 12,
+                            backgroundColor: '#1e2330', titleColor: '#e8edf5',
+                            bodyColor: '#c4cde0', borderColor: '#2a3347', borderWidth: 1, padding: 12,
                             callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+                                label: function(ctx) {
+                                    if (ctx.parsed.y === null) return null;
+                                    return ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%';
                                 }
                             }
                         }
@@ -559,53 +545,19 @@ generarTablaAvance: function() {
                     scales: {
                         x: {
                             grid: { color: '#2a3347' },
-                            ticks: {
-                                color: '#8a97b4',
-                                font: { family: "'JetBrains Mono', monospace", size: 10 }
-                            },
-                            title: {
-                                display: true, text: 'Semanas',
-                                color: '#5a6a8a',
-                                font: { family: "'Outfit', sans-serif", size: 11 }
-                            }
+                            ticks: { color: '#8a97b4', font: { family: "'JetBrains Mono',monospace", size: 10 } },
+                            title: { display: true, text: 'Semanas', color: '#5a6a8a', font: { family: "'Outfit',sans-serif", size: 11 } }
                         },
                         y: {
                             beginAtZero: true, max: 100,
                             grid: { color: '#2a3347' },
-                            ticks: {
-                                color: '#8a97b4',
-                                font: { family: "'JetBrains Mono', monospace", size: 10 },
-                                callback: function(v) { return v + '%'; }
-                            },
-                            title: {
-                                display: true, text: 'Avance %',
-                                color: '#5a6a8a',
-                                font: { family: "'Outfit', sans-serif", size: 11 }
-                            }
+                            ticks: { color: '#8a97b4', font: { family: "'JetBrains Mono',monospace", size: 10 }, callback: function(v) { return v + '%'; } },
+                            title: { display: true, text: 'Avance %', color: '#5a6a8a', font: { family: "'Outfit',sans-serif", size: 11 } }
                         }
                     }
                 }
             });
-            
-            // ─────────────────────────────────────────────────────────────────
-            // POSICIONAR LÍNEA VERTICAL EN SEMANA ACTUAL
-            // ─────────────────────────────────────────────────────────────────
-            const semanaActualIndex = this.datos.avanceEjecutado.findIndex(v => v > 0);
-            if (semanaActualIndex >= 0 && this.grafica && this.datos.semanas?.length > 0) {
-                // Crear array con nulls y poner 100 SOLO en la posición de la semana actual
-                const lineaData = new Array(this.datos.semanas.length).fill(null);
-                lineaData[semanaActualIndex] = 100;  // Línea vertical hasta 100%
-                
-                // Actualizar el dataset 2 (índice 2) con los datos de la línea
-                if (this.grafica.data.datasets[2]) {
-                    this.grafica.data.datasets[2].data = lineaData;
-                    this.grafica.update('none');  // 'none' para actualización sin animación
-                    console.log('✅ Línea vertical posicionada en semana', semanaActualIndex + 1);
-                } else {
-                    console.warn('⚠️ Dataset de línea vertical no encontrado');
-                }
-            }
-            
+
             console.log('✅ Gráfica inicializada');
 
         } catch (error) {
@@ -613,51 +565,7 @@ generarTablaAvance: function() {
         }
     },
 
-    // ─────────────────────────────────────────────────────────────────
-    // POSICIONAR LÍNEA VERTICAL EN SEMANA ACTUAL (NUEVA FUNCIÓN)
-    // ─────────────────────────────────────────────────────────────────
-    posicionarLineaSemanaActual: function() {
-        try {
-            // ⚠️ VERIFICAR QUE LA GRÁFICA EXISTA
-            if (!this.grafica) {
-                console.warn('⚠️ No se puede posicionar línea: gráfica no inicializada');
-                return;
-            }
-            
-            // ⚠️ ENCONTRAR ÚLTIMA SEMANA CON AVANCE > 0
-            let ultimaSemanaIndex = -1;
-            for (let i = this.datos.avanceEjecutado.length - 1; i >= 0; i--) {
-                if (this.datos.avanceEjecutado[i] > 0) {
-                    ultimaSemanaIndex = i;
-                    break;
-                }
-            }
-            
-            if (ultimaSemanaIndex === -1 || !this.datos.semanas?.length) {
-                console.log('ℹ️ No hay avance registrado para mostrar línea vertical');
-                return;
-            }
-            
-            console.log('📍 Posicionando línea vertical en semana', ultimaSemanaIndex + 1);
-            
-            // ⚠️ CREAR DATOS PARA LÍNEA VERTICAL (nulls + 100 en posición actual)
-            const lineaData = new Array(this.datos.semanas.length).fill(null);
-            lineaData[ultimaSemanaIndex] = 100;  // Línea hasta 100%
-            
-            // ⚠️ ACTUALIZAR DATASET 2 (índice 2 = línea vertical)
-            if (this.grafica.data.datasets[2]) {
-                this.grafica.data.datasets[2].data = lineaData;
-                this.grafica.update('none');  // Actualizar sin animación
-                console.log('✅ Línea vertical dibujada en semana', ultimaSemanaIndex + 1);
-            } else {
-                console.warn('⚠️ Dataset de línea vertical no encontrado');
-            }
-            
-        } catch (error) {
-            console.error('❌ Error posicionando línea vertical:', error);
-        }
-    },
-    
+
     // ─────────────────────────────────────────────────────────────────
     // ACTUALIZAR DATOS EN LA GRÁFICA (CORREGIDO — sin typo)
     // ─────────────────────────────────────────────────────────────────
@@ -670,7 +578,16 @@ generarTablaAvance: function() {
 
             // Recargar avance por si hubo cambios
             await this.cargarAvanceEjecutado();
-
+            
+            // ── Recalcular índice para el plugin ────────────────────────────
+            var ultimaSemanaIndex = -1;
+            for (var i = this.datos.avanceEjecutado.length - 1; i >= 0; i--) {
+                var v = this.datos.avanceEjecutado[i];
+                if (v !== null && v !== undefined && v > 0) { ultimaSemanaIndex = i; break; }
+            }
+            
+            this._ultimaSemanaIndex = ultimaSemanaIndex;
+            
             this.grafica.data.labels                    = this.datos.semanas;
             this.grafica.data.datasets[0].data          = this.datos.avanceProgramado;
             this.grafica.data.datasets[1].data          = this.datos.avanceEjecutado;
