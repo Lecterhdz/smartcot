@@ -554,6 +554,51 @@ window.curvaS = {
     },
 
     // ─────────────────────────────────────────────────────────────────
+    // POSICIONAR LÍNEA VERTICAL EN SEMANA ACTUAL (NUEVA FUNCIÓN)
+    // ─────────────────────────────────────────────────────────────────
+    posicionarLineaSemanaActual: function() {
+        try {
+            // ⚠️ VERIFICAR QUE LA GRÁFICA EXISTA
+            if (!this.grafica) {
+                console.warn('⚠️ No se puede posicionar línea: gráfica no inicializada');
+                return;
+            }
+            
+            // ⚠️ ENCONTRAR ÚLTIMA SEMANA CON AVANCE > 0
+            let ultimaSemanaIndex = -1;
+            for (let i = this.datos.avanceEjecutado.length - 1; i >= 0; i--) {
+                if (this.datos.avanceEjecutado[i] > 0) {
+                    ultimaSemanaIndex = i;
+                    break;
+                }
+            }
+            
+            if (ultimaSemanaIndex === -1 || !this.datos.semanas?.length) {
+                console.log('ℹ️ No hay avance registrado para mostrar línea vertical');
+                return;
+            }
+            
+            console.log('📍 Posicionando línea vertical en semana', ultimaSemanaIndex + 1);
+            
+            // ⚠️ CREAR DATOS PARA LÍNEA VERTICAL (nulls + 100 en posición actual)
+            const lineaData = new Array(this.datos.semanas.length).fill(null);
+            lineaData[ultimaSemanaIndex] = 100;  // Línea hasta 100%
+            
+            // ⚠️ ACTUALIZAR DATASET 2 (índice 2 = línea vertical)
+            if (this.grafica.data.datasets[2]) {
+                this.grafica.data.datasets[2].data = lineaData;
+                this.grafica.update('none');  // Actualizar sin animación
+                console.log('✅ Línea vertical dibujada en semana', ultimaSemanaIndex + 1);
+            } else {
+                console.warn('⚠️ Dataset de línea vertical no encontrado');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error posicionando línea vertical:', error);
+        }
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
     // ACTUALIZAR DATOS EN LA GRÁFICA (CORREGIDO — sin typo)
     // ─────────────────────────────────────────────────────────────────
     actualizarGrafica: async function() {
