@@ -225,11 +225,14 @@ generarTablaAvance: function() {
             // Cargar avance ejecutado
             await this.cargarAvanceEjecutado();
 
-            // ⚠️ PRIMERO INICIALIZAR GRÁFICA (Chart.js)
-            this.inicializarGrafica();
-            
-            // ⚠️ LUEGO ACTUALIZAR CON DATOS
-            this.actualizarGrafica();
+            // ⚠️ ESPERAR A QUE EL CANVAS SEA VISIBLE ANTES DE GENERAR GRÁFICA
+            setTimeout(() => {
+                this.inicializarGrafica();
+                this.actualizarGrafica();
+            }, 300);
+
+            // ⚠️ GENERAR TABLA DE AVANCE (DESPUÉS DE CARGAR DATOS)
+            this.generarTablaAvance();
             
             // ⚠️ AHORA SÍ POSICIONAR LÍNEA VERTICAL (la gráfica ya existe)
             this.posicionarLineaSemanaActual();
@@ -237,8 +240,6 @@ generarTablaAvance: function() {
             // Variaciones y tabla
             this.calcularVariaciones();
             this.renderizarTablaAvances();
-
-
             
             // Actualizar componentes visuales
 
@@ -404,10 +405,11 @@ generarTablaAvance: function() {
     cargarAvanceEjecutado: async function() {
         try {
             // Inicializar con ceros
-            this.datos.avanceEjecutado = new Array(this.datos.semanas.length).fill(null);
-            this.datos.montoEjecutado  = new Array(this.datos.semanas.length).fill(0);
-
-            if (!this.datos.cotizacionId) return;
+            if (!this.datos.cotizacionId) {
+                this.datos.avanceEjecutado = new Array(this.datos.semanas?.length || 0).fill(0);
+                this.datos.montoEjecutado = new Array(this.datos.semanas?.length || 0).fill(0);
+                return;
+            }
 
             var avances = await window.db.avanceObra
                 .where('cotizacionId')
@@ -415,7 +417,12 @@ generarTablaAvance: function() {
                 .toArray();
 
             console.log('📊 Registros de avance encontrados:', avances.length, avances);
-
+            
+            // ⚠️ INICIALIZAR ARRAYS CON EL TAMAÑO DE SEMANAS
+            const totalSemanas = this.datos.semanas?.length || 0;
+            this.datos.avanceEjecutado = new Array(totalSemanas).fill(null);  // ← null para distinguir "sin dato"
+            this.datos.montoEjecutado = new Array(totalSemanas).fill(0);
+            
             avances.forEach(function(a) {
                 var idx = (a.semana || 0) - 1;
                 if (idx >= 0 && idx < window.curvaS.datos.semanas.length) {
@@ -428,6 +435,7 @@ generarTablaAvance: function() {
 
         } catch (error) {
             console.error('❌ Error cargando avance ejecutado:', error);
+            const totalSemanas = this.datos.semanas?.length || 0;
             this.datos.avanceEjecutado = new Array(this.datos.semanas.length).fill(null);
             this.datos.montoEjecutado  = new Array(this.datos.semanas.length).fill(0);
         }
