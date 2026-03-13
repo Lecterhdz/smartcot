@@ -732,6 +732,57 @@ tbody tr:hover { background:var(--bg); }
 .mb-3 { margin-bottom: 24px; }
 .hidden { display: none !important; }
 .visible { display: block !important; }
+/* ══════════════════════════════════════
+   TEMA CLARO (LIGHT MODE)
+   ══════════════════════════════════════ */
+body.tema-claro {
+    --white:   #ffffff;
+    --bg:      #f8fafc;
+    --bg2:     #f1f5f9;
+    --surface: #ffffff;
+    --border:  #e2e8f0;
+    --border2: #cbd5e1;
+    --ink:     #1a1a1a;
+    --ink2:    #4a4a4a;
+    --ink3:    #64748b;
+    --ink4:    #94a3b8;
+    --blue:    #2563eb;
+    --blue-l:  #dbeafe;
+    --blue-m:  #93c5fd;
+    --indigo:  #4f46e5;
+    --teal:    #0d9488;
+    --teal-l:  #ccfbf1;
+    --amber:   #d97706;
+    --amber-l: #fef3c7;
+    --rose:    #dc2626;
+    --rose-l:  #fee2e2;
+    --green:   #16a34a;
+    --green-l: #dcfce7;
+}
+
+/* Ajustes específicos para tema claro */
+body.tema-claro .card,
+body.tema-claro .form-section,
+body.tema-claro .summary-panel,
+body.tema-claro .table-wrap {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+body.tema-claro .stat-card::after {
+    opacity: 0.03;
+}
+
+body.tema-claro input.f-input,
+body.tema-claro select.f-input,
+body.tema-claro textarea.f-input {
+    background: var(--white);
+    border-color: var(--border);
+}
+
+body.tema-claro input.f-input:focus {
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
 </style>
 </head>
 <body>
