@@ -1473,218 +1473,221 @@ tbody tr:hover { background:var(--bg); }
 
 <!-- ───── CONFIGURACIÓN ───── -->
 <section id="configuracion-screen" class="screen">
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-<button onclick="app.mostrarPantalla('dashboard-screen')" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;font-family:var(--font);">← Volver</button>
-<span style="font-size:13px;font-weight:700;color:var(--ink);">Configuración</span>
-</div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+    <button onclick="app.mostrarPantalla('dashboard-screen')" 
+      style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;font-family:var(--font);min-height:44px;">
+      ← Volver
+    </button>
+    <span style="font-size:13px;font-weight:700;color:var(--ink);">Configuración</span>
+  </div>
 
-<div class="card">
-<div class="card-body">
+  <div class="card">
+    <div class="card-body">
 
-<!-- ═══════════════════════════════════════════════════════════════
-     DATOS DE LA EMPRESA
-     ═══════════════════════════════════════════════════════════════ -->
-<div style="margin-bottom:30px;">
-<h3 style="color:var(--ink);margin-bottom:20px;">🏢 Datos de la Empresa</h3>
-<div class="form-grid" style="margin-bottom:20px;">
-<div class="f-group">
-<label class="f-label">Nombre de la Empresa</label>
-<input class="f-input" id="config-empresa" type="text" placeholder="Ej: Constructora ABC S.A. de C.V." style="font-family:var(--font);">
-</div>
-<div class="f-group">
-<label class="f-label">RFC</label>
-<input class="f-input" id="config-rfc" type="text" placeholder="ABC123456XYZ" style="font-family:var(--mono);text-transform:uppercase;">
-</div>
-</div>
-<div class="form-grid" style="margin-bottom:20px;">
-<div class="f-group">
-<label class="f-label">Email de Contacto</label>
-<input class="f-input" id="config-email" type="email" placeholder="contacto@empresa.com" style="font-family:var(--font);">
-</div>
-<div class="f-group">
-<label class="f-label">Teléfono</label>
-<input class="f-input" id="config-telefono" type="tel" placeholder="55-1234-5678" style="font-family:var(--font);">
-</div>
-</div>
-<div class="f-group" style="margin-bottom:20px;">
-<label class="f-label">Dirección</label>
-<textarea class="f-input" id="config-direccion" placeholder="Calle, Número, Colonia, Ciudad, Estado, CP" style="min-height:80px;font-family:var(--font);"></textarea>
-</div>
-<button onclick="app.guardarConfiguracionEmpresa()" class="topbar-btn primary">💾 Guardar Datos de Empresa</button>
-</div>
+      <!-- ═══════════════════════════════════════════════════════════════
+           DATOS DE LA EMPRESA (DISPONIBLE PARA TODOS)
+           ═══════════════════════════════════════════════════════════════ -->
+      <div id="seccion-datos-empresa" style="margin-bottom:30px;">
+        <h3 style="color:var(--ink);margin-bottom:20px;">🏢 Datos de la Empresa</h3>
+        <div class="form-grid" style="margin-bottom:20px;">
+          <div class="f-group">
+            <label class="f-label">Nombre de la Empresa</label>
+            <input class="f-input" id="config-empresa" type="text" placeholder="Ej: Constructora ABC S.A. de C.V." style="font-family:var(--font);min-height:44px;">
+          </div>
+          <div class="f-group">
+            <label class="f-label">RFC</label>
+            <input class="f-input" id="config-rfc" type="text" placeholder="ABC123456XYZ" style="font-family:var(--mono);text-transform:uppercase;min-height:44px;">
+          </div>
+        </div>
+        <div class="form-grid" style="margin-bottom:20px;">
+          <div class="f-group">
+            <label class="f-label">Email de Contacto</label>
+            <input class="f-input" id="config-email" type="email" placeholder="contacto@empresa.com" style="font-family:var(--font);min-height:44px;">
+          </div>
+          <div class="f-group">
+            <label class="f-label">Teléfono</label>
+            <input class="f-input" id="config-telefono" type="tel" placeholder="55-1234-5678" style="font-family:var(--font);min-height:44px;">
+          </div>
+        </div>
+        <div class="f-group" style="margin-bottom:20px;">
+          <label class="f-label">Dirección</label>
+          <textarea class="f-input" id="config-direccion" placeholder="Calle, Número, Colonia, Ciudad, Estado, CP" style="min-height:100px;font-family:var(--font);"></textarea>
+        </div>
+        <button onclick="app.guardarConfiguracionEmpresa()" class="topbar-btn primary" style="min-height:48px;">💾 Guardar Datos de Empresa</button>
+      </div>
 
-<div style="border-top:1px solid var(--border);margin:30px 0;"></div>
+      <div style="border-top:1px solid var(--border);margin:30px 0;"></div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     COSTOS DE MANO DE OBRA
-     ═══════════════════════════════════════════════════════════════ -->
-<div style="margin-bottom:30px;">
-<h3 style="color:var(--ink);margin-bottom:20px;">💰 Costos de Mano de Obra</h3>
-<div style="background:var(--blue-l);padding:15px;border-radius:var(--radius-sm);margin-bottom:20px;border-left:4px solid var(--blue);">
-<p style="color:var(--blue);font-size:13px;margin:0;">
-ℹ️ Estos costos se aplicarán automáticamente a todos los conceptos del catálogo.
-<br><strong>Disponible en planes PRO y ENTERPRISE.</strong>
-</p>
-</div>
+      <!-- ═══════════════════════════════════════════════════════════════
+           COSTOS DE MANO DE OBRA (PRO+)
+           ═══════════════════════════════════════════════════════════════ -->
+      <div id="seccion-costos-mano-obra" style="margin-bottom:30px;position:relative;">
+        <h3 style="color:var(--ink);margin-bottom:20px;">💰 Costos de Mano de Obra</h3>
+        <div style="background:var(--blue-l);padding:15px;border-radius:var(--radius-sm);margin-bottom:20px;border-left:4px solid var(--blue);">
+          <p style="color:var(--blue);font-size:13px;margin:0;">
+            ℹ️ Estos costos se aplicarán automáticamente a todos los conceptos del catálogo.
+            <br><strong>Disponible en planes PRO y ENTERPRISE.</strong>
+          </p>
+        </div>
 
-<!-- Display de costos actuales -->
-<div id="costos-actuales-display" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:20px;">
-<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;">
-<div style="font-size:10px;color:var(--ink4);">👷 Ayudante</div>
-<div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-ayudante">$0.00</div>
-<div style="font-size:9px;color:var(--ink4);margin-top:5px;">por jornada</div>
-</div>
-<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;">
-<div style="font-size:10px;color:var(--ink4);">🔧 Oficial</div>
-<div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-oficial">$0.00</div>
-<div style="font-size:9px;color:var(--ink4);margin-top:5px;">por jornada</div>
-</div>
-<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;">
-<div style="font-size:10px;color:var(--ink4);">⚡ Técnico</div>
-<div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-tecnico">$0.00</div>
-<div style="font-size:9px;color:var(--ink4);margin-top:5px;">por jornada</div>
-</div>
-<div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;">
-<div style="font-size:10px;color:var(--ink4);">📋 Supervisor</div>
-<div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-supervisor">$0.00</div>
-<div style="font-size:9px;color:var(--ink4);margin-top:5px;">por jornada</div>
-</div>
-</div>
+        <!-- Display de costos actuales -->
+        <div id="costos-actuales-display" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:20px;">
+          <div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;">
+            <div style="font-size:10px;color:var(--ink4);">👷 Ayudante</div>
+            <div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-ayudante">$0.00</div>
+            <div style="font-size:9px;color:var(--ink4);margin-top:5px;">por jornada</div>
+          </div>
+          <div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;">
+            <div style="font-size:10px;color:var(--ink4);">🔧 Oficial</div>
+            <div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-oficial">$0.00</div>
+            <div style="font-size:9px;color:var(--ink4);margin-top:5px;">por jornada</div>
+          </div>
+          <div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;">
+            <div style="font-size:10px;color:var(--ink4);">⚡ Técnico</div>
+            <div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-tecnico">$0.00</div>
+            <div style="font-size:9px;color:var(--ink4);margin-top:5px;">por jornada</div>
+          </div>
+          <div style="background:var(--bg);border-radius:var(--radius-sm);padding:15px;text-align:center;">
+            <div style="font-size:10px;color:var(--ink4);">📋 Supervisor</div>
+            <div style="font-size:20px;font-weight:700;color:var(--blue);" id="display-supervisor">$0.00</div>
+            <div style="font-size:9px;color:var(--ink4);margin-top:5px;">por jornada</div>
+          </div>
+        </div>
 
-<!-- Inputs para editar costos -->
-<div class="form-grid" style="margin-bottom:20px;">
-<div class="f-group">
-<label class="f-label">👷 Ayudante ($/jornada)</label>
-<input class="f-input" id="costo-ayudante" type="number" min="0" step="0.01" placeholder="250" onchange="app.actualizarDisplayCostos()" style="font-family:var(--mono);">
-</div>
-<div class="f-group">
-<label class="f-label">🔧 Oficial ($/jornada)</label>
-<input class="f-input" id="costo-oficial" type="number" min="0" step="0.01" placeholder="350" onchange="app.actualizarDisplayCostos()" style="font-family:var(--mono);">
-</div>
-<div class="f-group">
-<label class="f-label">⚡ Técnico ($/jornada)</label>
-<input class="f-input" id="costo-tecnico" type="number" min="0" step="0.01" placeholder="450" onchange="app.actualizarDisplayCostos()" style="font-family:var(--mono);">
-</div>
-<div class="f-group">
-<label class="f-label">📋 Supervisor ($/jornada)</label>
-<input class="f-input" id="costo-supervisor" type="number" min="0" step="0.01" placeholder="550" onchange="app.actualizarDisplayCostos()" style="font-family:var(--mono);">
-</div>
-</div>
+        <!-- Inputs para editar costos -->
+        <div class="form-grid" style="margin-bottom:20px;">
+          <div class="f-group">
+            <label class="f-label">👷 Ayudante ($/jornada)</label>
+            <input class="f-input" id="costo-ayudante" type="number" min="0" step="0.01" placeholder="250" onchange="app.actualizarDisplayCostos()" style="font-family:var(--mono);min-height:44px;">
+          </div>
+          <div class="f-group">
+            <label class="f-label">🔧 Oficial ($/jornada)</label>
+            <input class="f-input" id="costo-oficial" type="number" min="0" step="0.01" placeholder="350" onchange="app.actualizarDisplayCostos()" style="font-family:var(--mono);min-height:44px;">
+          </div>
+          <div class="f-group">
+            <label class="f-label">⚡ Técnico ($/jornada)</label>
+            <input class="f-input" id="costo-tecnico" type="number" min="0" step="0.01" placeholder="450" onchange="app.actualizarDisplayCostos()" style="font-family:var(--mono);min-height:44px;">
+          </div>
+          <div class="f-group">
+            <label class="f-label">📋 Supervisor ($/jornada)</label>
+            <input class="f-input" id="costo-supervisor" type="number" min="0" step="0.01" placeholder="550" onchange="app.actualizarDisplayCostos()" style="font-family:var(--mono);min-height:44px;">
+          </div>
+        </div>
 
-<div style="display:flex;gap:10px;flex-wrap:wrap;">
-<button onclick="app.guardarCostosManoObra()" class="topbar-btn primary">💾 Guardar Costos</button>
-<button onclick="app.aplicarCostosAConceptos()" class="topbar-btn ghost" title="Aplicar a todos los conceptos existentes">🔄 Aplicar a Catálogo</button>
-</div>
-</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button onclick="app.guardarCostosManoObra()" class="topbar-btn primary" style="min-height:48px;">💾 Guardar Costos</button>
+          <button onclick="app.aplicarCostosManoObraAConceptos()" class="topbar-btn ghost" title="Aplicar a todos los conceptos existentes" style="min-height:48px;">🔄 Aplicar a Catálogo</button>
+        </div>
+      </div>
 
-<div style="border-top:1px solid var(--border);margin:30px 0;"></div>
+      <div style="border-top:1px solid var(--border);margin:30px 0;"></div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     PARÁMETROS DE COTIZACIÓN
-     ═══════════════════════════════════════════════════════════════ -->
-<div style="margin-bottom:30px;">
-<h3 style="color:var(--ink);margin-bottom:20px;">⚙️ Parámetros de Cotización</h3>
-<div class="form-grid" style="margin-bottom:20px;">
-<div class="f-group">
-<label class="f-label">IVA (%)</label>
-<input class="f-input" id="config-iva" type="number" min="0" max="100" step="0.01" value="16" style="font-family:var(--mono);">
-</div>
-<div class="f-group">
-<label class="f-label">Utilidad Predeterminada (%)</label>
-<input class="f-input" id="config-utilidad" type="number" min="0" max="100" step="0.01" value="10" style="font-family:var(--mono);">
-</div>
-</div>
-<div class="form-grid" style="margin-bottom:20px;">
-<div class="f-group">
-<label class="f-label">Indirectos Oficina (%)</label>
-<input class="f-input" id="config-indirectos-oficina" type="number" min="0" max="100" step="0.01" value="5" style="font-family:var(--mono);">
-</div>
-<div class="f-group">
-<label class="f-label">Indirectos Campo (%)</label>
-<input class="f-input" id="config-indirectos-campo" type="number" min="0" max="100" step="0.01" value="15" style="font-family:var(--mono);">
-</div>
-</div>
-<button onclick="app.guardarParametrosCotizacion()" class="topbar-btn primary">💾 Guardar Parámetros</button>
-</div>
+      <!-- ═══════════════════════════════════════════════════════════════
+           PARÁMETROS DE COTIZACIÓN (PRO+)
+           ═══════════════════════════════════════════════════════════════ -->
+      <div id="seccion-parametros-cotizacion" style="margin-bottom:30px;position:relative;">
+        <h3 style="color:var(--ink);margin-bottom:20px;">⚙️ Parámetros de Cotización</h3>
+        <div class="form-grid" style="margin-bottom:20px;">
+          <div class="f-group">
+            <label class="f-label">IVA (%)</label>
+            <input class="f-input" id="config-iva" type="number" min="0" max="100" step="0.01" value="16" style="font-family:var(--mono);min-height:44px;">
+          </div>
+          <div class="f-group">
+            <label class="f-label">Utilidad Predeterminada (%)</label>
+            <input class="f-input" id="config-utilidad" type="number" min="0" max="100" step="0.01" value="10" style="font-family:var(--mono);min-height:44px;">
+          </div>
+        </div>
+        <div class="form-grid" style="margin-bottom:20px;">
+          <div class="f-group">
+            <label class="f-label">Indirectos Oficina (%)</label>
+            <input class="f-input" id="config-indirectos-oficina" type="number" min="0" max="100" step="0.01" value="5" style="font-family:var(--mono);min-height:44px;">
+          </div>
+          <div class="f-group">
+            <label class="f-label">Indirectos Campo (%)</label>
+            <input class="f-input" id="config-indirectos-campo" type="number" min="0" max="100" step="0.01" value="15" style="font-family:var(--mono);min-height:44px;">
+          </div>
+        </div>
+        <button onclick="app.guardarParametrosCotizacion()" class="topbar-btn primary" style="min-height:48px;">💾 Guardar Parámetros</button>
+      </div>
 
-<div style="border-top:1px solid var(--border);margin:30px 0;"></div>
+      <div style="border-top:1px solid var(--border);margin:30px 0;"></div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     MARCA PERSONALIZADA (ENTERPRISE)
-     ═══════════════════════════════════════════════════════════════ -->
-<div id="seccion-marca-personalizada" style="display:none;margin-bottom:30px;">
-<h3 style="color:var(--ink);margin-bottom:20px;">🏷️ Marca Personalizada</h3>
-<div style="background:var(--amber-l);padding:15px;border-radius:var(--radius-sm);margin-bottom:20px;border-left:4px solid var(--amber);">
-<p style="color:var(--amber);font-size:13px;margin:0;">
-🔒 Solo disponible en plan ENTERPRISE
-</p>
-</div>
-<div class="f-group" style="margin-bottom:20px;">
-<label class="f-label">Logo de Empresa</label>
-<input class="f-input" id="config-logo" type="file" accept="image/*" style="font-family:var(--font);">
-<small style="color:var(--ink4);font-size:11px;display:block;margin-top:5px;">PNG o JPG, máximo 500KB. Se mostrará en reportes PDF.</small>
-</div>
-<div class="f-group" style="margin-bottom:20px;">
-<label class="f-label">Color Corporativo</label>
-<input class="f-input" id="config-color" type="color" value="#1a1a1a" style="height:50px;cursor:pointer;">
-</div>
-<button onclick="app.guardarMarcaPersonalizada()" class="topbar-btn primary">💾 Guardar Marca</button>
-</div>
+      <!-- ═══════════════════════════════════════════════════════════════
+           MARCA PERSONALIZADA (ENTERPRISE)
+           ═══════════════════════════════════════════════════════════════ -->
+      <div id="seccion-marca-personalizada" style="display:none;margin-bottom:30px;position:relative;">
+        <h3 style="color:var(--ink);margin-bottom:20px;">🏷️ Marca Personalizada</h3>
+        <div style="background:var(--amber-l);padding:15px;border-radius:var(--radius-sm);margin-bottom:20px;border-left:4px solid var(--amber);">
+          <p style="color:var(--amber);font-size:13px;margin:0;">
+            🔒 Solo disponible en plan ENTERPRISE
+          </p>
+        </div>
+        <div class="f-group" style="margin-bottom:20px;">
+          <label class="f-label">Logo de Empresa</label>
+          <input class="f-input" id="config-logo" type="file" accept="image/*" style="font-family:var(--font);min-height:44px;">
+          <small style="color:var(--ink4);font-size:11px;display:block;margin-top:5px;">PNG o JPG, máximo 500KB. Se mostrará en reportes PDF.</small>
+        </div>
+        <div class="f-group" style="margin-bottom:20px;">
+          <label class="f-label">Color Corporativo</label>
+          <input class="f-input" id="config-colores" type="color" value="#1a1a1a" style="height:50px;cursor:pointer;min-height:44px;">
+        </div>
+        <button onclick="app.guardarMarcaPersonalizada()" class="topbar-btn primary" style="min-height:48px;">💾 Guardar Marca</button>
+      </div>
 
-<div style="border-top:1px solid var(--border);margin:30px 0;"></div>
+      <div style="border-top:1px solid var(--border);margin:30px 0;"></div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     RESPALDO DE DATOS
-     ═══════════════════════════════════════════════════════════════ -->
-<div style="margin-bottom:30px;">
-<h3 style="color:var(--ink);margin-bottom:20px;">💾 Respaldo de Datos</h3>
-<div style="background:var(--bg);padding:20px;border-radius:var(--radius-sm);margin-bottom:20px;">
-<p style="color:var(--ink3);font-size:13px;margin-bottom:15px;">
-Exporta todos tus datos (conceptos, cotizaciones, clientes, configuración) para evitar perderlos.
-</p>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
-  <button onclick="app.exportarDatos()" 
-    style="width:100%;padding:10px 16px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);">
-    📤 Exportar Datos
-  </button>
-  <button onclick="document.getElementById('import-file').click()" 
-    style="width:100%;padding:10px 16px;background:var(--white);color:var(--ink);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);">
-    📥 Importar Datos
-  </button>
-  <input type="file" id="import-file" accept=".json" style="display:none;" onchange="app.importarDatos(event)">
-</div>
-</div>
-<div style="background:var(--rose-l);padding:15px;border-radius:var(--radius-sm);border-left:4px solid var(--rose);">
-<p style="color:var(--rose);font-size:13px;margin:0;">
-⚠️ <strong>Precaución:</strong> Importar datos sobrescribirá la información actual. Asegúrate de tener un respaldo antes de continuar.
-</p>
-</div>
-</div>
+      <!-- ═══════════════════════════════════════════════════════════════
+           RESPALDO DE DATOS (PRO+)
+           ═══════════════════════════════════════════════════════════════ -->
+      <div id="seccion-respaldo" style="margin-bottom:30px;position:relative;">
+        <h3 style="color:var(--ink);margin-bottom:20px;">💾 Respaldo de Datos</h3>
+        <div style="background:var(--bg);padding:20px;border-radius:var(--radius-sm);margin-bottom:20px;">
+          <p style="color:var(--ink3);font-size:13px;margin-bottom:15px;">
+            Exporta todos tus datos (conceptos, cotizaciones, clientes, configuración) para evitar perderlos.
+          </p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
+            <button onclick="app.exportarDatos()" 
+              style="width:100%;padding:12px 16px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);min-height:48px;">
+              📤 Exportar Datos
+            </button>
+            <button onclick="document.getElementById('import-file').click()" 
+              style="width:100%;padding:12px 16px;background:var(--white);color:var(--ink);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);min-height:48px;">
+              📥 Importar Datos
+            </button>
+            <input type="file" id="import-file" accept=".json" style="display:none;" onchange="app.importarDatos(event)">
+          </div>
+        </div>
+        <div style="background:var(--rose-l);padding:15px;border-radius:var(--radius-sm);border-left:4px solid var(--rose);">
+          <p style="color:var(--rose);font-size:13px;margin:0;">
+            ⚠️ <strong>Precaución:</strong> Importar datos sobrescribirá la información actual. Asegúrate de tener un respaldo antes de continuar.
+          </p>
+        </div>
+      </div>
 
-<div style="border-top:1px solid var(--border);margin:30px 0;"></div>
+      <div style="border-top:1px solid var(--border);margin:30px 0;"></div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     ZONA DE PELIGRO
-     ═══════════════════════════════════════════════════════════════ -->
-<div style="margin-bottom:30px;">
-<h3 style="color:var(--rose);margin-bottom:20px;">🚨 Zona de Peligro</h3>
-<div style="background:var(--rose-l);padding:20px;border-radius:var(--radius-sm);border:1px solid var(--rose);">
-<p style="color:var(--rose);font-size:13px;margin-bottom:15px;">
-⚠️ <strong>Acciones irreversibles:</strong> Estas acciones no se pueden deshacer. Asegúrate de tener un respaldo antes de continuar.
-</p>
-<div style="display:flex;gap:10px;flex-wrap:wrap;">
-<button onclick="app.limpiarDatosCotizaciones()" class="topbar-btn" style="background:var(--rose);color:white;border:none;">🗑️ Eliminar Cotizaciones</button>
-<button onclick="app.limpiarDatosConceptos()" class="topbar-btn" style="background:var(--rose);color:white;border:none;">🗑️ Eliminar Conceptos</button>
-<button onclick="app.resetearTodo()" class="topbar-btn" style="background:var(--rose);color:white;border:none;">☢️ Resetear Todo</button>
-</div>
-</div>
-</div>
+      <!-- ═══════════════════════════════════════════════════════════════
+           ZONA DE PELIGRO (ENTERPRISE)
+           ═══════════════════════════════════════════════════════════════ -->
+      <div id="seccion-zona-peligro" style="margin-bottom:30px;position:relative;">
+        <h3 style="color:var(--rose);margin-bottom:20px;">🚨 Zona de Peligro</h3>
+        <div style="background:var(--rose-l);padding:20px;border-radius:var(--radius-sm);border:1px solid var(--rose);">
+          <p style="color:var(--rose);font-size:13px;margin-bottom:15px;">
+            ⚠️ <strong>Acciones irreversibles:</strong> Estas acciones no se pueden deshacer. Asegúrate de tener un respaldo antes de continuar.
+          </p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button onclick="app.limpiarDatosCotizaciones()" class="topbar-btn" style="background:var(--rose);color:white;border:none;min-height:48px;min-width:140px;">🗑️ Eliminar Cotizaciones</button>
+            <button onclick="app.limpiarDatosConceptos()" class="topbar-btn" style="background:var(--rose);color:white;border:none;min-height:48px;min-width:140px;">🗑️ Eliminar Conceptos</button>
+            <button onclick="app.resetearTodo()" class="topbar-btn" style="background:var(--rose);color:white;border:none;min-height:48px;min-width:140px;">☢️ Resetear Todo</button>
+          </div>
+        </div>
+      </div>
 
-<!-- Botón volver -->
-<button onclick="app.mostrarPantalla('dashboard-screen')" class="topbar-btn ghost" style="width:100%;margin-top:20px;">↩️ Volver al Dashboard</button>
+      <!-- Botón volver -->
+      <button onclick="app.mostrarPantalla('dashboard-screen')" class="topbar-btn ghost" style="width:100%;margin-top:20px;min-height:48px;">↩️ Volver al Dashboard</button>
 
-</div>
-</div>
+    </div>
+  </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════════
