@@ -1622,9 +1622,11 @@ document.body.style.overflow = '';
 // Tabs de recursos en cotización
 function showResTab(btn, panel) {
 document.querySelectorAll('.res-tab').forEach(t => {
+t.classList.remove('active');
 t.style.color = 'var(--ink4)';
 t.style.borderBottom = '2px solid transparent';
 });
+btn.classList.add('active');
 btn.style.color = 'var(--blue)';
 btn.style.borderBottom = '2px solid var(--blue)';
 document.querySelectorAll('.res-panel').forEach(p => p.style.display = 'none');
@@ -1691,6 +1693,7 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
 
 
