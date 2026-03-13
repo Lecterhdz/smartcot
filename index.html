@@ -1501,31 +1501,31 @@ window.app.cargarConfiguracion();
 <!-- Overlay para cerrar sidebar en móvil -->
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
-<!-- Barra inferior - solo móvil -->
-<nav class="bottom-nav" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);padding:6px 0;max(6px, env(safe-area-inset-bottom));z-index:300;box-shadow:0 -4px 20px rgba(15,23,42,.08);">
-  <div class="bottom-nav-inner" style="display:grid;grid-template-columns:repeat(5,1fr);">
-    <button class="bn-item" onclick="app.mostrarPantalla('dashboard-screen')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;cursor:pointer;border:none;background:none;font-family:var(--font);">
-      <span class="bn-icon" style="font-size:22px;line-height:1;">⊞</span>
-      <span class="bn-label" style="font-size:10px;font-weight:600;color:var(--ink4);">Inicio</span>
-    </button>
-    <button class="bn-item" onclick="app.mostrarPantalla('catalogos-screen')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;cursor:pointer;border:none;background:none;font-family:var(--font);">
-      <span class="bn-icon" style="font-size:22px;line-height:1;">📚</span>
-      <span class="bn-label" style="font-size:10px;font-weight:600;color:var(--ink4);">Catálogo</span>
-    </button>
-    <button class="bn-item" onclick="app.mostrarPantalla('nueva-cotizacion-screen')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;cursor:pointer;border:none;background:none;font-family:var(--font);">
-      <span style="position:absolute;top:-14px;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--indigo));display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(37,99,235,.4);border:3px solid var(--white);">📝</span>
-      <span class="bn-icon" style="opacity:0;">📝</span>
-      <span class="bn-label" style="margin-top:12px;font-size:10px;font-weight:600;color:var(--ink4);">Nueva</span>
-    </button>
-    <button class="bn-item" onclick="app.mostrarPantalla('historial-cotizaciones-screen')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;cursor:pointer;border:none;background:none;font-family:var(--font);">
-      <span class="bn-icon" style="font-size:22px;line-height:1;">📋</span>
-      <span class="bn-label" style="font-size:10px;font-weight:600;color:var(--ink4);">Historial</span>
-    </button>
-    <button class="bn-item" onclick="app.mostrarPantalla('configuracion-screen')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;cursor:pointer;border:none;background:none;font-family:var(--font);">
-      <span class="bn-icon" style="font-size:22px;line-height:1;">⚙️</span>
-      <span class="bn-label" style="font-size:10px;font-weight:600;color:var(--ink4);">Config</span>
-    </button>
-  </div>
+<!-- Barra inferior — solo móvil -->
+<nav class="bottom-nav">
+<div class="bottom-nav-inner">
+<button class="bn-item active" id="bn-dashboard" onclick="app.mostrarPantalla('dashboard-screen');closeSidebar()">
+<span class="bn-icon">⊞</span>
+<span class="bn-label">Inicio</span>
+</button>
+<button class="bn-item" id="bn-catalogo" onclick="app.mostrarPantalla('catalogos-screen');closeSidebar()">
+<span class="bn-icon">📚</span>
+<span class="bn-label">Catálogo</span>
+</button>
+<button class="bn-item" id="bn-cotizacion" onclick="app.mostrarPantalla('nueva-cotizacion-screen');closeSidebar()" style="position:relative;">
+<span style="position:absolute;top:-14px;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--indigo));display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(37,99,235,.4);border:3px solid var(--white);">📝</span>
+<span class="bn-icon" style="opacity:0;">📝</span>
+<span class="bn-label" style="margin-top:12px;">Nueva</span>
+</button>
+<button class="bn-item" id="bn-historial" onclick="app.mostrarPantalla('historial-cotizaciones-screen');closeSidebar()">
+<span class="bn-icon">📋</span>
+<span class="bn-label">Historial</span>
+</button>
+<button class="bn-item" id="bn-config" onclick="app.mostrarPantalla('configuracion-screen');closeSidebar()">
+<span class="bn-icon">⚙️</span>
+<span class="bn-label">Config</span>
+</button>
+</div>
 </nav>
 
 <!-- ══════════════ MODALS ══════════════ -->
@@ -1692,6 +1692,7 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
 
 
