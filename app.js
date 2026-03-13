@@ -227,6 +227,98 @@ mostrarPlantillas: async function() {
 },
 
 // ─────────────────────────────────────────────────────────────────
+// ACTUALIZAR INFO LICENCIA UI (CORREGIDO - TODOS LOS IDS)
+// ─────────────────────────────────────────────────────────────────
+actualizarInfoLicenciaUI: function() {
+    var info = window.licencia.obtenerInfo();
+    
+    // ═══════════════════════════════════════════════════════════
+    // DASHBOARD - Uso de Plan (IDs CORRECTOS del HTML)
+    // ═══════════════════════════════════════════════════════════
+    
+    // Badge del plan (chip azul)
+    const elPlanBadge = document.getElementById('plan-badge');
+    if (elPlanBadge) {
+        elPlanBadge.textContent = info.plan;
+        // Color según plan
+        if (info.plan === 'ENTERPRISE') {
+            elPlanBadge.style.background = 'var(--indigo)';
+        } else if (info.plan === 'PRO') {
+            elPlanBadge.style.background = 'var(--teal)';
+        } else {
+            elPlanBadge.style.background = 'var(--blue)';
+        }
+    }
+    
+    // Estado del plan ("Plan DEMO activo")
+    const elLicenseStatus = document.getElementById('license-status');
+    if (elLicenseStatus) {
+        if (info.activa) {
+            elLicenseStatus.textContent = 'Plan ' + info.plan + ' activo';
+            elLicenseStatus.style.color = info.plan === 'ENTERPRISE' ? 'var(--indigo)' : 
+                                         info.plan === 'PRO' ? 'var(--teal)' : 'var(--blue)';
+        } else {
+            elLicenseStatus.textContent = 'Plan expirado';
+            elLicenseStatus.style.color = 'var(--rose)';
+        }
+    }
+    
+    // Días restantes ("7 días restantes")
+    const elLicenseDays = document.getElementById('license-days');
+    if (elLicenseDays) {
+        if (info.activa) {
+            elLicenseDays.textContent = info.diasRestantes + ' días restantes';
+            // Color según urgencia
+            if (info.diasRestantes <= 3) {
+                elLicenseDays.style.color = 'var(--rose)';
+            } else if (info.diasRestantes <= 7) {
+                elLicenseDays.style.color = 'var(--amber)';
+            } else {
+                elLicenseDays.style.color = 'var(--ink4)';
+            }
+        } else {
+            elLicenseDays.textContent = 'Expirado';
+            elLicenseDays.style.color = 'var(--rose)';
+        }
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // CONTADORES DE USO (Conceptos, Cotizaciones, Clientes)
+    // ═══════════════════════════════════════════════════════════
+    this.actualizarContadoresLicencia();
+    
+    // ═══════════════════════════════════════════════════════════
+    // OTRAS PANTALLAS (License Screen, Sidebar, etc.)
+    // ═══════════════════════════════════════════════════════════
+    
+    // License Screen
+    const elPlanScreen = document.getElementById('licencia-screen-plan');
+    const elExpiryScreen = document.getElementById('licencia-screen-expiry');
+    if (elPlanScreen) elPlanScreen.textContent = info.plan;
+    if (elExpiryScreen) elExpiryScreen.textContent = info.fechaExpiracion;
+    
+    // Sidebar License Pill
+    const sidebarPlan = document.getElementById('sidebar-license-plan');
+    const sidebarExpiry = document.getElementById('sidebar-license-expiry');
+    if (sidebarPlan) sidebarPlan.textContent = info.plan;
+    if (sidebarExpiry) sidebarExpiry.textContent = 'Exp: ' + info.fechaExpiracion;
+    
+    // License Info General
+    const infoEl = document.getElementById('license-info');
+    if (infoEl) {
+        if (info.activa) {
+            infoEl.textContent = '✅ ' + info.plan + ' - Exp: ' + info.fechaExpiracion;
+            infoEl.style.background = 'rgba(76, 175, 80, 0.2)';
+            infoEl.style.color = '#4CAF50';
+        } else {
+            infoEl.textContent = '🔓 Sin licencia';
+            infoEl.style.background = 'rgba(244, 67, 54, 0.2)';
+            infoEl.style.color = '#f44336';
+        }
+    }
+},
+    
+// ─────────────────────────────────────────────────────────────────
 // ACTUALIZAR INFO LICENCIA (CORREGIDO - TODAS LAS PANTALLAS)
 // ─────────────────────────────────────────────────────────────────
 actualizarInfoLicencia: function(licencia) {
@@ -266,91 +358,94 @@ actualizarInfoLicencia: function(licencia) {
 },
 
 // ─────────────────────────────────────────────────────────────────
-// ACTUALIZAR INFO LICENCIA UI (CORREGIDO - TODOS LOS CAMPOS)
+// ACTUALIZAR INFO LICENCIA UI (CORREGIDO - TODOS LOS IDS)
 // ─────────────────────────────────────────────────────────────────
 actualizarInfoLicenciaUI: function() {
-    var licencia = window.licencia.obtenerInfo();
+    var info = window.licencia.obtenerInfo();
     
-    // Dashboard - Plan actual
-    var elPlan = document.getElementById('licencia-plan-actual');
-    var elExpiry = document.getElementById('licencia-expiry');
-    var elDias = document.getElementById('licencia-dias-restantes');
-    var elEstado = document.getElementById('licencia-estado');
+    // ═══════════════════════════════════════════════════════════
+    // DASHBOARD - Uso de Plan (IDs CORRECTOS del HTML)
+    // ═══════════════════════════════════════════════════════════
     
-    // Sidebar
-    var sidebarPlan = document.getElementById('sidebar-license-plan');
-    var sidebarExpiry = document.getElementById('sidebar-license-expiry');
-    
-    // License screen
-    var licenseScreenPlan = document.getElementById('licencia-screen-plan');
-    var licenseScreenExpiry = document.getElementById('licencia-screen-expiry');
-    
-    if (licencia.activa) {
-        // Dashboard
-        if (elPlan) elPlan.textContent = licencia.plan;
-        if (elExpiry) elExpiry.textContent = licencia.fechaExpiracion;
-        if (elDias) elDias.textContent = licencia.diasRestantes + ' días restantes';
-        if (elEstado) {
-            elEstado.textContent = 'Activa';
-            elEstado.style.color = '#4CAF50';
+    // Badge del plan (chip azul)
+    const elPlanBadge = document.getElementById('plan-badge');
+    if (elPlanBadge) {
+        elPlanBadge.textContent = info.plan;
+        // Color según plan
+        if (info.plan === 'ENTERPRISE') {
+            elPlanBadge.style.background = 'var(--indigo)';
+        } else if (info.plan === 'PRO') {
+            elPlanBadge.style.background = 'var(--teal)';
+        } else {
+            elPlanBadge.style.background = 'var(--blue)';
         }
-        
-        // Sidebar
-        if (sidebarPlan) sidebarPlan.textContent = licencia.plan;
-        if (sidebarExpiry) sidebarExpiry.textContent = 'Exp: ' + licencia.fechaExpiracion;
-        
-        // License screen
-        if (licenseScreenPlan) licenseScreenPlan.textContent = licencia.plan;
-        if (licenseScreenExpiry) licenseScreenExpiry.textContent = licencia.fechaExpiracion;
-        
-    } else {
-        // Dashboard DEMO
-        if (elPlan) elPlan.textContent = 'DEMO';
-        if (elExpiry) elExpiry.textContent = '--';
-        if (elDias) elDias.textContent = (licencia.diasRestantes || 7) + ' días restantes';
-        if (elEstado) {
-            elEstado.textContent = licencia.diasRestantes > 0 ? 'Activa (DEMO)' : 'Expirada';
-            elEstado.style.color = licencia.diasRestantes > 0 ? '#FF9800' : '#f44336';
-        }
-        
-        // Sidebar DEMO
-        if (sidebarPlan) sidebarPlan.textContent = 'DEMO';
-        if (sidebarExpiry) sidebarExpiry.textContent = (licencia.diasRestantes || 7) + ' días';
-        
-        // License screen DEMO
-        if (licenseScreenPlan) licenseScreenPlan.textContent = 'DEMO';
-        if (licenseScreenExpiry) licenseScreenExpiry.textContent = '--';
     }
     
-    // Actualizar contadores de uso
+    // Estado del plan ("Plan DEMO activo")
+    const elLicenseStatus = document.getElementById('license-status');
+    if (elLicenseStatus) {
+        if (info.activa) {
+            elLicenseStatus.textContent = 'Plan ' + info.plan + ' activo';
+            elLicenseStatus.style.color = info.plan === 'ENTERPRISE' ? 'var(--indigo)' : 
+                                         info.plan === 'PRO' ? 'var(--teal)' : 'var(--blue)';
+        } else {
+            elLicenseStatus.textContent = 'Plan expirado';
+            elLicenseStatus.style.color = 'var(--rose)';
+        }
+    }
+    
+    // Días restantes ("7 días restantes")
+    const elLicenseDays = document.getElementById('license-days');
+    if (elLicenseDays) {
+        if (info.activa) {
+            elLicenseDays.textContent = info.diasRestantes + ' días restantes';
+            // Color según urgencia
+            if (info.diasRestantes <= 3) {
+                elLicenseDays.style.color = 'var(--rose)';
+            } else if (info.diasRestantes <= 7) {
+                elLicenseDays.style.color = 'var(--amber)';
+            } else {
+                elLicenseDays.style.color = 'var(--ink4)';
+            }
+        } else {
+            elLicenseDays.textContent = 'Expirado';
+            elLicenseDays.style.color = 'var(--rose)';
+        }
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // CONTADORES DE USO (Conceptos, Cotizaciones, Clientes)
+    // ═══════════════════════════════════════════════════════════
     this.actualizarContadoresLicencia();
-},
-
-actualizarContadoresLicencia: async function() {
-    try {
-        if (!window.db) return;
-        var conceptos = await window.db.conceptos.count();
-        var cotizaciones = await window.db.cotizaciones.count();
-        var clientes = await window.db.clientes.count();
-        var licencia = window.licencia.cargar();
-        var plan = window.licencia.PLANES[licencia?.tipo || 'DEMO'] || window.licencia.PLANES.DEMO;
-        var elUsoConceptos = document.getElementById('uso-conceptos');
-        var elUsoCotizaciones = document.getElementById('uso-cotizaciones');
-        var elUsoClientes = document.getElementById('uso-clientes');
-        if (elUsoConceptos) elUsoConceptos.textContent = conceptos + '/' + plan.limiteConceptos;
-        if (elUsoCotizaciones) elUsoCotizaciones.textContent = cotizaciones + '/' + plan.limiteCotizaciones;
-        if (elUsoClientes) elUsoClientes.textContent = clientes + '/' + plan.limiteClientes;
-        if (elUsoConceptos && conceptos >= plan.limiteConceptos * 0.8) {
-            elUsoConceptos.style.color = '#f44336';
+    
+    // ═══════════════════════════════════════════════════════════
+    // OTRAS PANTALLAS (License Screen, Sidebar, etc.)
+    // ═══════════════════════════════════════════════════════════
+    
+    // License Screen
+    const elPlanScreen = document.getElementById('licencia-screen-plan');
+    const elExpiryScreen = document.getElementById('licencia-screen-expiry');
+    if (elPlanScreen) elPlanScreen.textContent = info.plan;
+    if (elExpiryScreen) elExpiryScreen.textContent = info.fechaExpiracion;
+    
+    // Sidebar License Pill
+    const sidebarPlan = document.getElementById('sidebar-license-plan');
+    const sidebarExpiry = document.getElementById('sidebar-license-expiry');
+    if (sidebarPlan) sidebarPlan.textContent = info.plan;
+    if (sidebarExpiry) sidebarExpiry.textContent = 'Exp: ' + info.fechaExpiracion;
+    
+    // License Info General
+    const infoEl = document.getElementById('license-info');
+    if (infoEl) {
+        if (info.activa) {
+            infoEl.textContent = '✅ ' + info.plan + ' - Exp: ' + info.fechaExpiracion;
+            infoEl.style.background = 'rgba(76, 175, 80, 0.2)';
+            infoEl.style.color = '#4CAF50';
+        } else {
+            infoEl.textContent = '🔓 Sin licencia';
+            infoEl.style.background = 'rgba(244, 67, 54, 0.2)';
+            infoEl.style.color = '#f44336';
         }
-        if (elUsoCotizaciones && cotizaciones >= plan.limiteCotizaciones * 0.8) {
-            elUsoCotizaciones.style.color = '#f44336';
-        }
-        if (elUsoClientes && clientes >= plan.limiteClientes * 0.8) {
-            elUsoClientes.style.color = '#f44336';
-        }
-    } catch (error) {
-        console.error('❌ Error actualizando contadores de licencia:', error);
     }
 },
 
