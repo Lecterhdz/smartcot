@@ -376,8 +376,7 @@ tbody tr:hover { background:var(--bg); }
 .dashboard-grid { grid-template-columns: 1fr; gap: 14px; }
 .form-grid { grid-template-columns: 1fr !important; }
 .form-grid > .f-group[style*="span 2"] { grid-column: span 1 !important; }
-.form-section-body > div:first-child { overflow-x: auto !important; -webkit-overflow-scrolling: touch; white-space: nowrap; }
-.summary-panel { position: static; }
+.summary-panel { position: static; width: 100% !important; }
 .sum-total .t-value { font-size: 18px !important; }
 .sum-time { grid-template-columns: 1fr 1fr 1fr !important; gap: 6px !important; }
 .sum-time-item { padding: 8px !important; }
@@ -386,9 +385,7 @@ tbody tr:hover { background:var(--bg); }
 .table-toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
 .table-search { max-width: 100%; }
 .cot-layout > div { min-width: 0; width: 100%; }
-.summary-panel { width: 100% !important; position: static !important; }
-.btn-guardar,
-.res-panel button,
+#conceptos-seleccionados { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
 /* Móvil pequeño (480px) */
 @media (max-width: 480px) {
@@ -1694,6 +1691,7 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
 
 
