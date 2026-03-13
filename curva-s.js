@@ -1320,14 +1320,14 @@ generarTablaAvance: function() {
             // ─────────────────────────────────────────────────────────────────
             // SECCIÓN EVM EN PDF (AGREGAR DESPUÉS DE INDICADORES DE DESEMPEÑO)
             // ─────────────────────────────────────────────────────────────────
-            yPos += 15;
+            y += 15;
             doc.setFillColor(245, 245, 245);
-            doc.rect(15, yPos - 4, 180, 5, 'F');
+            doc.rect(15, y - 4, 180, 5, 'F');
             doc.setTextColor(26, 26, 26);
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
-            doc.text('VALOR GANADO (EVM)', 20, yPos);
-            yPos += 8;
+            doc.text('VALOR GANADO (EVM)', 20, y);
+            y += 8;
             doc.setFontSize(8);
             doc.setFont('helvetica', 'normal');
             
@@ -1344,20 +1344,20 @@ generarTablaAvance: function() {
             const elVAC = document.getElementById('evm-vac');
             
             // Fila 1
-            doc.text('PV (Planificado): ' + (elPV ? elPV.textContent : '$0.00'), 20, yPos);
-            doc.text('EV (Ganado): ' + (elEV ? elEV.textContent : '$0.00'), 110, yPos);
-            yPos += 5;
+            doc.text('PV (Planificado): ' + (elPV ? elPV.textContent : '$0.00'), 20, y);
+            doc.text('EV (Ganado): ' + (elEV ? elEV.textContent : '$0.00'), 110, y);
+            y += 5;
             // Fila 2
-            doc.text('AC (Costo): ' + (elAC ? elAC.textContent : '$0.00'), 20, yPos);
-            doc.text('CV (Var. Costo): ' + (elCV ? elCV.textContent : '$0.00'), 110, yPos);
-            yPos += 5;
+            doc.text('AC (Costo): ' + (elAC ? elAC.textContent : '$0.00'), 20, y);
+            doc.text('CV (Var. Costo): ' + (elCV ? elCV.textContent : '$0.00'), 110, y);
+            y += 5;
             // Fila 3
-            doc.text('SV (Var. Tiempo): ' + (elSV ? elSV.textContent : '$0.00'), 20, yPos);
-            doc.text('CPI (Índ. Costo): ' + (elCPI ? elCPI.textContent : '0.00'), 110, yPos);
-            yPos += 5;
+            doc.text('SV (Var. Tiempo): ' + (elSV ? elSV.textContent : '$0.00'), 20, y);
+            doc.text('CPI (Índ. Costo): ' + (elCPI ? elCPI.textContent : '0.00'), 110, y);
+            y += 5;
             // Fila 4
-            doc.text('SPI (Índ. Tiempo): ' + (elSPI ? elSPI.textContent : '0.00'), 20, yPos);
-            doc.text('EAC (Est. Final): ' + (elEAC ? elEAC.textContent : '$0.00'), 110, yPos);            
+            doc.text('SPI (Índ. Tiempo): ' + (elSPI ? elSPI.textContent : '0.00'), 20, y);
+            doc.text('EAC (Est. Final): ' + (elEAC ? elEAC.textContent : '$0.00'), 110, y);            
             
             // Gráfica
             var canvas = document.getElementById('curva-s-chart');
@@ -1395,17 +1395,17 @@ generarTablaAvance: function() {
             // ─────────────────────────────────────────────────────────────────
             // CONCLUSIÓN AUTOMÁTICA (AGREGAR AL FINAL DEL PDF)
             // ─────────────────────────────────────────────────────────────────
-            yPos += 15;
-            if (yPos > 240) { doc.addPage(); yPos = 20; }
+            y += 15;
+            if (y > 240) { doc.addPage(); y = 20; }
             
             const conclusion = this.generarConclusionEVM();
             doc.setFillColor(255, 243, 224);
-            doc.rect(15, yPos - 4, 180, 5, 'F');
+            doc.rect(15, y - 4, 180, 5, 'F');
             doc.setTextColor(conclusion.color);
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
-            doc.text('CONCLUSIÓN AUTOMÁTICA', 20, yPos);
-            yPos += 8;
+            doc.text('CONCLUSIÓN AUTOMÁTICA', 20, y);
+            y += 8;
             doc.setFontSize(8);
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(26, 26, 26);
@@ -1413,7 +1413,7 @@ generarTablaAvance: function() {
             // Dividir texto en líneas de 90 caracteres
             const lineas = doc.splitTextToSize(conclusion.texto, 170);
             lineas.forEach((linea, i) => {
-                doc.text(linea, 20, yPos + (i * 5));
+                doc.text(linea, 20, y + (i * 5));
             });
             // Pie de página
             var pages = doc.internal.getNumberOfPages();
