@@ -390,14 +390,16 @@ window.licencia = {
         var licencia = this.cargar();
         
         if (!licencia) {
-            return { plan: 'DEMO', activa: false, diasRestantes: 0 };
+            return { plan: 'DEMO', activa: false, diasRestantes: '--' };
         }
         
         return {
             plan: licencia.tipo || 'DEMO',
-            activa: licencia.activa,
-            diasRestantes: licencia.diasRestantes || 0,
-            fechaExpiracion: licencia.expiracion ? new Date(licencia.expiracion).toLocaleDateString('es-MX') : 'N/A'
+            activa: licencia.activa && !licencia.expirada,
+            diasRestantes: licencia.diasRestantes || 7,
+            fechaExpiracion: licencia.expiracion ? new Date(licencia.expiracion).toLocaleDateString('es-MX') : '--',
+            clave: licencia.clave,
+            email: licencia.email
         };
     },
 
@@ -585,6 +587,12 @@ window.licencia = {
                 // Recargar UI
                 if (window.app && typeof window.app.actualizarInfoLicenciaUI === 'function') {
                     await window.app.actualizarInfoLicenciaUI();
+                }
+                if (window.licencia && typeof window.licencia.cargar === 'function') {
+                    const licencia = window.licencia.cargar();
+                    if (window.app && typeof window.app.actualizarInfoLicencia === 'function') {
+                        window.app.actualizarInfoLicencia(licencia);
+                    }
                 }
                 
                 // Recargar página para aplicar cambios
