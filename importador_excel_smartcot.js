@@ -594,62 +594,86 @@ window.importadorSmartCot = {
     },
    
     // ─────────────────────────────────────────────────────────────────────
-    // INICIAR IMPORTACIÓN (CORREGIDO)
+    // INICIAR IMPORTACIÓN (CORREGIDO - CON AWAIT)
     // ─────────────────────────────────────────────────────────────────────
     iniciarImportacion: async function() {
         try {
-            // ⚠️ VERIFICAR SI EL PLAN TIENE ACCESO A IMPORTAR
-            var limiteImportar = window.licencia.verificarLimite('importar');
-            if (!limiteImportar.permitido) {
-                alert('❌ ' + limiteImportar.razon);
+            console.log('🚀 Iniciando importación...');
+            
+            // ⚠️ VERIFICAR LICENCIA CON AWAIT (CORRECCIÓN PRINCIPAL)
+            const limiteImportar = await window.licencia.verificarLimite('importar');
+            if (!limiteImportar || !limiteImportar.permitido) {
+                const mensaje = limiteImportar?.razon || 'Importación no disponible en tu plan';
+                alert('❌ ' + mensaje);
+                console.error('❌ Licencia bloquea importación:', mensaje);
                 return;
             }
             
             // ⚠️ VERIFICAR QUE EXISTA EL INPUT FILE
-            const file = document.getElementById('excel-file')?.files[0];
-            if (!file) {
-                alert('⚠️ Selecciona un archivo Excel');
+            const fileInput = document.getElementById('excel-file');
+            if (!fileInput) {
+                alert('⚠️ No se encontró el campo para seleccionar archivo');
+                console.error('❌ Elemento #excel-file no encontrado');
                 return;
             }
-            // ⚠️ PREGUNTAR SI QUIERE LIMPIAR ANTES DE IMPORTAR
-            const limpiar = confirm('¿Deseas limpiar los conceptos existentes antes de importar?\n\n✓ SÍ: Se borrarán todos los conceptos actuales\n✗ NO: Se agregarán a los existentes');
             
-            if (limpiar) {
-                const confirmar = confirm('⚠️ ¿Estás SEGURO? Esta acción no se puede deshacer.\n\nSe borrarán todos los conceptos existentes.');
-                if (!confirmar) return;
-                
-                await window.db.conceptos.clear();
-                console.log('✅ Conceptos anteriores eliminados');
-                this.log('🗑️ Conceptos anteriores eliminados');
-            }
-          
-            // ⚠️ VERIFICAR LÍMITE DE CONCEPTOS ANTES DE IMPORTAR
-            var limiteConceptos = await window.licencia.verificarLimite('conceptos');
-            if (!limiteConceptos.permitido) {
-                alert('❌ ' + limiteConceptos.razon);
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('⚠️ Selecciona un archivo Excel primero');
                 return;
-            }      
+            }
+            
+            // ⚠️ VALIDAR EXTENSIÓN
+            const extension = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls'].includes(extension)) {
+                alert('⚠️ Formato no válido. Usa .xlsx o .xls');
+                return;
+            }
+            
+            // ⚠️ VALIDAR TAMAÑO (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('⚠️ Archivo muy grande. Máximo 10MB');
+                return;
+            }
             
             // ⚠️ MOSTRAR BARRA DE PROGRESO
             const progressDiv = document.getElementById('import-progress');
             if (progressDiv) progressDiv.style.display = 'block';
             
-            this.log('📥 Leyendo archivo...');
+            this.log('📥 Leyendo archivo: ' + file.name);
+            this.actualizarProgreso(10, 'Procesando datos...');
+            
+            // ⚠️ OBTENER LÍMITE DE CONCEPTOS SEGÚN PLAN
+            const licencia = window.licencia.cargar();
+            const plan = window.licencia.PLANES[licencia?.tipo || 'DEMO'] || window.licencia.PLANES.DEMO;
+            const limiteConceptos = plan.limiteConceptos || 50;
+            
+            console.log('📊 Límite de conceptos:', limiteConceptos);
             
             // ⚠️ PROCESAR IMPORTACIÓN
-            this.actualizarProgreso(10, 'Procesando datos...');
-            const resultado = await this.importarArchivo(file);
+            const resultado = await this.importarArchivo(file, limiteConceptos);
+            
             this.actualizarProgreso(90, 'Finalizando...');
             this.mostrarResultado(resultado);
             this.actualizarProgreso(100, '✅ Completado');
             
+            // Notificación de éxito
+            alert(`✅ Importación completada:
+    • ${resultado.estadisticas.conceptos} conceptos
+    • ${resultado.estadisticas.materiales} materiales
+    • ${resultado.estadisticas.manoObra} puestos de MO
+    • ${resultado.estadisticas.equipos} equipos`);
+            
+            // Recargar para mostrar cambios
+            setTimeout(() => window.location.reload(), 2000);
+            
         } catch (error) {
             console.error('❌ Error en importación:', error);
-            alert('❌ Error: ' + error.message);
+            alert('❌ Error: ' + (error.message || 'Error desconocido'));
             this.actualizarProgreso(0, '❌ Error');
         }
-    },  // ← UN SOLO CIERRE AL FINAL
-    
+    },
+        
     log: function(mensaje) {
         const logDiv = document.getElementById('progress-log');
         if (logDiv) {
@@ -676,30 +700,25 @@ window.importadorSmartCot = {
         
         div.style.display = 'block';
         div.innerHTML = `
-            <h4 style="color:#2E7D32;margin:0 0 15px 0;">✅ Importación Completada</h4>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:15px;">
-                <div style="background:white;padding:15px;border-radius:8px;text-align:center;">
-                    <div style="font-size:24px;font-weight:700;color:#1a1a1a;">${r.conceptos}</div>
-                    <div style="font-size:12px;color:#666;">Conceptos</div>
+            <h4 style="margin:0 0 15px 0;">✅ Importación Completada</h4>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;">
+                <div style="text-align:center;padding:10px;background:var(--white);border-radius:8px;">
+                    <div style="font-size:20px;font-weight:700;">${r.conceptos}</div>
+                    <div style="font-size:11px;color:var(--ink4);">Conceptos</div>
                 </div>
-                <div style="background:white;padding:15px;border-radius:8px;text-align:center;">
-                    <div style="font-size:24px;font-weight:700;color:#1a1a1a;">${r.materiales}</div>
-                    <div style="font-size:12px;color:#666;">Materiales</div>
+                <div style="text-align:center;padding:10px;background:var(--white);border-radius:8px;">
+                    <div style="font-size:20px;font-weight:700;">${r.materiales}</div>
+                    <div style="font-size:11px;color:var(--ink4);">Materiales</div>
                 </div>
-                <div style="background:white;padding:15px;border-radius:8px;text-align:center;">
-                    <div style="font-size:24px;font-weight:700;color:#1a1a1a;">${r.manoObra}</div>
-                    <div style="font-size:12px;color:#666;">Mano de Obra</div>
+                <div style="text-align:center;padding:10px;background:var(--white);border-radius:8px;">
+                    <div style="font-size:20px;font-weight:700;">${r.manoObra}</div>
+                    <div style="font-size:11px;color:var(--ink4);">Mano de Obra</div>
                 </div>
-                <div style="background:white;padding:15px;border-radius:8px;text-align:center;">
-                    <div style="font-size:24px;font-weight:700;color:#1a1a1a;">${r.equipos}</div>
-                    <div style="font-size:12px;color:#666;">Equipos</div>
-                </div>
-                <div style="background:white;padding:15px;border-radius:8px;text-align:center;">
-                    <div style="font-size:24px;font-weight:700;color:#1a1a1a;">${r.herramienta}</div>
-                    <div style="font-size:12px;color:#666;">Herramienta</div>
+                <div style="text-align:center;padding:10px;background:var(--white);border-radius:8px;">
+                    <div style="font-size:20px;font-weight:700;">${r.equipos}</div>
+                    <div style="font-size:11px;color:var(--ink4);">Equipos</div>
                 </div>
             </div>
-            <button onclick="window.location.reload()" class="btn btn-primary" style="margin-top:20px;width:100%;padding:14px;">🔄 Recargar Página</button>
         `;
     }
 };
