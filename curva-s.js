@@ -1724,4 +1724,4 @@ generarTablaAvance: function() {
             console.error('❌ Error exportando reporte PDF:', error);
             alert('❌ Error al exportar reporte: ' + error.message);
         }
-    },
+    }
