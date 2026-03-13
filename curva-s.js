@@ -1725,3 +1725,4 @@ generarTablaAvance: function() {
             alert('❌ Error al exportar reporte: ' + error.message);
         }
     }
+}
