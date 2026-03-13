@@ -940,7 +940,7 @@ window.curvaS = {
     },
 
     // ─────────────────────────────────────────────────────────────────
-    // CALCULAR EVM (CORREGIDO - CÁLCULOS REALES)
+    // CALCULAR EVM (CORREGIDO - VARIABLES DECLARADAS AL INICIO)
     // ─────────────────────────────────────────────────────────────────
     calcularEVM: async function() {
         try {
@@ -958,13 +958,12 @@ window.curvaS = {
                 return;
             }
             
-            // ⚠️ OBTENER AVANCES ORDENADOS POR SEMANA
             const avances = await window.db.avanceObra
                 .where('cotizacionId')
                 .equals(parseInt(cotizacionId))
                 .sortBy('semana');
             
-            console.log('📊 Avances ordenados:', avances);
+            console.log('📊 Avances encontrados:', avances);
             
             if (avances.length === 0) {
                 alert('⚠️ No hay avances registrados para calcular EVM');
@@ -972,34 +971,118 @@ window.curvaS = {
                 return;
             }
             
-            // ⚠️ DATOS BASE
-            const BAC = parseFloat(cotizacion.totalFinal) || 0;  // Budget at Completion
-            const semanasTotales = cotizacion.tiempoEjecucion?.semanas || 14;
+            // ⚠️ FILTRAR AVANCES CON DATOS VÁLIDOS
+            const avancesValidos = avances.filter(a => {
+                const porcentaje = a.porcentajeEjecutado || a.porcentaje || 0;
+                return porcentaje >= 0 && porcentaje <= 100;
+            });
             
-            console.log('💰 BAC:', BAC, '| Semanas totales:', semanasTotales);
+            console.log('📊 Avances válidos:', avancesValidos.length);
             
-            if (BAC === 0) {
+            if (avancesValidos.length === 0) {
+                alert('⚠️ Los avances registrados no tienen porcentaje válido.');
+                this.limpiarValoresEVM();
+                return;
+            }
+            
+            // ⚠️ DECLARAR TODAS LAS VARIABLES AL INICIO (ANTES DE USARLAS)
+            let PV = 0;  // Planned Value
+            let EV = 0;  // Earned Value
+            let AC = 0;  // Actual Cost
+            
+            const totalProyecto = parseFloat(cotizacion.totalFinal) || 0;
+            
+            console.log('💰 Total Proyecto:', totalProyecto);
+            
+            if (totalProyecto === 0) {
                 console.warn('⚠️ El total del proyecto es 0');
                 this.limpiarValoresEVM();
                 return;
             }
             
-            // ⚠️ TOMAR EL ÚLTIMO AVANCE REGISTRADO (más reciente)
-            const ultimoAvance = avances[avances.length - 1];
-            const semanaActual = parseInt(ultimoAvance.semana) || 1;
-            const porcentajeEjecutado = parseFloat(ultimoAvance.porcentajeEjecutado || 0);
+            // ⚠️ CALCULAR EVM ITERANDO SOBRE AVANCES
+            avancesValidos.forEach(function(avance, index) {
+                console.log('📊 Procesando avance:', avance);
+                
+                // PV = Porcentaje planificado * Total proyecto
+                const porcentajePlanificado = ((index + 1) / avancesValidos.length) * 100;
+                PV += (porcentajePlanificado / 100) * totalProyecto;
+                
+                // EV = Porcentaje ejecutado * Total proyecto
+                const porcentajeEjecutado = parseFloat(avance.porcentajeEjecutado || avance.porcentaje || 0);
+                console.log('  Porcentaje Ejecutado:', porcentajeEjecutado);
+                EV += (porcentajeEjecutado / 100) * totalProyecto;
+                
+                // AC = Monto ejecutado real
+                const monto = parseFloat(avance.montoEjecutado || avance.monto || 0);
+                console.log('  Monto Ejecutado:', monto);
+                AC += monto;
+            });
             
-            console.log('📍 Semana actual:', semanaActual, '| % Ejecutado:', porcentajeEjecutado);
+            console.log('📊 EVM Calculado:', { PV, EV, AC });
             
-            // Al final de calcularEVM(), después de calcular todos los valores:
+            // ⚠️ CALCULAR INDICADORES DERIVADOS
+            const CV = EV - AC;  // Cost Variance
+            const SV = EV - PV;  // Schedule Variance
+            const CPI = AC > 0 ? EV / AC : 0;  // Cost Performance Index
+            const SPI = PV > 0 ? EV / PV : 0;  // Schedule Performance Index
+            const EAC = CPI > 0 ? totalProyecto / CPI : totalProyecto;  // Estimate at Completion
+            const ETC = EAC - AC;  // Estimate to Complete
+            const VAC = totalProyecto - EAC;  // Variance at Completion
+            
+            // ⚠️ ACTUALIZAR UI CON COLORES DEL TEMA OSCURO
+            const actualizarElemento = (id, valor, esIndice = false, esMoneda = true) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (esIndice) {
+                    el.textContent = valor.toFixed(2);
+                    el.style.color = valor >= 1 ? 'var(--green)' : 'var(--rose)';
+                } else if (esMoneda) {
+                    el.textContent = calculator?.formatoMoneda?.(valor) || '$' + valor.toLocaleString();
+                    if (id === 'evm-cv' || id === 'evm-sv' || id === 'evm-vac') {
+                        el.style.color = valor >= 0 ? 'var(--green)' : 'var(--rose)';
+                    } else {
+                        el.style.color = 'var(--ink)';
+                    }
+                } else {
+                    el.textContent = valor;
+                }
+            };
+            
+            actualizarElemento('evm-pv', PV, false, true);
+            actualizarElemento('evm-ev', EV, false, true);
+            actualizarElemento('evm-ac', AC, false, true);
+            actualizarElemento('evm-cv', CV, false, true);
+            actualizarElemento('evm-sv', SV, false, true);
+            actualizarElemento('evm-cpi', CPI, true, false);
+            actualizarElemento('evm-spi', SPI, true, false);
+            actualizarElemento('evm-eac', EAC, false, true);
+            actualizarElemento('evm-etc', ETC, false, true);
+            actualizarElemento('evm-vac', VAC, false, true);
+            
+            // ⚠️ ACTUALIZAR INDICADORES DE CURVA S BÁSICA
+            const elVariacionTiempo = document.getElementById('variacion-tiempo');
+            const elIndiceTiempo = document.getElementById('indice-tiempo');
+            
+            if (elVariacionTiempo) {
+                const variacion = ((SPI - 1) * 100).toFixed(1);
+                elVariacionTiempo.textContent = (variacion >= 0 ? '+' : '') + variacion + '%';
+                elVariacionTiempo.style.color = SPI >= 1 ? 'var(--green)' : 'var(--rose)';
+            }
+            if (elIndiceTiempo) {
+                elIndiceTiempo.textContent = isNaN(SPI) ? '0.00' : SPI.toFixed(2);
+                elIndiceTiempo.style.color = SPI >= 1 ? 'var(--green)' : 'var(--rose)';
+            }
+            
             console.log('📊 EVM Final:', { PV, EV, AC, CV, SV, CPI, SPI, EAC, ETC, VAC });
+            console.log('✅ EVM actualizado correctamente');
             
-            // ⚠️ GUARDAR EVM EN LA COTIZACIÓN (PARA FUTURAS CONSULTAS)
-            cotizacion.evm = { PV, EV, AC, CV, SV, CPI, SPI, EAC, ETC, VAC };
-            await window.db.cotizaciones.put(cotizacion);
-            
-            // ⚠️ ACTUALIZAR UI
-            this.actualizarValoresEVM(cotizacion.evm);            
+        } catch (error) {
+            console.error('❌ Error calculando EVM:', error);
+            console.error('Stack:', error.stack);
+            this.limpiarValoresEVM();
+        }
+    },        
             // ─────────────────────────────────────────────────────────
             // ✅ CÁLCULOS EVM CORRECTOS
             // ─────────────────────────────────────────────────────────
