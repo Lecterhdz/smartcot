@@ -163,6 +163,13 @@ mostrarPantalla: async function(id) {
             this.verificarClientesDisponibles();
             this.actualizarConceptosSeleccionadosUI();
             this.calcularTotalConConceptos();
+            // ⚠️ AJUSTAR LAYOUT PARA MÓVIL
+            setTimeout(function() {
+                const layout = document.querySelector('.cot-layout');
+                if (layout && window.innerWidth <= 768) {
+                    layout.style.gridTemplateColumns = '1fr';
+                }
+            }, 300);
             break;
         case 'curva-s-screen':
             if (window.curvaS) {
@@ -2550,6 +2557,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ app.js v2.0 listo');
+
 
 
 
