@@ -215,20 +215,42 @@ mostrarPlantillas: async function() {
 },
 
 // ─────────────────────────────────────────────────────────────────
-// LICENCIA
+// ACTUALIZAR INFO LICENCIA (CORREGIDO - TODAS LAS PANTALLAS)
 // ─────────────────────────────────────────────────────────────────
 actualizarInfoLicencia: function(licencia) {
     const info = document.getElementById('license-info');
-    if (!info) return;
+    
+    // Sidebar license pill
+    const sidebarPlan = document.getElementById('sidebar-license-plan');
+    const sidebarExpiry = document.getElementById('sidebar-license-expiry');
+    
     if (licencia && !licencia.expirada) {
-        info.textContent = '✅ ' + licencia.tipo + ' - Exp: ' + new Date(licencia.expiracion).toLocaleDateString('es-MX');
-        info.style.background = 'rgba(76, 175, 80, 0.2)';
-        info.style.color = '#4CAF50';
+        const fechaExp = new Date(licencia.expiracion).toLocaleDateString('es-MX');
+        
+        // Sidebar
+        if (sidebarPlan) sidebarPlan.textContent = licencia.tipo;
+        if (sidebarExpiry) sidebarExpiry.textContent = 'Exp: ' + fechaExp;
+        
+        // License info general
+        if (info) {
+            info.textContent = '✅ ' + licencia.tipo + ' - Exp: ' + fechaExp;
+            info.style.background = 'rgba(76, 175, 80, 0.2)';
+            info.style.color = '#4CAF50';
+        }
     } else {
-        info.textContent = '🔓 Sin licencia';
-        info.style.background = 'rgba(244, 67, 54, 0.2)';
-        info.style.color = '#f44336';
+        // Sidebar DEMO
+        if (sidebarPlan) sidebarPlan.textContent = 'DEMO';
+        if (sidebarExpiry) sidebarExpiry.textContent = '7 días restantes';
+        
+        if (info) {
+            info.textContent = '🔓 Sin licencia';
+            info.style.background = 'rgba(244, 67, 54, 0.2)';
+            info.style.color = '#f44336';
+        }
     }
+    
+    // Actualizar contadores
+    this.actualizarContadoresLicencia();
 },
 
 actualizarInfoLicenciaUI: function() {
