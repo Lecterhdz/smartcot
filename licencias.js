@@ -68,57 +68,86 @@ window.licencia = {
     },
 
     // ─────────────────────────────────────────────────────────────────
-    // VERIFICAR LICENCIAS REVOCADAS
+    // VERIFICAR LICENCIAS REVOCADAS (CORREGIDO + ROBUSTO)
     // ─────────────────────────────────────────────────────────────────
     verificarLicenciaRevocada: async function(clave) {
         try {
-            // URL del archivo en GitHub
+            // ⚠️ URL SIN ESPACIOS AL FINAL (CORRECCIÓN CRÍTICA)
             const url = 'https://lecterhdz.github.io/smartcot/data/licencias-revocadas.json';
             
-            // Verificar caché (no descargar cada vez)
+            // Si no hay clave, no hay nada que verificar
+            if (!clave) {
+                return { revocada: false };
+            }
+            
+            // ⚠️ VERIFICAR CACHÉ (evitar descargar cada vez)
             const ultimoCheck = localStorage.getItem('smartcot_ultimo_check_revocadas');
             const ahora = Date.now();
+            const DIAS_CACHÉ = 7;
+            const MS_POR_DIA = 24 * 60 * 60 * 1000;
             
-            // Solo verificar cada 7 días (604800000 ms)
-            if (ultimoCheck && (ahora - parseInt(ultimoCheck)) < 604800000) {
+            // Si ya se verificó en los últimos 7 días, usar caché
+            if (ultimoCheck && (ahora - parseInt(ultimoCheck)) < (DIAS_CACHÉ * MS_POR_DIA)) {
                 const esRevocada = localStorage.getItem('smartcot_licencia_revocada');
                 if (esRevocada === 'true') {
-                    return { revocada: true, razon: localStorage.getItem('smartcot_razon_revocacion') };
+                    return { 
+                        revocada: true, 
+                        razon: localStorage.getItem('smartcot_razon_revocacion') || 'Licencia revocada' 
+                    };
                 }
                 return { revocada: false };
             }
             
-            // Descargar lista de revocadas
-            const response = await fetch(url);
-            if (!response.ok) {
-                console.warn('⚠️ No se pudo verificar lista de revocadas');
+            // ⚠️ DESCARGAR LISTA DE REVOCADAS (con timeout)
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 8000); // 8 segundos
+            
+            try {
+                const response = await fetch(url, { 
+                    signal: controller.signal,
+                    cache: 'no-cache'  // Forzar descarga fresca
+                });
+                clearTimeout(timeout);
+                
+                // Si falla la descarga, no bloquear (podría ser conexión)
+                if (!response.ok) {
+                    console.warn('⚠️ No se pudo verificar lista de revocadas (HTTP ' + response.status + ')');
+                    return { revocada: false };
+                }
+                
+                const data = await response.json();
+                
+                // ⚠️ VERIFICAR SI LA LICENCIA ESTÁ REVOCADA
+                if (data.licenciasRevocadas && Array.isArray(data.licenciasRevocadas)) {
+                    if (data.licenciasRevocadas.includes(clave)) {
+                        // Marcar como revocada en caché local
+                        localStorage.setItem('smartcot_licencia_revocada', 'true');
+                        localStorage.setItem('smartcot_razon_revocacion', data.razones?.[clave] || 'Licencia revocada por el administrador');
+                        localStorage.setItem('smartcot_ultimo_check_revocadas', ahora.toString());
+                        
+                        return { 
+                            revocada: true, 
+                            razon: data.razones?.[clave] || 'Licencia revocada' 
+                        };
+                    }
+                }
+                
+                // ⚠️ ACTUALIZAR CACHÉ (licencia válida)
+                localStorage.setItem('smartcot_ultimo_check_revocadas', ahora.toString());
+                localStorage.setItem('smartcot_licencia_revocada', 'false');
+                
+                return { revocada: false };
+                
+            } catch (fetchError) {
+                clearTimeout(timeout);
+                console.warn('⚠️ Error de red verificando revocadas:', fetchError.message);
+                // No bloquear por errores de conexión
                 return { revocada: false };
             }
             
-            const data = await response.json();
-            
-            // Verificar si la licencia está en la lista
-            if (data.licenciasRevocadas && data.licenciasRevocadas.includes(clave)) {
-                // Marcar como revocada
-                localStorage.setItem('smartcot_licencia_revocada', 'true');
-                localStorage.setItem('smartcot_razon_revocacion', data.razones[clave] || 'Licencia revocada');
-                localStorage.setItem('smartcot_ultimo_check_revocadas', ahora.toString());
-                
-                return { 
-                    revocada: true, 
-                    razon: data.razones[clave] || 'Licencia revocada por el administrador' 
-                };
-            }
-            
-            // Actualizar caché
-            localStorage.setItem('smartcot_ultimo_check_revocadas', ahora.toString());
-            localStorage.setItem('smartcot_licencia_revocada', 'false');
-            
-            return { revocada: false };
-            
         } catch (error) {
-            console.error('❌ Error verificando licencias revocadas:', error);
-            // En caso de error, no bloquear (podría ser problema de conexión)
+            console.error('❌ Error crítico verificando licencias:', error);
+            // Fail-safe: no bloquear la app por errores inesperados
             return { revocada: false };
         }
     },
