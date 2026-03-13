@@ -1033,7 +1033,7 @@ table { min-width: 600px; }
           </div>
         </div>
         
-        <!-- 💰 Curva de Inversión (CORREGIDO - CON IDs ESPECÍFICOS) -->
+        <!-- 💰 Curva de Inversión Acumulada -->
         <div style="background:#FFF3E0;padding:25px;border-radius:15px;">
             <h4 style="color:#E65100;margin-bottom:20px;">💰 Curva de Inversión</h4>
             <div style="text-align:center;">
@@ -1044,7 +1044,12 @@ table { min-width: 600px; }
                 <div style="margin-top:20px;height:12px;background:#ddd;border-radius:6px;overflow:hidden;position:relative;">
                     <div id="curva-inversion-barra" style="height:100%;width:0%;background:linear-gradient(90deg,#FF9800,#F57C00);transition:width 0.3s ease;border-radius:6px;"></div>
                     <!-- ⚠️ ETIQUETA DEL PORCENTAJE CON ID ESPECÍFICO -->
-                    <div id="curva-inversion-porcentaje" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:10px;font-weight:600;color:white;text-shadow:0 1px 2px rgba(0,0,0,0.3);">0%</div>
+                    <div id="curva-inversion-porcentaje" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:10px;font-weight:600;color:white;text-shadow:0 1px 2px rgba(0,0,0,0.3);">0.0%</div>
+                </div>
+                
+                <!-- ⚠️ AGREGAR ESTE ID PARA INVERSIÓN EJECUTADA -->
+                <div style="margin-top:15px;font-size:14px;color:#666;">
+                    Ejecutada: <strong id="curva-inversion-ejecutada" style="color:#FF9800;">$0.00</strong>
                 </div>
             </div>
         </div>
@@ -1636,6 +1641,7 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
 
 
