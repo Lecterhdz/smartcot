@@ -1139,113 +1139,270 @@ generarTablaAvance: function() {
     },
 
     // ─────────────────────────────────────────────────────────────────
-    // GENERAR CONCLUSIÓN AUTOMÁTICA BASADA EN EVM (NUEVA FUNCIÓN)
+    // GENERAR CONCLUSIÓN AUTOMÁTICA (EXTENSA Y PROFESIONAL)
     // ─────────────────────────────────────────────────────────────────
     generarConclusionEVM: function() {
         try {
             // Obtener valores de los elementos DOM
             const cpi = parseFloat(document.getElementById('evm-cpi')?.textContent) || 0;
             const spi = parseFloat(document.getElementById('evm-spi')?.textContent) || 0;
-            const cv = parseFloat(document.getElementById('evm-cv')?.textContent?.replace(/[^0-9.-]/g, '')) || 0;
-            const sv = parseFloat(document.getElementById('evm-sv')?.textContent?.replace(/[^0-9.-]/g, '')) || 0;
+            const cvTexto = document.getElementById('evm-cv')?.textContent || '$0.00';
+            const svTexto = document.getElementById('evm-sv')?.textContent || '$0.00';
+            const cv = parseFloat(cvTexto.replace(/[^0-9.-]/g, '')) || 0;
+            const sv = parseFloat(svTexto.replace(/[^0-9.-]/g, '')) || 0;
+            const eacTexto = document.getElementById('evm-eac')?.textContent || '$0.00';
+            const vacTexto = document.getElementById('evm-vac')?.textContent || '$0.00';
+            const eac = parseFloat(eacTexto.replace(/[^0-9.-]/g, '')) || 0;
+            const vac = parseFloat(vacTexto.replace(/[^0-9.-]/g, '')) || 0;
             
             let conclusion = '';
             let color = '#1a1a1a';
             
-            // Evaluación de Costo (CPI y CV)
+            // ─────────────────────────────────────────────────────────
+            // ANÁLISIS DE COSTO (CPI y CV)
+            // ─────────────────────────────────────────────────────────
+            conclusion += 'ANÁLISIS DE COSTO:\n';
             if (cpi >= 1.0) {
-                conclusion += '✅ COSTO: El proyecto está dentro o por debajo del presupuesto. ';
+                conclusion += '• El Índice de Desempeño de Costo (CPI = ' + cpi.toFixed(2) + ') indica que el proyecto está dentro o por debajo del presupuesto. ';
+                if (cpi > 1.1) {
+                    conclusion += 'Existe una eficiencia superior al 10%, lo que sugiere una gestión óptima de recursos. ';
+                } else {
+                    conclusion += 'La eficiencia es adecuada, manteniéndose dentro de los parámetros esperados. ';
+                }
             } else if (cpi >= 0.9) {
-                conclusion += '⚠️ COSTO: Ligera desviación en costos. Monitorear. ';
-                color = '#FF9800';
+                conclusion += '• El CPI de ' + cpi.toFixed(2) + ' muestra una ligera desviación en costos (' + (cpi < 1 ? 'sobrecosto' : 'ahorro') + ' del ' + ((1 - cpi) * 100).toFixed(1) + '%). ';
+                conclusion += 'Se recomienda monitorear de cerca los gastos y revisar las partidas con mayor variación. ';
+                color = '#d97706';
             } else {
-                conclusion += '🚨 COSTO: Sobrecosto significativo. Acción correctiva requerida. ';
-                color = '#f44336';
+                conclusion += '• El CPI de ' + cpi.toFixed(2) + ' indica un sobrecosto significativo del ' + ((1 - cpi) * 100).toFixed(1) + '%. ';
+                conclusion += 'La Variación de Costo (CV) de ' + cvTexto + ' confirma esta situación. ';
+                conclusion += 'Se requiere una acción correctiva inmediata: revisar alcances, renegociar con proveedores o ajustar el presupuesto. ';
+                color = '#dc2626';
             }
+            conclusion += '\n\n';
             
-            // Evaluación de Tiempo (SPI y SV)
+            // ─────────────────────────────────────────────────────────
+            // ANÁLISIS DE TIEMPO (SPI y SV)
+            // ─────────────────────────────────────────────────────────
+            conclusion += 'ANÁLISIS DE TIEMPO:\n';
             if (spi >= 1.0) {
-                conclusion += '✅ TIEMPO: El proyecto está en tiempo o adelantado. ';
+                conclusion += '• El Índice de Desempeño de Tiempo (SPI = ' + spi.toFixed(2) + ') muestra que el proyecto está en tiempo o adelantado. ';
+                if (spi > 1.1) {
+                    conclusion += 'El avance es superior al planificado en un ' + ((spi - 1) * 100).toFixed(1) + '%, lo que permite considerar la entrega anticipada. ';
+                } else {
+                    conclusion += 'El cronograma se está cumpliendo según lo establecido. ';
+                }
             } else if (spi >= 0.9) {
-                conclusion += '⚠️ TIEMPO: Ligero retraso. Revisar cronograma. ';
-                if (color === '#1a1a1a') color = '#FF9800';
+                conclusion += '• El SPI de ' + spi.toFixed(2) + ' refleja un ligero retraso del ' + ((1 - spi) * 100).toFixed(1) + '%. ';
+                conclusion += 'La Variación de Tiempo (SV) de ' + svTexto + ' confirma esta desviación. ';
+                conclusion += 'Se sugiere revisar la ruta crítica y considerar la asignación de recursos adicionales para recuperar el tiempo. ';
+                if (color === '#1a1a1a') color = '#d97706';
             } else {
-                conclusion += '🚨 TIEMPO: Retraso crítico. Replanificación urgente. ';
-                color = '#f44336';
+                conclusion += '• El SPI de ' + spi.toFixed(2) + ' indica un retraso crítico del ' + ((1 - spi) * 100).toFixed(1) + '%. ';
+                conclusion += 'La SV de ' + svTexto + ' representa el valor del trabajo no completado según el cronograma. ';
+                conclusion += 'Se requiere replanificación urgente: revisar dependencias, considerar fast-tracking o crashing, y comunicar el impacto al cliente. ';
+                color = '#dc2626';
             }
+            conclusion += '\n\n';
             
-            // Recomendación final
-            if (cpi >= 1.0 && spi >= 1.0) {
-                conclusion += '🎯 ESTADO GENERAL: Proyecto saludable. Continuar con la ejecución planificada.';
-            } else if (cpi < 1.0 && spi < 1.0) {
-                conclusion += '🔴 ESTADO GENERAL: Proyecto en riesgo. Se recomienda reunión de revisión inmediata.';
-                color = '#f44336';
+            // ─────────────────────────────────────────────────────────
+            // PROYECCIÓN FINAL (EAC y VAC)
+            // ─────────────────────────────────────────────────────────
+            conclusion += 'PROYECCIÓN FINAL:\n';
+            conclusion += '• El Estimado al Completar (EAC) es de ' + eacTexto + ', basado en el desempeño actual. ';
+            if (vac >= 0) {
+                conclusion += 'La Variación al Completar (VAC) de ' + vacTexto + ' proyecta un ahorro final. ';
+                conclusion += 'Si se mantiene el desempeño actual, el proyecto finalizará dentro del presupuesto. ';
             } else {
-                conclusion += '🟡 ESTADO GENERAL: Proyecto con áreas de mejora. Monitoreo reforzado recomendado.';
-                if (color === '#1a1a1a') color = '#FF9800';
+                conclusion += 'La VAC de ' + vacTexto + ' proyecta un sobrecosto final. ';
+                conclusion += 'De no implementarse acciones correctivas, el proyecto excederá el presupuesto original en esta cantidad. ';
+                if (color === '#1a1a1a') color = '#d97706';
+            }
+            conclusion += '\n\n';
+            
+            // ─────────────────────────────────────────────────────────
+            // RECOMENDACIÓN FINAL
+            // ─────────────────────────────────────────────────────────
+            conclusion += 'RECOMENDACIÓN GENERAL:\n';
+            if (cpi >= 1.0 && spi >= 1.0) {
+                conclusion += '✅ PROYECTO SALUDABLE: El proyecto muestra un desempeño óptimo en costo y tiempo. Continuar con la ejecución planificada, manteniendo el monitoreo periódico de los indicadores EVM. Considerar documentar las mejores prácticas aplicadas para futuros proyectos.';
+            } else if (cpi < 1.0 && spi < 1.0) {
+                conclusion += '🔴 PROYECTO EN RIESGO CRÍTICO: El proyecto presenta desviaciones significativas en costo y tiempo. Se recomienda: (1) Convocar una reunión de revisión con el equipo y stakeholders, (2) Realizar un análisis de causa raíz de las desviaciones, (3) Desarrollar un plan de recuperación con hitos intermedios, (4) Considerar solicitud de cambio de presupuesto o cronograma si las desviaciones son justificadas.';
+                color = '#dc2626';
+            } else if (cpi >= 1.0 && spi < 1.0) {
+                conclusion += '🟡 PROYECTO CON RETRASO PERO CONTROLADO EN COSTO: El proyecto está atrasado pero dentro del presupuesto. Se recomienda: (1) Evaluar la posibilidad de asignar recursos adicionales (crashing), (2) Revisar dependencias para aplicar fast-tracking, (3) Priorizar actividades de la ruta crítica, (4) Comunicar el impacto en el cronograma al cliente.';
+                if (color === '#1a1a1a') color = '#d97706';
+            } else {
+                conclusion += '🟡 PROYECTO CON SOBRECOSTO PERO EN TIEMPO: El proyecto está en tiempo pero excede el presupuesto. Se recomienda: (1) Revisar partidas con mayor variación de costo, (2) Renegociar con proveedores, (3) Evaluar reducción de alcances no críticos, (4) Documentar lecciones aprendidas para mejorar estimaciones futuras.';
+                if (color === '#1a1a1a') color = '#d97706';
             }
             
             return { texto: conclusion, color: color };
             
         } catch (error) {
             console.error('❌ Error generando conclusión:', error);
-            return { texto: 'No se pudo generar conclusión automática.', color: '#1a1a1a' };
+            return { 
+                texto: 'No se pudo generar la conclusión automática. Verifique que los indicadores EVM estén calculados correctamente.', 
+                color: '#1a1a1a' 
+            };
         }
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // EXPORTAR REPORTE PDF
+    // EXPORTAR REPORTE PDF (PROFESIONAL - CORREGIDO Y MEJORADO)
     // ─────────────────────────────────────────────────────────────────
     exportarReportePDF: async function() {
         try {
             if (typeof window.jspdf === 'undefined') {
-                alert('⚠️ jsPDF no está cargado');
+                alert('⚠️ jsPDF no está cargado. Verifica que el script esté incluido.');
                 return;
             }
             if (!this.datos.cotizacionId) {
                 alert('⚠️ Primero carga una cotización');
                 return;
             }
-
-            var jsPDF = window.jspdf.jsPDF;
-            var doc   = new jsPDF();
-            var cotizacion = await window.db.cotizaciones.get(parseInt(this.datos.cotizacionId));
-            if (!cotizacion) { alert('❌ Cotización no encontrada'); return; }
-
-            var fmt = window.calculator ? window.calculator.formatoMoneda : function(v) { return '$' + v.toFixed(2); };
-
-            // Encabezado
-            doc.setFillColor(15, 23, 42);
-            doc.rect(0, 0, 210, 32, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(15); doc.setFont('helvetica', 'bold');
-            doc.text('CURVA S - SEGUIMIENTO DE OBRA', 105, 16, { align: 'center' });
-            doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-            doc.text('SmartCot v2.0 — Reporte generado el ' + new Date().toLocaleDateString('es-MX'), 105, 26, { align: 'center' });
-
-            var y = 42;
-            doc.setTextColor(15, 23, 42);
-            doc.setFontSize(9);
-            doc.text('Cotización #' + this.datos.cotizacionId + '   Cliente: ' + (this.datos.cliente || '—'), 15, y); y += 6;
-            doc.text('Total Proyecto: ' + fmt(cotizacion.totalFinal || 0), 15, y); y += 6;
-            doc.text('Variación: ' + ((this.ultimaVariacion || 0) >= 0 ? '+' : '') + (this.ultimaVariacion || 0).toFixed(1) + '%' +
-                     '   SPI: ' + (this.ultimoIndice || 0).toFixed(2), 15, y); y += 10;
-
-            // ─────────────────────────────────────────────────────────────────
-            // SECCIÓN EVM EN PDF (AGREGAR DESPUÉS DE INDICADORES DE DESEMPEÑO)
-            // ─────────────────────────────────────────────────────────────────
-            y += 15;
-            doc.setFillColor(245, 245, 245);
-            doc.rect(15, y - 4, 180, 5, 'F');
-            doc.setTextColor(26, 26, 26);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text('VALOR GANADO (EVM)', 20, y);
-            y += 8;
-            doc.setFontSize(8);
-            doc.setFont('helvetica', 'normal');
             
-            // Obtener valores ACTUALIZADOS de los elementos DOM
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // ─────────────────────────────────────────────────────────
+            // ESTILOS PROFESIONALES
+            // ─────────────────────────────────────────────────────────
+            const colores = {
+                primario: '#1a1a1a',
+                secundario: '#4a4a4a',
+                acento: '#2563eb',
+                exito: '#16a34a',
+                advertencia: '#d97706',
+                peligro: '#dc2626',
+                fondo: '#f8fafc'
+            };
+            
+            const fuentes = {
+                titulo: { family: 'helvetica', size: 16, style: 'bold' },
+                seccion: { family: 'helvetica', size: 12, style: 'bold' },
+                subseccion: { family: 'helvetica', size: 10, style: 'bold' },
+                normal: { family: 'helvetica', size: 9, style: 'normal' },
+                pequeno: { family: 'helvetica', size: 8, style: 'normal' }
+            };
+            
+            // ─────────────────────────────────────────────────────────
+            // ENCABEZADO
+            // ─────────────────────────────────────────────────────────
+            doc.setFillColor(colores.primario);
+            doc.rect(0, 0, 210, 35, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFont(fuentes.titulo.family, fuentes.titulo.style);
+            doc.setFontSize(fuentes.titulo.size);
+            doc.text('CURVA S - SEGUIMIENTO DE OBRA', 105, 18, { align: 'center' });
+            
+            doc.setFont(fuentes.normal.family, fuentes.normal.style);
+            doc.setFontSize(fuentes.pequeno.size);
+            doc.text('SmartCot v2.0 — Reporte Ejecutivo de Avance', 105, 26, { align: 'center' });
+            doc.text('Generado: ' + new Date().toLocaleDateString('es-MX') + ' ' + new Date().toLocaleTimeString('es-MX'), 105, 31, { align: 'center' });
+            
+            // ─────────────────────────────────────────────────────────
+            // INFORMACIÓN DE LA COTIZACIÓN
+            // ─────────────────────────────────────────────────────────
+            let yPos = 45;
+            const cotizacion = await window.db.cotizaciones.get(parseInt(this.datos.cotizacionId));
+            if (!cotizacion) {
+                alert('❌ Cotización no encontrada');
+                return;
+            }
+            
+            doc.setTextColor(colores.primario);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.setFontSize(fuentes.subseccion.size);
+            doc.text('INFORMACIÓN DEL PROYECTO', 15, yPos);
+            yPos += 2;
+            doc.setDrawColor(colores.acento);
+            doc.setLineWidth(0.5);
+            doc.line(15, yPos, 195, yPos);
+            yPos += 5;
+            
+            doc.setFont(fuentes.normal.family, fuentes.normal.style);
+            doc.setFontSize(fuentes.pequeno.size);
+            doc.text('Cotización #' + this.datos.cotizacionId, 15, yPos);
+            doc.text('Cliente: ' + (this.datos.cliente || 'Sin cliente'), 105, yPos);
+            yPos += 5;
+            doc.text('Total Proyecto: ' + calculator.formatoMoneda(cotizacion.totalFinal || 0), 15, yPos);
+            doc.text('Fecha de Reporte: ' + new Date().toLocaleDateString('es-MX'), 105, yPos);
+            
+            // ─────────────────────────────────────────────────────────
+            // INDICADORES DE DESEMPEÑO (SEPARADO Y PROFESIONAL)
+            // ─────────────────────────────────────────────────────────
+            yPos += 12;
+            doc.setFillColor(colores.fondo);
+            doc.roundedRect(15, yPos - 3, 180, 22, 3, 3, 'F');
+            
+            doc.setTextColor(colores.acento);
+            doc.setFont(fuentes.seccion.family, fuentes.seccion.style);
+            doc.setFontSize(fuentes.seccion.size);
+            doc.text('INDICADORES DE DESEMPEÑO', 20, yPos);
+            yPos += 2;
+            doc.setDrawColor(colores.acento);
+            doc.setLineWidth(0.5);
+            doc.line(20, yPos, 190, yPos);
+            yPos += 6;
+            
+            this.calcularVariaciones();
+            const variacion = this.ultimaVariacion || 0;
+            const indice = this.ultimoIndice || 0;
+            const semana = this.ultimaSemana || 0;
+            
+            doc.setTextColor(colores.primario);
+            doc.setFont(fuentes.pequeno.family, fuentes.pequeno.style);
+            doc.setFontSize(fuentes.pequeno.size);
+            
+            // Caja de semana actual
+            doc.setFillColor('#e0f2fe');
+            doc.roundedRect(20, yPos - 4, 50, 12, 2, 2, 'F');
+            doc.setTextColor(colores.acento);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.text('Semana ' + semana, 45, yPos, { align: 'center' });
+            
+            // Caja de desviación
+            const colorDesviacion = variacion >= 0 ? colores.exito : colores.peligro;
+            doc.setFillColor(variacion >= 0 ? '#dcfce7' : '#fee2e2');
+            doc.roundedRect(75, yPos - 4, 55, 12, 2, 2, 'F');
+            doc.setTextColor(colorDesviacion);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.text('Desviación: ' + (variacion >= 0 ? '+' : '') + variacion.toFixed(1) + '%', 102, yPos, { align: 'center' });
+            
+            // Caja de SPI
+            const colorSPI = indice >= 1 ? colores.exito : (indice >= 0.9 ? colores.advertencia : colores.peligro);
+            doc.setFillColor(indice >= 1 ? '#dcfce7' : (indice >= 0.9 ? '#fef3c7' : '#fee2e2'));
+            doc.roundedRect(135, yPos - 4, 55, 12, 2, 2, 'F');
+            doc.setTextColor(colorSPI);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.text('SPI: ' + indice.toFixed(2), 162, yPos, { align: 'center' });
+            
+            yPos += 18;
+            
+            // ─────────────────────────────────────────────────────────
+            // VALOR GANADO (EVM) - SEPARADO
+            // ─────────────────────────────────────────────────────────
+            yPos += 8;
+            doc.setFillColor(colores.fondo);
+            doc.roundedRect(15, yPos - 3, 180, 35, 3, 3, 'F');
+            
+            doc.setTextColor(colores.primario);
+            doc.setFont(fuentes.seccion.family, fuentes.seccion.style);
+            doc.setFontSize(fuentes.seccion.size);
+            doc.text('VALOR GANADO (EVM)', 20, yPos);
+            yPos += 2;
+            doc.setDrawColor(colores.acento);
+            doc.setLineWidth(0.5);
+            doc.line(20, yPos, 190, yPos);
+            yPos += 6;
+            
+            doc.setFont(fuentes.pequeno.family, fuentes.pequeno.style);
+            doc.setFontSize(fuentes.pequeno.size);
+            doc.setTextColor(colores.secundario);
+            
+            // Obtener valores de los elementos HTML
             const elPV = document.getElementById('evm-pv');
             const elEV = document.getElementById('evm-ev');
             const elAC = document.getElementById('evm-ac');
@@ -1258,93 +1415,313 @@ generarTablaAvance: function() {
             const elVAC = document.getElementById('evm-vac');
             
             // Fila 1
-            doc.text('PV (Planificado): ' + (elPV ? elPV.textContent : '$0.00'), 20, y);
-            doc.text('EV (Ganado): ' + (elEV ? elEV.textContent : '$0.00'), 110, y);
-            y += 5;
-            // Fila 2
-            doc.text('AC (Costo): ' + (elAC ? elAC.textContent : '$0.00'), 20, y);
-            doc.text('CV (Var. Costo): ' + (elCV ? elCV.textContent : '$0.00'), 110, y);
-            y += 5;
-            // Fila 3
-            doc.text('SV (Var. Tiempo): ' + (elSV ? elSV.textContent : '$0.00'), 20, y);
-            doc.text('CPI (Índ. Costo): ' + (elCPI ? elCPI.textContent : '0.00'), 110, y);
-            y += 5;
-            // Fila 4
-            doc.text('SPI (Índ. Tiempo): ' + (elSPI ? elSPI.textContent : '0.00'), 20, y);
-            doc.text('EAC (Est. Final): ' + (elEAC ? elEAC.textContent : '$0.00'), 110, y);            
+            doc.text('PV (Valor Planificado):', 20, yPos);
+            doc.setTextColor(colores.primario);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.text((elPV ? elPV.textContent : '$0.00'), 90, yPos);
+            doc.setTextColor(colores.secundario);
+            doc.setFont(fuentes.pequeno.family, fuentes.pequeno.style);
+            doc.text('EV (Valor Ganado):', 120, yPos);
+            doc.setTextColor(colores.primario);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.text((elEV ? elEV.textContent : '$0.00'), 190, yPos, { align: 'right' });
+            yPos += 5;
             
-            // Gráfica
-            var canvas = document.getElementById('curva-s-chart');
+            // Fila 2
+            doc.setTextColor(colores.secundario);
+            doc.setFont(fuentes.pequeno.family, fuentes.pequeno.style);
+            doc.text('AC (Costo Actual):', 20, yPos);
+            doc.setTextColor(colores.primario);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.text((elAC ? elAC.textContent : '$0.00'), 90, yPos);
+            doc.setTextColor(colores.secundario);
+            doc.setFont(fuentes.pequeno.family, fuentes.pequeno.style);
+            doc.text('CV (Variación Costo):', 120, yPos);
+            const cvValor = elCV ? elCV.textContent : '$0.00';
+            doc.setTextColor(cvValor.includes('-') ? colores.peligro : colores.exito);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.text(cvValor, 190, yPos, { align: 'right' });
+            yPos += 5;
+            
+            // Fila 3
+            doc.setTextColor(colores.secundario);
+            doc.setFont(fuentes.pequeno.family, fuentes.pequeno.style);
+            doc.text('SV (Variación Tiempo):', 20, yPos);
+            const svValor = elSV ? elSV.textContent : '$0.00';
+            doc.setTextColor(svValor.includes('-') ? colores.peligro : colores.exito);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.text(svValor, 90, yPos);
+            doc.setTextColor(colores.secundario);
+            doc.setFont(fuentes.pequeno.family, fuentes.pequeno.style);
+            doc.text('CPI (Índice Costo):', 120, yPos);
+            const cpiValor = elCPI ? elCPI.textContent : '0.00';
+            doc.setTextColor(parseFloat(cpiValor) >= 1 ? colores.exito : colores.peligro);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.text(cpiValor, 190, yPos, { align: 'right' });
+            yPos += 5;
+            
+            // Fila 4
+            doc.setTextColor(colores.secundario);
+            doc.setFont(fuentes.pequeno.family, fuentes.pequeno.style);
+            doc.text('SPI (Índice Tiempo):', 20, yPos);
+            const spiValor = elSPI ? elSPI.textContent : '0.00';
+            doc.setTextColor(parseFloat(spiValor) >= 1 ? colores.exito : colores.peligro);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.text(spiValor, 90, yPos);
+            doc.setTextColor(colores.secundario);
+            doc.setFont(fuentes.pequeno.family, fuentes.pequeno.style);
+            doc.text('EAC (Estimado Final):', 120, yPos);
+            doc.setTextColor(colores.primario);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.text((elEAC ? elEAC.textContent : '$0.00'), 190, yPos, { align: 'right' });
+            
+            // ─────────────────────────────────────────────────────────
+            // PROYECCIÓN DE TERMINACIÓN (SEPARADO)
+            // ─────────────────────────────────────────────────────────
+            yPos += 12;
+            doc.setFillColor(colores.fondo);
+            doc.roundedRect(15, yPos - 3, 180, 18, 3, 3, 'F');
+            
+            doc.setTextColor(colores.acento);
+            doc.setFont(fuentes.seccion.family, fuentes.seccion.style);
+            doc.setFontSize(fuentes.seccion.size);
+            doc.text('PROYECCIÓN DE TERMINACIÓN', 20, yPos);
+            yPos += 2;
+            doc.setDrawColor(colores.acento);
+            doc.setLineWidth(0.5);
+            doc.line(20, yPos, 190, yPos);
+            yPos += 6;
+            
+            doc.setFont(fuentes.pequeno.family, fuentes.pequeno.style);
+            doc.setFontSize(fuentes.pequeno.size);
+            doc.setTextColor(colores.secundario);
+            
+            const elSemanasRestantes = document.getElementById('proyeccion-semanas-restantes');
+            const elFechaEstimada = document.getElementById('proyeccion-fecha-estimada');
+            const elVelocidad = document.getElementById('proyeccion-velocidad');
+            
+            doc.text('Semanas Restantes:', 20, yPos);
+            doc.setTextColor(colores.primario);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.text((elSemanasRestantes ? elSemanasRestantes.textContent : 'N/A'), 75, yPos);
+            
+            doc.setTextColor(colores.secundario);
+            doc.setFont(fuentes.pequeno.family, fuentes.pequeno.style);
+            doc.text('Fecha Estimada:', 105, yPos);
+            doc.setTextColor(colores.primario);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.text((elFechaEstimada ? elFechaEstimada.textContent : 'N/A'), 155, yPos);
+            yPos += 5;
+            
+            doc.setTextColor(colores.secundario);
+            doc.setFont(fuentes.pequeno.family, fuentes.pequeno.style);
+            doc.text('Velocidad de Avance:', 20, yPos);
+            doc.setTextColor(colores.primario);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.text((elVelocidad ? elVelocidad.textContent : 'N/A'), 75, yPos);
+            
+            // ─────────────────────────────────────────────────────────
+            // CURVA DE INVERSIÓN (SEPARADO)
+            // ─────────────────────────────────────────────────────────
+            yPos += 12;
+            doc.setFillColor(colores.fondo);
+            doc.roundedRect(15, yPos - 3, 180, 15, 3, 3, 'F');
+            
+            doc.setTextColor('#ea580c');
+            doc.setFont(fuentes.seccion.family, fuentes.seccion.style);
+            doc.setFontSize(fuentes.seccion.size);
+            doc.text('CURVA DE INVERSIÓN', 20, yPos);
+            yPos += 2;
+            doc.setDrawColor('#ea580c');
+            doc.setLineWidth(0.5);
+            doc.line(20, yPos, 190, yPos);
+            yPos += 6;
+            
+            doc.setFont(fuentes.pequeno.family, fuentes.pequeno.style);
+            doc.setFontSize(fuentes.pequeno.size);
+            doc.setTextColor(colores.secundario);
+            
+            const elInversionTotal = document.getElementById('curva-inversion-total');
+            doc.text('Inversión Total Acumulada:', 20, yPos);
+            doc.setTextColor(colores.primario);
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.text((elInversionTotal ? elInversionTotal.textContent : '$0.00'), 90, yPos);
+            
+            // ─────────────────────────────────────────────────────────
+            // ESPACIO ANTES DE LA GRÁFICA
+            // ─────────────────────────────────────────────────────────
+            yPos += 12;
+            
+            // ─────────────────────────────────────────────────────────
+            // GRÁFICA
+            // ─────────────────────────────────────────────────────────
+            const canvas = document.getElementById('curva-s-chart');
             if (canvas) {
-                doc.addImage(canvas.toDataURL('image/png'), 'PNG', 15, y, 180, 80);
-                y += 85;
+                const imgData = canvas.toDataURL('image/png', 1.0);
+                doc.addImage(imgData, 'PNG', 15, yPos, 180, 100);
+                yPos += 110;
             }
-
-            // Tabla
-            if (y > 230) { doc.addPage(); y = 20; }
-            doc.setFillColor(37, 99, 235);
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(8); doc.setFont('helvetica', 'bold');
-            doc.rect(15, y - 4, 180, 7, 'F');
-            doc.text('Sem.', 17, y); doc.text('Programado', 45, y); doc.text('Ejecutado', 80, y);
-            doc.text('Desviacion', 110, y); doc.text('Monto Ejec.', 140, y); doc.text('Estado', 175, y);
-            y += 6; doc.setFont('helvetica', 'normal'); doc.setTextColor(15, 23, 42);
-
-            var self = this;
-            this.datos.semanas.forEach(function(sem, i) {
-                var prog  = (self.datos.avanceProgramado[i] || 0).toFixed(1) + '%';
-                var ejec  = self.datos.avanceEjecutado[i];
-                var monto = self.datos.montoEjecutado[i] || 0;
-                var ejecTxt  = (ejec === null || ejec === undefined) ? '—' : ejec.toFixed(1) + '%';
-                var desv     = (ejec === null || ejec === undefined) ? '—' : ((ejec - (self.datos.avanceProgramado[i] || 0)) >= 0 ? '+' : '') + (ejec - (self.datos.avanceProgramado[i] || 0)).toFixed(1) + '%';
-                var montoTxt = (ejec === null || ejec === undefined) ? '—' : fmt(monto);
-                var estado   = (ejec === null || ejec === undefined) ? 'Pendiente' : ((ejec >= (self.datos.avanceProgramado[i] || 0)) ? 'En tiempo' : 'Atrasado');
-
-                if (i % 2 === 0) { doc.setFillColor(248, 250, 252); doc.rect(15, y - 4, 180, 6, 'F'); }
-                doc.text(sem, 17, y); doc.text(prog, 45, y); doc.text(ejecTxt, 80, y);
-                doc.text(desv, 110, y); doc.text(montoTxt, 140, y); doc.text(estado, 175, y);
-                y += 6;
-                if (y > 270) { doc.addPage(); y = 20; }
-            });
-            // ─────────────────────────────────────────────────────────────────
-            // CONCLUSIÓN AUTOMÁTICA (AGREGAR AL FINAL DEL PDF)
-            // ─────────────────────────────────────────────────────────────────
-            y += 15;
-            if (y > 240) { doc.addPage(); y = 20; }
+            
+            // ─────────────────────────────────────────────────────────
+            // ESPACIO ANTES DE LA TABLA
+            // ─────────────────────────────────────────────────────────
+            yPos += 8;
+            
+            // Verificar si hay espacio suficiente
+            if (yPos > 220) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            // ─────────────────────────────────────────────────────────
+            // TABLA DE AVANCE POR SEMANA
+            // ─────────────────────────────────────────────────────────
+            doc.setFillColor('#f0fdf4');
+            doc.roundedRect(15, yPos - 3, 180, 5, 3, 3, 'F');
+            
+            doc.setTextColor(colores.exito);
+            doc.setFont(fuentes.seccion.family, fuentes.seccion.style);
+            doc.setFontSize(fuentes.seccion.size);
+            doc.text('AVANCE POR SEMANA', 20, yPos);
+            yPos += 2;
+            doc.setDrawColor(colores.exito);
+            doc.setLineWidth(0.5);
+            doc.line(20, yPos, 190, yPos);
+            yPos += 6;
+            
+            doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+            doc.setFontSize(fuentes.pequeno.size);
+            doc.setTextColor(colores.primario);
+            doc.text('Semana', 20, yPos);
+            doc.text('Programado', 55, yPos);
+            doc.text('Ejecutado', 95, yPos);
+            doc.text('Desviación', 135, yPos);
+            doc.text('Estado', 170, yPos);
+            yPos += 2;
+            doc.setDrawColor('#cbd5e1');
+            doc.setLineWidth(0.3);
+            doc.line(15, yPos, 195, yPos);
+            yPos += 5;
+            
+            doc.setFont(fuentes.normal.family, fuentes.normal.style);
+            doc.setFontSize(fuentes.pequeno.size);
+            
+            this.datos.semanas.forEach(function(semana, index) {
+                if (yPos > 270) {
+                    doc.addPage();
+                    yPos = 20;
+                    // Re-encabezado en nueva página
+                    doc.setFont(fuentes.subseccion.family, fuentes.subseccion.style);
+                    doc.text('Semana', 20, yPos);
+                    doc.text('Programado', 55, yPos);
+                    doc.text('Ejecutado', 95, yPos);
+                    doc.text('Desviación', 135, yPos);
+                    doc.text('Estado', 170, yPos);
+                    yPos += 5;
+                }
+                
+                const programado = this.datos.avanceProgramado[index] || 0;
+                const ejecutado = this.datos.avanceEjecutado[index] || 0;
+                const desviacion = ejecutado - programado;
+                
+                let estado = '';
+                let colorEstado = colores.secundario;
+                if (ejecutado === 0 && programado === 0) {
+                    estado = 'Pendiente';
+                    colorEstado = colores.secundario;
+                } else if (desviacion >= 0) {
+                    estado = 'Adelantado';
+                    colorEstado = colores.exito;
+                } else if (desviacion >= -5) {
+                    estado = 'Ligero atraso';
+                    colorEstado = colores.advertencia;
+                } else {
+                    estado = 'Atrasado';
+                    colorEstado = colores.peligro;
+                }
+                
+                doc.setTextColor(colores.secundario);
+                doc.text(semana.replace('Sem ', 'S'), 20, yPos);
+                
+                doc.setTextColor(colores.acento);
+                doc.text(programado.toFixed(1) + '%', 55, yPos);
+                
+                doc.setTextColor(ejecutado > 0 ? colores.primario : colores.secundario);
+                doc.text(ejecutado > 0 ? ejecutado.toFixed(1) + '%' : '—', 95, yPos);
+                
+                doc.setTextColor(desviacion >= 0 ? colores.exito : colores.peligro);
+                doc.text((desviacion >= 0 ? '+' : '') + desviacion.toFixed(1) + '%', 135, yPos);
+                
+                doc.setTextColor(colorEstado);
+                doc.text(estado, 170, yPos);
+                yPos += 5;
+            }.bind(this));
+            
+            // ─────────────────────────────────────────────────────────
+            // CONCLUSIÓN AUTOMÁTICA (EXTENSA Y PROFESIONAL)
+            // ─────────────────────────────────────────────────────────
+            yPos += 10;
+            
+            if (yPos > 240) {
+                doc.addPage();
+                yPos = 20;
+            }
             
             const conclusion = this.generarConclusionEVM();
-            doc.setFillColor(255, 243, 224);
-            doc.rect(15, y - 4, 180, 5, 'F');
-            doc.setTextColor(conclusion.color);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text('CONCLUSIÓN AUTOMÁTICA', 20, y);
-            y += 8;
-            doc.setFontSize(8);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(26, 26, 26);
             
-            // Dividir texto en líneas de 90 caracteres
-            const lineas = doc.splitTextToSize(conclusion.texto, 170);
-            lineas.forEach((linea, i) => {
-                doc.text(linea, 20, y + (i * 5));
+            doc.setFillColor('#f8fafc');
+            doc.roundedRect(15, yPos - 3, 180, 3, 3, 3, 'F');
+            
+            doc.setTextColor(colores.primario);
+            doc.setFont(fuentes.seccion.family, fuentes.seccion.style);
+            doc.setFontSize(fuentes.seccion.size);
+            doc.text('ANÁLISIS Y CONCLUSIONES', 20, yPos);
+            yPos += 2;
+            doc.setDrawColor(colores.acento);
+            doc.setLineWidth(0.5);
+            doc.line(20, yPos, 190, yPos);
+            yPos += 6;
+            
+            doc.setFont(fuentes.normal.family, fuentes.normal.style);
+            doc.setFontSize(fuentes.pequeno.size);
+            doc.setTextColor(colores.secundario);
+            
+            // Dividir texto en líneas de 85 caracteres para que no se salga
+            const lineasConclusion = doc.splitTextToSize(conclusion.texto, 170);
+            
+            // Si hay muchas líneas, agregar páginas adicionales
+            lineasConclusion.forEach((linea, i) => {
+                if (yPos > 280) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                doc.setTextColor(colores.secundario);
+                doc.text(linea, 20, yPos + (i * 5));
             });
-            // Pie de página
-            var pages = doc.internal.getNumberOfPages();
-            for (var p = 1; p <= pages; p++) {
-                doc.setPage(p);
-                doc.setFontSize(7); doc.setTextColor(150);
-                doc.text('Página ' + p + ' de ' + pages + ' — SmartCot v2.0', 105, 292, { align: 'center' });
+            
+            yPos += (lineasConclusion.length * 5) + 5;
+            
+            // ─────────────────────────────────────────────────────────
+            // PIE DE PÁGINA
+            // ─────────────────────────────────────────────────────────
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(fuentes.pequeno.size);
+                doc.setTextColor('#94a3b8');
+                doc.text('Página ' + i + ' de ' + pageCount, 105, 290, { align: 'center' });
+                doc.text('Generado por SmartCot v2.0 — ' + new Date().toLocaleDateString('es-MX'), 15, 295);
             }
-
-            doc.save('CurvaS-Cot' + this.datos.cotizacionId + '-' + new Date().toISOString().split('T')[0] + '.pdf');
-            alert('✅ Reporte PDF exportado');
-
+            
+            // ─────────────────────────────────────────────────────────
+            // GUARDAR PDF
+            // ─────────────────────────────────────────────────────────
+            const nombreArchivo = 'Curva-S-Cotizacion-' + this.datos.cotizacionId + '-Reporte.pdf';
+            doc.save(nombreArchivo);
+            console.log('✅ Reporte PDF exportado:', nombreArchivo);
+            alert('✅ Reporte exportado exitosamente\n\nIncluye:\n• Indicadores de Desempeño\n• Valor Ganado (EVM)\n• Proyección de Terminación\n• Curva de Inversión\n• Gráfica de Avance\n• Tabla de Desviaciones\n• Análisis y Conclusiones');
         } catch (error) {
-            console.error('❌ Error exportando PDF:', error);
-            alert('❌ Error: ' + error.message);
+            console.error('❌ Error exportando reporte PDF:', error);
+            alert('❌ Error al exportar reporte: ' + error.message);
         }
-    }
-};
-
-console.log('✅ curva-s.js listo');
+    },
