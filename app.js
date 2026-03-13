@@ -253,17 +253,64 @@ actualizarInfoLicencia: function(licencia) {
     this.actualizarContadoresLicencia();
 },
 
+// ─────────────────────────────────────────────────────────────────
+// ACTUALIZAR INFO LICENCIA UI (CORREGIDO - TODOS LOS CAMPOS)
+// ─────────────────────────────────────────────────────────────────
 actualizarInfoLicenciaUI: function() {
-    var info = window.licencia.obtenerInfo();
+    var licencia = window.licencia.obtenerInfo();
+    
+    // Dashboard - Plan actual
     var elPlan = document.getElementById('licencia-plan-actual');
+    var elExpiry = document.getElementById('licencia-expiry');
     var elDias = document.getElementById('licencia-dias-restantes');
     var elEstado = document.getElementById('licencia-estado');
-    if (elPlan) elPlan.textContent = info.plan;
-    if (elDias) elDias.textContent = info.diasRestantes;
-    if (elEstado) {
-        elEstado.textContent = info.activa ? 'Activa' : 'Expirada';
-        elEstado.style.color = info.activa ? '#4CAF50' : '#f44336';
+    
+    // Sidebar
+    var sidebarPlan = document.getElementById('sidebar-license-plan');
+    var sidebarExpiry = document.getElementById('sidebar-license-expiry');
+    
+    // License screen
+    var licenseScreenPlan = document.getElementById('licencia-screen-plan');
+    var licenseScreenExpiry = document.getElementById('licencia-screen-expiry');
+    
+    if (licencia.activa) {
+        // Dashboard
+        if (elPlan) elPlan.textContent = licencia.plan;
+        if (elExpiry) elExpiry.textContent = licencia.fechaExpiracion;
+        if (elDias) elDias.textContent = licencia.diasRestantes + ' días restantes';
+        if (elEstado) {
+            elEstado.textContent = 'Activa';
+            elEstado.style.color = '#4CAF50';
+        }
+        
+        // Sidebar
+        if (sidebarPlan) sidebarPlan.textContent = licencia.plan;
+        if (sidebarExpiry) sidebarExpiry.textContent = 'Exp: ' + licencia.fechaExpiracion;
+        
+        // License screen
+        if (licenseScreenPlan) licenseScreenPlan.textContent = licencia.plan;
+        if (licenseScreenExpiry) licenseScreenExpiry.textContent = licencia.fechaExpiracion;
+        
+    } else {
+        // Dashboard DEMO
+        if (elPlan) elPlan.textContent = 'DEMO';
+        if (elExpiry) elExpiry.textContent = '--';
+        if (elDias) elDias.textContent = (licencia.diasRestantes || 7) + ' días restantes';
+        if (elEstado) {
+            elEstado.textContent = licencia.diasRestantes > 0 ? 'Activa (DEMO)' : 'Expirada';
+            elEstado.style.color = licencia.diasRestantes > 0 ? '#FF9800' : '#f44336';
+        }
+        
+        // Sidebar DEMO
+        if (sidebarPlan) sidebarPlan.textContent = 'DEMO';
+        if (sidebarExpiry) sidebarExpiry.textContent = (licencia.diasRestantes || 7) + ' días';
+        
+        // License screen DEMO
+        if (licenseScreenPlan) licenseScreenPlan.textContent = 'DEMO';
+        if (licenseScreenExpiry) licenseScreenExpiry.textContent = '--';
     }
+    
+    // Actualizar contadores de uso
     this.actualizarContadoresLicencia();
 },
 
