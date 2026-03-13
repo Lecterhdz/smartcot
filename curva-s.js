@@ -1694,13 +1694,26 @@ generarTablaAvance: function() {
             // Dividir texto en líneas de 85 caracteres para que no se salga
             const lineasConclusion = doc.splitTextToSize(conclusion.texto, 170);
             
-            // Si hay muchas líneas, agregar páginas adicionales
+            // ⚠️ ESCRIBIR LÍNEA POR LÍNEA CON VERIFICACIÓN DE PÁGINA
             lineasConclusion.forEach((linea, i) => {
-                if (yPos > 280) {
+                // ⚠️ SI LA LÍNEA ACTUAL SE SALE DE LA PÁGINA, AGREGAR NUEVA PÁGINA
+                if (yPos + (i * 5) > 280) {
                     doc.addPage();
                     yPos = 20;
+                    // Re-escribir encabezado en nueva página si es necesario
+                    if (i === 0) {
+                        doc.setFillColor(248, 250, 252);
+                        doc.roundedRect(15, yPos - 3, 180, 5, 3, 3, 'F');
+                        doc.setTextColor(26, 26, 26);
+                        doc.setFontSize(10);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('ANÁLISIS Y CONCLUSIONES (CONT.)', 20, yPos);
+                        yPos += 8;
+                    }
                 }
-                doc.setTextColor(colores.secundario);
+                
+                // ⚠️ ESCRIBIR LÍNEA CON COLOR SEGÚN ESTADO
+                doc.setTextColor(conclusion.color);
                 doc.text(linea, 20, yPos + (i * 5));
             });
             
