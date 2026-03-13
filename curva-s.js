@@ -225,10 +225,12 @@ generarTablaAvance: function() {
             // Cargar avance ejecutado
             await this.cargarAvanceEjecutado();
 
-            // ⚠️ ESPERAR A QUE EL CANVAS SEA VISIBLE ANTES DE GENERAR GRÁFICA
+            // ⚠️ ESPERAR A QUE EL CANVAS SEA VISIBLE
             setTimeout(() => {
-                this.inicializarGrafica();
-                this.actualizarGrafica();
+                this.inicializarGrafica();      // 1. Inicializar Chart.js
+                this.actualizarGrafica();        // 2. Cargar datos en gráfica
+                this.generarTablaAvance();       // 3. Generar tabla con semana actual
+                this.calcularVariaciones();      // 4. Calcular variaciones
             }, 300);
 
             // ⚠️ GENERAR TABLA DE AVANCE (DESPUÉS DE CARGAR DATOS)
@@ -508,7 +510,10 @@ generarTablaAvance: function() {
                             fill: true,
                             tension: 0.4,
                             pointRadius: 5,
-                            pointHoverRadius: 7
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: '#4d8ef0',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2
                         },
                         // ⚠️ NUEVO: Dataset para línea vertical de semana actual
                         {
@@ -585,30 +590,22 @@ generarTablaAvance: function() {
             // ─────────────────────────────────────────────────────────────────
             // POSICIONAR LÍNEA VERTICAL EN SEMANA ACTUAL
             // ─────────────────────────────────────────────────────────────────
-            // ⚠️ Encontrar última semana con avance > 0
-            let ultimaSemanaConAvance = -1;
-            for (let i = this.datos.avanceEjecutado.length - 1; i >= 0; i--) {
-                if (this.datos.avanceEjecutado[i] > 0) {
-                    ultimaSemanaConAvance = i;
-                    break;
-                }
-            }
-            
-            // ⚠️ Si hay avance y la gráfica existe, posicionar línea
-            if (ultimaSemanaConAvance >= 0 && this.grafica && this.datos.semanas?.length > 0) {
+            const semanaActualIndex = this.datos.avanceEjecutado.findIndex(v => v > 0);
+            if (semanaActualIndex >= 0 && this.grafica && this.datos.semanas?.length > 0) {
                 // Crear array con nulls y poner 100 SOLO en la posición de la semana actual
                 const lineaData = new Array(this.datos.semanas.length).fill(null);
-                lineaData[ultimaSemanaConAvance] = 100;  // Línea vertical hasta 100%
+                lineaData[semanaActualIndex] = 100;  // Línea vertical hasta 100%
                 
                 // Actualizar el dataset 2 (índice 2) con los datos de la línea
                 if (this.grafica.data.datasets[2]) {
                     this.grafica.data.datasets[2].data = lineaData;
                     this.grafica.update('none');  // 'none' para actualización sin animación
-                    console.log('✅ Línea vertical posicionada en semana', ultimaSemanaConAvance + 1);
+                    console.log('✅ Línea vertical posicionada en semana', semanaActualIndex + 1);
                 } else {
-                    console.warn('⚠️ Dataset de línea vertical no encontrado en gráfica');
+                    console.warn('⚠️ Dataset de línea vertical no encontrado');
                 }
             }
+            
             console.log('✅ Gráfica inicializada');
 
         } catch (error) {
@@ -1228,6 +1225,61 @@ generarTablaAvance: function() {
     },
 
     // ─────────────────────────────────────────────────────────────────
+    // GENERAR CONCLUSIÓN AUTOMÁTICA BASADA EN EVM (NUEVA FUNCIÓN)
+    // ─────────────────────────────────────────────────────────────────
+    generarConclusionEVM: function() {
+        try {
+            // Obtener valores de los elementos DOM
+            const cpi = parseFloat(document.getElementById('evm-cpi')?.textContent) || 0;
+            const spi = parseFloat(document.getElementById('evm-spi')?.textContent) || 0;
+            const cv = parseFloat(document.getElementById('evm-cv')?.textContent?.replace(/[^0-9.-]/g, '')) || 0;
+            const sv = parseFloat(document.getElementById('evm-sv')?.textContent?.replace(/[^0-9.-]/g, '')) || 0;
+            
+            let conclusion = '';
+            let color = '#1a1a1a';
+            
+            // Evaluación de Costo (CPI y CV)
+            if (cpi >= 1.0) {
+                conclusion += '✅ COSTO: El proyecto está dentro o por debajo del presupuesto. ';
+            } else if (cpi >= 0.9) {
+                conclusion += '⚠️ COSTO: Ligera desviación en costos. Monitorear. ';
+                color = '#FF9800';
+            } else {
+                conclusion += '🚨 COSTO: Sobrecosto significativo. Acción correctiva requerida. ';
+                color = '#f44336';
+            }
+            
+            // Evaluación de Tiempo (SPI y SV)
+            if (spi >= 1.0) {
+                conclusion += '✅ TIEMPO: El proyecto está en tiempo o adelantado. ';
+            } else if (spi >= 0.9) {
+                conclusion += '⚠️ TIEMPO: Ligero retraso. Revisar cronograma. ';
+                if (color === '#1a1a1a') color = '#FF9800';
+            } else {
+                conclusion += '🚨 TIEMPO: Retraso crítico. Replanificación urgente. ';
+                color = '#f44336';
+            }
+            
+            // Recomendación final
+            if (cpi >= 1.0 && spi >= 1.0) {
+                conclusion += '🎯 ESTADO GENERAL: Proyecto saludable. Continuar con la ejecución planificada.';
+            } else if (cpi < 1.0 && spi < 1.0) {
+                conclusion += '🔴 ESTADO GENERAL: Proyecto en riesgo. Se recomienda reunión de revisión inmediata.';
+                color = '#f44336';
+            } else {
+                conclusion += '🟡 ESTADO GENERAL: Proyecto con áreas de mejora. Monitoreo reforzado recomendado.';
+                if (color === '#1a1a1a') color = '#FF9800';
+            }
+            
+            return { texto: conclusion, color: color };
+            
+        } catch (error) {
+            console.error('❌ Error generando conclusión:', error);
+            return { texto: 'No se pudo generar conclusión automática.', color: '#1a1a1a' };
+        }
+    },
+    
+    // ─────────────────────────────────────────────────────────────────
     // EXPORTAR REPORTE PDF
     // ─────────────────────────────────────────────────────────────────
     exportarReportePDF: async function() {
@@ -1265,6 +1317,48 @@ generarTablaAvance: function() {
             doc.text('Variación: ' + ((this.ultimaVariacion || 0) >= 0 ? '+' : '') + (this.ultimaVariacion || 0).toFixed(1) + '%' +
                      '   SPI: ' + (this.ultimoIndice || 0).toFixed(2), 15, y); y += 10;
 
+            // ─────────────────────────────────────────────────────────────────
+            // SECCIÓN EVM EN PDF (AGREGAR DESPUÉS DE INDICADORES DE DESEMPEÑO)
+            // ─────────────────────────────────────────────────────────────────
+            yPos += 15;
+            doc.setFillColor(245, 245, 245);
+            doc.rect(15, yPos - 4, 180, 5, 'F');
+            doc.setTextColor(26, 26, 26);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('VALOR GANADO (EVM)', 20, yPos);
+            yPos += 8;
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            
+            // Obtener valores ACTUALIZADOS de los elementos DOM
+            const elPV = document.getElementById('evm-pv');
+            const elEV = document.getElementById('evm-ev');
+            const elAC = document.getElementById('evm-ac');
+            const elCV = document.getElementById('evm-cv');
+            const elSV = document.getElementById('evm-sv');
+            const elCPI = document.getElementById('evm-cpi');
+            const elSPI = document.getElementById('evm-spi');
+            const elEAC = document.getElementById('evm-eac');
+            const elETC = document.getElementById('evm-etc');
+            const elVAC = document.getElementById('evm-vac');
+            
+            // Fila 1
+            doc.text('PV (Planificado): ' + (elPV ? elPV.textContent : '$0.00'), 20, yPos);
+            doc.text('EV (Ganado): ' + (elEV ? elEV.textContent : '$0.00'), 110, yPos);
+            yPos += 5;
+            // Fila 2
+            doc.text('AC (Costo): ' + (elAC ? elAC.textContent : '$0.00'), 20, yPos);
+            doc.text('CV (Var. Costo): ' + (elCV ? elCV.textContent : '$0.00'), 110, yPos);
+            yPos += 5;
+            // Fila 3
+            doc.text('SV (Var. Tiempo): ' + (elSV ? elSV.textContent : '$0.00'), 20, yPos);
+            doc.text('CPI (Índ. Costo): ' + (elCPI ? elCPI.textContent : '0.00'), 110, yPos);
+            yPos += 5;
+            // Fila 4
+            doc.text('SPI (Índ. Tiempo): ' + (elSPI ? elSPI.textContent : '0.00'), 20, yPos);
+            doc.text('EAC (Est. Final): ' + (elEAC ? elEAC.textContent : '$0.00'), 110, yPos);            
+            
             // Gráfica
             var canvas = document.getElementById('curva-s-chart');
             if (canvas) {
@@ -1298,7 +1392,29 @@ generarTablaAvance: function() {
                 y += 6;
                 if (y > 270) { doc.addPage(); y = 20; }
             });
-
+            // ─────────────────────────────────────────────────────────────────
+            // CONCLUSIÓN AUTOMÁTICA (AGREGAR AL FINAL DEL PDF)
+            // ─────────────────────────────────────────────────────────────────
+            yPos += 15;
+            if (yPos > 240) { doc.addPage(); yPos = 20; }
+            
+            const conclusion = this.generarConclusionEVM();
+            doc.setFillColor(255, 243, 224);
+            doc.rect(15, yPos - 4, 180, 5, 'F');
+            doc.setTextColor(conclusion.color);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('CONCLUSIÓN AUTOMÁTICA', 20, yPos);
+            yPos += 8;
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(26, 26, 26);
+            
+            // Dividir texto en líneas de 90 caracteres
+            const lineas = doc.splitTextToSize(conclusion.texto, 170);
+            lineas.forEach((linea, i) => {
+                doc.text(linea, 20, yPos + (i * 5));
+            });
             // Pie de página
             var pages = doc.internal.getNumberOfPages();
             for (var p = 1; p <= pages; p++) {
