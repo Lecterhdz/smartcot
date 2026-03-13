@@ -241,9 +241,18 @@ window.curvaS = {
             // Variaciones y tabla
             this.calcularVariaciones();
             this.renderizarTablaAvances();
+
+
             
             // Actualizar componentes visuales
-            this.actualizarValoresEVM(cotizacion.evm || {});
+
+            if (cotizacion.evm && typeof this.actualizarValoresEVM === 'function') {
+                this.actualizarValoresEVM(cotizacion.evm);
+            } else {
+                console.log('ℹ️ No hay datos EVM en esta cotización, calculando...');
+                // Calcular EVM dinámicamente si no existe guardado
+                this.calcularEVM();
+            }
             this.actualizarCurvaInversion(
                 cotizacion.avanceEjecutado ? (cotizacion.avanceEjecutado / 100) * montoTotal : 0,
                 montoTotal
@@ -260,7 +269,57 @@ window.curvaS = {
             alert('❌ Error: ' + error.message);
         }
     },
-
+    // ─────────────────────────────────────────────────────────────────
+    // ACTUALIZAR VALORES EVM (VERSIÓN CORREGIDA - SIN ERRORES)
+    // ─────────────────────────────────────────────────────────────────
+    actualizarValoresEVM: function(datosEVM) {
+        try {
+            console.log('📊 Actualizando valores EVM:', datosEVM);
+            
+            // ⚠️ VALIDAR QUE EXISTAN DATOS
+            if (!datosEVM || typeof datosEVM !== 'object') {
+                console.warn('⚠️ No hay datos EVM válidos');
+                this.limpiarValoresEVM();
+                return;
+            }
+            
+            const mapeo = {
+                pv: 'evm-pv', ev: 'evm-ev', ac: 'evm-ac',
+                cv: 'evm-cv', sv: 'evm-sv', cpi: 'evm-cpi',
+                spi: 'evm-spi', eac: 'evm-eac', etc: 'evm-etc', vac: 'evm-vac'
+            };
+            
+            Object.entries(mapeo).forEach(([clave, id]) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const valor = datosEVM[clave];
+                    if (valor !== undefined && valor !== null) {
+                        if (typeof valor === 'number' && (clave === 'cpi' || clave === 'spi')) {
+                            el.textContent = valor.toFixed(2);
+                            el.style.color = valor >= 1 ? 'var(--green)' : 'var(--rose)';
+                        } else if (typeof valor === 'number') {
+                            el.textContent = calculator?.formatoMoneda?.(valor) || '$' + valor.toLocaleString();
+                            if (['cv', 'sv', 'vac'].includes(clave)) {
+                                el.style.color = valor >= 0 ? 'var(--green)' : 'var(--rose)';
+                            } else {
+                                el.style.color = 'var(--ink)';
+                            }
+                        } else {
+                            el.textContent = valor;
+                        }
+                    } else {
+                        el.textContent = clave.includes('cpi') || clave.includes('spi') ? '0.00' : '$0.00';
+                        el.style.color = 'var(--ink)';
+                    }
+                }
+            });
+            
+            console.log('✅ Valores EVM actualizados');
+        } catch (error) {
+            console.error('❌ Error actualizando EVM:', error);
+            this.limpiarValoresEVM();
+        }
+    },
     // ─────────────────────────────────────────────────────────────────
     // MOSTRAR INFO DE COTIZACIÓN
     // ─────────────────────────────────────────────────────────────────
@@ -932,6 +991,15 @@ window.curvaS = {
             
             console.log('📍 Semana actual:', semanaActual, '| % Ejecutado:', porcentajeEjecutado);
             
+            // Al final de calcularEVM(), después de calcular todos los valores:
+            console.log('📊 EVM Final:', { PV, EV, AC, CV, SV, CPI, SPI, EAC, ETC, VAC });
+            
+            // ⚠️ GUARDAR EVM EN LA COTIZACIÓN (PARA FUTURAS CONSULTAS)
+            cotizacion.evm = { PV, EV, AC, CV, SV, CPI, SPI, EAC, ETC, VAC };
+            await window.db.cotizaciones.put(cotizacion);
+            
+            // ⚠️ ACTUALIZAR UI
+            this.actualizarValoresEVM(cotizacion.evm);            
             // ─────────────────────────────────────────────────────────
             // ✅ CÁLCULOS EVM CORRECTOS
             // ─────────────────────────────────────────────────────────
