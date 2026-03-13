@@ -59,6 +59,9 @@ init: async function() {
     try {
         console.log('🏭 SmartCot v2.0 iniciando...');
         
+        // ⚠️ CARGAR TEMA GUARDADO PRIMERO
+        this.cargarTemaGuardado();
+        
         await this.esperarDB();
         this.estado.dbLista = true;
         console.log('✅ Base de datos lista');
@@ -113,6 +116,42 @@ inicializarFormularios: function() {
     this.calcularTotal();
 },
 
+// ─────────────────────────────────────────────────────────────────
+// TOGGLE TEMA (CLARO/OSCURO)
+// ─────────────────────────────────────────────────────────────────
+toggleTema: function() {
+    const body = document.body;
+    const temaActual = body.classList.contains('tema-claro') ? 'oscuro' : 'claro';
+    
+    if (temaActual === 'claro') {
+        body.classList.add('tema-claro');
+        localStorage.setItem('smartcot_tema', 'claro');
+        this.notificacion('🌞 Tema claro activado', 'info');
+    } else {
+        body.classList.remove('tema-claro');
+        localStorage.setItem('smartcot_tema', 'oscuro');
+        this.notificacion('🌙 Tema oscuro activado', 'info');
+    }
+    
+    // Actualizar icono del botón (opcional)
+    const btn = document.querySelector('.topbar-btn[onclick*="toggleTema"]');
+    if (btn) {
+        btn.textContent = temaActual === 'claro' ? '🌙' : '🌓';
+    }
+},
+
+// ─────────────────────────────────────────────────────────────────
+// CARGAR TEMA GUARDADO (AL INICIAR)
+// ─────────────────────────────────────────────────────────────────
+cargarTemaGuardado: function() {
+    const temaGuardado = localStorage.getItem('smartcot_tema');
+    if (temaGuardado === 'claro') {
+        document.body.classList.add('tema-claro');
+        const btn = document.querySelector('.topbar-btn[onclick*="toggleTema"]');
+        if (btn) btn.textContent = '🌙';
+    }
+},
+    
 // ─────────────────────────────────────────────────────────────────
 // NAVEGACIÓN
 // ─────────────────────────────────────────────────────────────────
