@@ -1033,23 +1033,20 @@ table { min-width: 600px; }
           </div>
         </div>
         
-        <!-- Curva de Inversión (NUEVO) -->
-        <div style="margin-top:20px;padding:15px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);">
-          <h5 style="color:var(--ink);margin:0 0 12px 0;font-size:13px;font-weight:700;">💰 Curva de Inversión Acumulada</h5>
-          <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
-            <div style="flex:1;min-width:200px;">
-              <div style="height:80px;position:relative;background:linear-gradient(90deg,var(--blue-l),var(--indigo));border-radius:8px;overflow:hidden;">
-                  <!-- ⚠️ AGREGAR id="curva-inversion-barra" AQUÍ -->
-                  <div id="curva-inversion-barra" style="position:absolute;bottom:0;left:0;width:42%;height:100%;background:linear-gradient(180deg,var(--blue),var(--indigo));border-radius:8px;"></div>
-                <div style="position:absolute;top:8px;right:12px;font-size:11px;color:white;font-weight:600;">42%</div>
-              </div>
-              <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--ink4);font-family:var(--mono);">
-                <span>Inicio</span>
-                <span>Actual</span>
-                <span>Final</span>
-              </div>
+        <!-- 💰 Curva de Inversión (CORREGIDO - CON IDs ESPECÍFICOS) -->
+        <div style="background:#FFF3E0;padding:25px;border-radius:15px;">
+            <h4 style="color:#E65100;margin-bottom:20px;">💰 Curva de Inversión</h4>
+            <div style="text-align:center;">
+                <div style="font-size:12px;color:#666;">Inversión Total Acumulada</div>
+                <div style="font-size:32px;font-weight:700;color:#FF9800;" id="curva-inversion-total">$0.00</div>
+                
+                <!-- ⚠️ BARRA DE PROGRESO CON ID ESPECÍFICO -->
+                <div style="margin-top:20px;height:12px;background:#ddd;border-radius:6px;overflow:hidden;position:relative;">
+                    <div id="curva-inversion-barra" style="height:100%;width:0%;background:linear-gradient(90deg,#FF9800,#F57C00);transition:width 0.3s ease;border-radius:6px;"></div>
+                    <!-- ⚠️ ETIQUETA DEL PORCENTAJE CON ID ESPECÍFICO -->
+                    <div id="curva-inversion-porcentaje" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:10px;font-weight:600;color:white;text-shadow:0 1px 2px rgba(0,0,0,0.3);">0%</div>
+                </div>
             </div>
-          </div>
         </div>
       </div>
 
@@ -1639,6 +1636,7 @@ closeSidebar();
 </script>
 </body>
 </html>
+
 
 
 
