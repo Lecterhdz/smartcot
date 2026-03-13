@@ -526,7 +526,7 @@ generarTablaAvance: function() {
                     plugins: {
                         legend: {
                             display: true, position: 'top',
-                            labels: { color: '#e8edf5', font: { family: "'Outfit',sans-serif", size: 12 }, padding: 20 }
+                            labels: { color: '#1bcf8d', font: { family: "'Outfit',sans-serif", size: 12 }, padding: 20 }
                         },
                         tooltip: {
                             backgroundColor: '#1e2330', titleColor: '#e8edf5',
@@ -543,13 +543,13 @@ generarTablaAvance: function() {
                         x: {
                             grid: { color: '#334155' },
                             ticks: { color: '#e8edf5', font: { family: "'JetBrains Mono',monospace", size: 11 } },
-                            title: { display: true, text: 'Semanas', color: '#5a6a8a', font: { family: "'Outfit',sans-serif", size: 12, weight: 'bold'  } }
+                            title: { display: true, text: 'Semanas', color: '#0fc3d4', font: { family: "'Outfit',sans-serif", size: 12, weight: 'bold'  } }
                         },
                         y: {
                             beginAtZero: true, max: 100,
                             grid: { color: '#334155' },
                             ticks: { color: '#e8edf5', font: { family: "'JetBrains Mono',monospace", size: 11 }, callback: function(v) { return v + '%'; } },
-                            title: { display: true, text: 'Avance %', color: '#5a6a8a', font: { family: "'Outfit',sans-serif", size: 12, weight: 'bold' } }
+                            title: { display: true, text: 'Avance %', color: '#bd560d', font: { family: "'Outfit',sans-serif", size: 12, weight: 'bold' } }
                         }
                     }
                 }
