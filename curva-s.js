@@ -98,89 +98,85 @@ window.curvaS = {
         }
     },
 
-    // ─────────────────────────────────────────────────────────────────
-    // GENERAR TABLA DE AVANCE CON SEMANA ACTUAL RESALTADA (CORREGIDO)
-    // ─────────────────────────────────────────────────────────────────
-    generarTablaAvance: function() {
-        try {
-            // ⚠️ BUSCAR TBODY CON ID ESPECÍFICO O CREARLO SI NO EXISTE
-            let tbody = document.getElementById('curva-s-tabla-avance');
-            
+// ─────────────────────────────────────────────────────────────────
+// GENERAR TABLA DE AVANCE CON SEMANA ACTUAL RESALTADA (CORREGIDO)
+// ─────────────────────────────────────────────────────────────────
+generarTablaAvance: function() {
+    try {
+        console.log('📊 Generando tabla de avance...');
+        
+        // ⚠️ BUSCAR TBODY CON ID CORRECTO
+        let tbody = document.getElementById('curva-s-tabla-avance');
+        
+        if (!tbody) {
+            console.warn('⚠️ Tabla de avance no encontrada (ID: curva-s-tabla-avance)');
+            // Intentar fallback
+            tbody = document.querySelector('#curva-s-screen table tbody');
             if (!tbody) {
-                console.warn('⚠️ Tabla de avance no encontrada, creando...');
-                // Crear tabla dinámicamente si no existe
-                const container = document.createElement('div');
-                container.style.margin = '20px 0';
-                container.innerHTML = `
-                    <h4 style="color:var(--ink);margin:0 0 12px 0;font-size:14px;font-weight:700;">📊 Avance por Semana</h4>
-                    <div style="overflow-x:auto;">
-                        <table style="width:100%;border-collapse:collapse;">
-                            <thead>
-                                <tr style="background:var(--bg);">
-                                    <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Semana</th>
-                                    <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Programado</th>
-                                    <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Real</th>
-                                    <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);font-family:var(--mono);text-transform:uppercase;">Δ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="curva-s-tabla-avance"></tbody>
-                        </table>
-                    </div>
-                `;
-                // Insertar después de la gráfica
-                const canvas = document.getElementById('curva-s-chart');
-                if (canvas?.parentElement) {
-                    canvas.parentElement.parentNode.insertBefore(container, canvas.parentElement.nextSibling);
-                }
-                tbody = document.getElementById('curva-s-tabla-avance');
-            }
-            
-            if (!tbody) {
-                console.error('❌ No se pudo crear tbody para tabla de avance');
+                console.error('❌ No se encontró tbody para tabla de avance');
                 return;
             }
-            
-            // ⚠️ ENCONTRAR SEMANA ACTUAL (última con avance > 0)
-            let semanaActual = -1;
-            for (let i = this.datos.avanceEjecutado.length - 1; i >= 0; i--) {
-                if (this.datos.avanceEjecutado[i] > 0) {
-                    semanaActual = i;
-                    break;
-                }
+        }
+        
+        // ⚠️ ENCONTRAR SEMANA ACTUAL (último índice con valor no-null y > 0)
+        let semanaActualIndex = -1;
+        for (let i = this.datos.avanceEjecutado.length - 1; i >= 0; i--) {
+            const valor = this.datos.avanceEjecutado[i];
+            if (valor !== null && valor !== undefined && valor > 0) {
+                semanaActualIndex = i;
+                break;
             }
-            
-            // ⚠️ GENERAR FILAS
-            let html = '';
-            this.datos.semanas.forEach((semana, index) => {
+        }
+        
+        console.log('📍 Semana actual (índice):', semanaActualIndex, '=> Semana:', semanaActualIndex + 1);
+        console.log('📊 Datos avance ejecutado:', this.datos.avanceEjecutado);
+        
+        // ⚠️ GENERAR FILAS
+        let html = '';
+        
+        // Si no hay datos, mostrar mensaje
+        if (!this.datos.semanas || this.datos.semanas.length === 0) {
+            html = '<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--ink4);">Sin datos de semanas</td></tr>';
+        } else {
+            this.datos.semanas.forEach(function(semanaLabel, index) {
                 const numSemana = index + 1;
-                const programado = this.datos.avanceProgramado[index] || 0;
-                const ejecutado = this.datos.avanceEjecutado[index] || 0;
-                const desviacion = ejecutado - programado;
+                const programado = this.datos.avanceProgramado?.[index] || 0;
+                const ejecutado = this.datos.avanceEjecutado?.[index];
+                const tieneEjecutado = ejecutado !== null && ejecutado !== undefined && ejecutado > 0;
+                const desviacion = tieneEjecutado ? (ejecutado - programado) : null;
                 
                 // ⚠️ CLASE ESPECIAL PARA SEMANA ACTUAL
-                const esSemanaActual = (index === semanaActual);
-                const claseFila = esSemanaActual ? 'style="background:var(--blue-l);font-weight:700;"' : '';
+                const esSemanaActual = (index === semanaActualIndex);
+                const estiloFila = esSemanaActual 
+                    ? 'style="background:var(--blue-l);font-weight:700;"' 
+                    : 'style="border-bottom:1px solid var(--border);"';
                 const indicador = esSemanaActual ? ' ◀' : '';
                 
                 // ⚠️ COLOR DE DESVIACIÓN
-                let colorDesviacion = desviacion >= 0 ? 'var(--green)' : 'var(--rose)';
+                let colorDesviacion = desviacion !== null 
+                    ? (desviacion >= 0 ? 'var(--green)' : 'var(--rose)') 
+                    : 'var(--ink4)';
                 
-                html += '<tr ' + claseFila + '>' +
-                    '<td style="padding:8px 14px;font-family:var(--mono);font-size:12px;">S' + numSemana + indicador + '</td>' +
-                    '<td style="padding:8px 14px;font-family:var(--mono);font-size:12px;color:var(--indigo);">' + programado.toFixed(1) + '%</td>' +
-                    '<td style="padding:8px 14px;font-family:var(--mono);font-size:12px;color:var(--blue);">' + (ejecutado > 0 ? ejecutado.toFixed(1) + '%' : '—') + '</td>' +
-                    '<td style="padding:8px 14px;font-size:11px;color:' + colorDesviacion + ';font-family:var(--mono);font-weight:600;">' + 
-                        (ejecutado > 0 ? (desviacion >= 0 ? '+' : '') + desviacion.toFixed(1) + '%' : '—') + 
+                html += '<tr ' + estiloFila + '>' +
+                    '<td style="padding:10px 14px;font-family:var(--mono);font-size:12px;">S' + numSemana + indicador + '</td>' +
+                    '<td style="padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--indigo);">' + programado.toFixed(1) + '%</td>' +
+                    '<td style="padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--blue);">' + 
+                        (tieneEjecutado ? ejecutado.toFixed(1) + '%' : '—') + 
+                    '</td>' +
+                    '<td style="padding:10px 14px;font-size:11px;color:' + colorDesviacion + ';font-family:var(--mono);font-weight:600;">' + 
+                        (tieneEjecutado ? (desviacion >= 0 ? '+' : '') + desviacion.toFixed(1) + '%' : '—') + 
                     '</td>' +
                     '</tr>';
-            });
-            
-            tbody.innerHTML = html || '<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--ink4);">Sin datos</td></tr>';
-            console.log('✅ Tabla de avance generada');
-        } catch (error) {
-            console.error('❌ Error generando tabla:', error);
+            }.bind(this));
         }
-    },
+        
+        tbody.innerHTML = html;
+        console.log('✅ Tabla de avance generada con', this.datos.semanas?.length || 0, 'filas');
+        
+    } catch (error) {
+        console.error('❌ Error generando tabla:', error);
+    }
+},
     
     // ─────────────────────────────────────────────────────────────────
     // CARGAR COTIZACIÓN SELECCIONADA
