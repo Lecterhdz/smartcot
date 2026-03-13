@@ -390,14 +390,23 @@ window.licencia = {
         var licencia = this.cargar();
         
         if (!licencia) {
-            return { plan: 'DEMO', activa: false, diasRestantes: '--' };
+            return { plan: 'DEMO', activa: false, diasRestantes: 7, fechaExpiracion: '--', tipo: 'DEMO' };
         }
+        // ⚠️ CALCULAR DÍAS RESTANTES REALES DESDE LA FECHA DE EXPIRACIÓN
+        var fechaExpiracion = new Date(licencia.expiracion);
+        var fechaActual = new Date();
+        var diferenciaTiempo = fechaExpiracion - fechaActual;
+        var diasRestantes = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
+        
+        // Si ya expiró, mostrar 0
+        if (diasRestantes < 0) diasRestantes = 0;  
         
         return {
             plan: licencia.tipo || 'DEMO',
-            activa: licencia.activa && !licencia.expirada,
-            diasRestantes: licencia.diasRestantes || 7,
-            fechaExpiracion: licencia.expiracion ? new Date(licencia.expiracion).toLocaleDateString('es-MX') : '--',
+            tipo: licencia.tipo || 'DEMO',
+            activa: licencia.activa && !licencia.expirada && diasRestantes > 0,
+            diasRestantes: diasRestantes,  // ← CALCULADO REAL, NO HARDCODED
+            fechaExpiracion: fechaExpiracion.toLocaleDateString('es-MX'),
             clave: licencia.clave,
             email: licencia.email
         };
