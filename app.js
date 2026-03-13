@@ -181,8 +181,16 @@ mostrarPantalla: async function(id) {
             break;
         // ⚠️ AGREGAR ESTE CASO PARA CONFIGURACIÓN
         case 'configuracion-screen':
+            // ⚠️ VERIFICAR LICENCIA PARA SECCIONES AVANZADAS
+            const licencia = window.licencia.cargar();
+            const esPro = licencia?.tipo === 'PRO' || licencia?.tipo === 'ENTERPRISE';
+            const esEnterprise = licencia?.tipo === 'ENTERPRISE';
+            
             await this.cargarConfiguracion();
+             // ⚠️ BLOQUEAR SECCIONES SEGÚN PLAN
+            this.bloquearSeccionesConfiguracion(esPro, esEnterprise);           
             await this.cargarCostosManoObra();  // ✅ CARGAR COSTOS AL ABRIR
+            console.log('✅ Pantalla configuración lista');
             break;            
         case 'historial-cotizaciones-screen':
             if (window.historialCotizaciones) {
