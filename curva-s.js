@@ -187,21 +187,20 @@ window.curvaS = {
     // ─────────────────────────────────────────────────────────────────
     cargarCotizacion: async function() {
         try {
-            var cotizacionId = document.getElementById('curva-s-cotizacion') &&
-                               document.getElementById('curva-s-cotizacion').value;
-
+            const cotizacionId = document.getElementById('curva-s-cotizacion')?.value;
             if (!cotizacionId) {
                 alert('⚠️ Selecciona una cotización');
                 return;
             }
-
+            
             this.limpiarValoresEVM();
-
-            var cotizacion = await window.db.cotizaciones.get(parseInt(cotizacionId));
+            const cotizacion = await window.db.cotizaciones.get(parseInt(cotizacionId));
             if (!cotizacion) {
                 alert('❌ Cotización no encontrada');
                 return;
             }
+            
+            console.log('✅ Cotización cargada:', cotizacion);
 
             this.datos.cotizacionId    = cotizacionId;
             this.datos.cotizacionNumero = cotizacion.id;
@@ -230,17 +229,26 @@ window.curvaS = {
             // Cargar avance ejecutado
             await this.cargarAvanceEjecutado();
 
-            // Inicializar gráfica DESPUÉS de tener datos
-            var self = this;
-            setTimeout(function() {
-                self.inicializarGrafica();
-                self.actualizarGrafica();
-            }, 300);
+            // ⚠️ PRIMERO INICIALIZAR GRÁFICA (Chart.js)
+            this.inicializarGrafica();
+            
+            // ⚠️ LUEGO ACTUALIZAR CON DATOS
+            this.actualizarGrafica();
+            
+            // ⚠️ AHORA SÍ POSICIONAR LÍNEA VERTICAL (la gráfica ya existe)
+            this.posicionarLineaSemanaActual();
 
             // Variaciones y tabla
             this.calcularVariaciones();
             this.renderizarTablaAvances();
-
+            
+            // Actualizar componentes visuales
+            this.actualizarValoresEVM(cotizacion.evm || {});
+            this.actualizarCurvaInversion(
+                cotizacion.avanceEjecutado ? (cotizacion.avanceEjecutado / 100) * montoTotal : 0,
+                montoTotal
+            );
+            
             // Info de cotización
             this.mostrarInfoCotizacion(cotizacion, fechaInicio, fechaFinEstimada, fechaFinSolicitada);
 
