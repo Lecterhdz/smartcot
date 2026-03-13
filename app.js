@@ -189,6 +189,10 @@ mostrarPantalla: async function(id) {
                 setTimeout(function() { historialCotizaciones.cargar(); }, 300);
             }
             break;
+        case 'licencia-screen':
+            // Actualizar info de licencia al abrir la pantalla
+            this.actualizarInfoLicenciaUI();
+            break;
         case 'importar-screen':
             console.log('✅ Pantalla de importar lista');
             break;
