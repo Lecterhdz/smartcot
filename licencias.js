@@ -413,29 +413,48 @@ window.licencia = {
     },
     
     // ─────────────────────────────────────────────────────────────────
-    // OBTENER INFORMACIÓN DE LICENCIA PARA UI
+    // OBTENER INFORMACIÓN DE LICENCIA PARA UI (CORREGIDO - DÍAS REALES)
     // ─────────────────────────────────────────────────────────────────
     obtenerInfo: function() {
         var licencia = this.cargar();
         
+        // Si no hay licencia, retornar DEMO
         if (!licencia) {
-            return { plan: 'DEMO', activa: false, diasRestantes: 7, fechaExpiracion: '--', tipo: 'DEMO' };
+            return { 
+                plan: 'DEMO', 
+                tipo: 'DEMO',
+                activa: false, 
+                diasRestantes: 7,
+                fechaExpiracion: '--',
+                clave: null,
+                email: null
+            };
         }
+        
         // ⚠️ CALCULAR DÍAS RESTANTES REALES DESDE LA FECHA DE EXPIRACIÓN
         var fechaExpiracion = new Date(licencia.expiracion);
         var fechaActual = new Date();
+        
+        // Calcular diferencia en milisegundos y convertir a días
         var diferenciaTiempo = fechaExpiracion - fechaActual;
         var diasRestantes = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
         
-        // Si ya expiró, mostrar 0
-        if (diasRestantes < 0) diasRestantes = 0;  
+        // Si ya expiró, mostrar 0 (no negativos)
+        if (diasRestantes < 0) diasRestantes = 0;
+        
+        // Formatear fecha para mostrar
+        var fechaExpiracionStr = fechaExpiracion.toLocaleDateString('es-MX', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
         
         return {
             plan: licencia.tipo || 'DEMO',
             tipo: licencia.tipo || 'DEMO',
             activa: licencia.activa && !licencia.expirada && diasRestantes > 0,
             diasRestantes: diasRestantes,  // ← CALCULADO REAL, NO HARDCODED
-            fechaExpiracion: fechaExpiracion.toLocaleDateString('es-MX'),
+            fechaExpiracion: fechaExpiracionStr,
             clave: licencia.clave,
             email: licencia.email
         };
