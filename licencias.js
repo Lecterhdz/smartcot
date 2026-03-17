@@ -473,103 +473,82 @@ window.licencia = {
         return diasPorPlan[tipo] || 7;
     },
 
-    // ─────────────────────────────────────────────────────────────────
-    // ACTIVAR LICENCIA (CORREGIDO - LEE EXPIRACIÓN REAL DE LA CLAVE)
-    // ─────────────────────────────────────────────────────────────────
-    activar: async function(clave, email) {
-        try {
-            console.log('🔑 Procesando activación:', clave);
-            
-            // ⚠️ VALIDAR FORMATO DE CLAVE (ACEPTA AMBOS FORMATOS)
-            const formato1 = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
-            const formato2 = /^[A-Z]+-[A-Z0-9]{6}-\d{13,14}-[A-Z0-9]{8}$/i;
-            
-            if (!formato1.test(clave) && !formato2.test(clave)) {
-                return { activo: false, razon: 'Formato de clave inválido' };
-            }
-            
-            // ⚠️ PARSEAR LA CLAVE
-            const partes = clave.split('-');
-            let tipo = 'DEMO';
-            let expiracion = null;
-            
-            if (partes.length === 4 && formato2.test(clave)) {
-                // Formato real: PLAN-CODE6-TIMESTAMP-CODE8
-                tipo = partes[0].toUpperCase();
-                const timestampStr = partes[2];
-                const timestamp = parseInt(timestampStr);
-                
-                // ⚠️ DETECTAR SI EL TIMESTAMP ES EXPIRACIÓN O CREACIÓN
-                const ahora = Date.now();
-                const fechaTimestamp = new Date(timestamp);
-                
-                // Si el timestamp está en el futuro → ES LA FECHA DE EXPIRACIÓN
-                // Si el timestamp está en el pasado → ES LA FECHA DE CREACIÓN
-                if (timestamp > ahora) {
-                    // ✅ El timestamp YA es la fecha de expiración
-                    expiracion = new Date(timestamp);
-                    console.log('📅 Timestamp es fecha de expiración:', expiracion.toLocaleDateString('es-MX'));
-                } else {
-                    // ⚠️ El timestamp es fecha de creación → calcular expiración
-                    // ⚠️ PERO: para ENTERPRISE, verificar si hay duración custom en el código
-                    const code8 = partes[3];
-                    
-                    // ⚠️ DETECTAR DURACIÓN CUSTOM EN EL CÓDIGO FINAL (últimos 2 dígitos)
-                    const duracionCustom = parseInt(code8.slice(-2));
-                    let diasValidez;
-                    
-                    if (duracionCustom >= 1 && duracionCustom <= 99) {
-                        // ✅ Usar duración custom (ej: "07" = 7 días)
-                        diasValidez = duracionCustom;
-                        console.log('📅 Duración custom detectada:', diasValidez, 'días');
-                    } else {
-                        // Fallback a duración por plan
-                        diasValidez = this._obtenerDiasPorPlan(tipo);
-                    }
-                    
-                    expiracion = new Date(timestamp);
-                    expiracion.setDate(expiracion.getDate() + diasValidez);
-                    console.log('📅 Licencia creada:', fechaTimestamp.toLocaleDateString('es-MX'));
-                    console.log('📅 Licencia expira:', expiracion.toLocaleDateString('es-MX'));
-                }
-            } else {
-                // Formato demo o fallback
-                tipo = 'DEMO';
-                expiracion = new Date();
-                expiracion.setDate(expiracion.getDate() + 7);
-            }
-            
-            // ⚠️ VALIDAR TIPO DE PLAN
-            if (!this.PLANES[tipo]) {
-                return { activo: false, razon: 'Tipo de plan no válido: ' + tipo };
-            }
-            
-            // ⚠️ GUARDAR LICENCIA
-            const licencia = {
-                clave: clave,
-                tipo: tipo,
-                email: email || '',
-                expiracion: expiracion.toISOString(),
-                activa: true,
-                fechaActivacion: new Date().toISOString()
-            };
-            
-            localStorage.setItem('smartcot_licencia', JSON.stringify(licencia));
-            
-            console.log('✅ Licencia activada:', licencia);
-            
-            return {
-                activo: true,
-                tipo: tipo,
-                expiracion: expiracion.toISOString(),
-                diasRestantes: this._diasRestantes(expiracion)
-            };
-            
-        } catch (error) {
-            console.error('❌ Error activando licencia:', error);
-            return { activo: false, razon: 'Error: ' + error.message };
+// ─────────────────────────────────────────────────────────────────
+// ACTIVAR LICENCIA (CORREGIDO - TIMESTAMP = EXPIRACIÓN)
+// ─────────────────────────────────────────────────────────────────
+activar: async function(clave, email) {
+    try {
+        console.log('🔑 Procesando activación:', clave);
+        
+        // ⚠️ VALIDAR FORMATO DE CLAVE
+        const formato1 = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
+        const formato2 = /^[A-Z]+-[A-Z0-9]{6}-\d{13,14}-[A-Z0-9]{8}$/i;
+        
+        if (!formato1.test(clave) && !formato2.test(clave)) {
+            return { activo: false, razon: 'Formato de clave inválido' };
         }
-    },
+        
+        // ⚠️ PARSEAR LA CLAVE
+        const partes = clave.split('-');
+        let tipo = 'DEMO';
+        let expiracion = null;
+        
+        if (partes.length === 4 && formato2.test(clave)) {
+            // Formato: PLAN-CODE6-TIMESTAMP-CODE8
+            tipo = partes[0].toUpperCase();
+            const timestamp = parseInt(partes[2]);
+            
+            // ⚠️ CORRECCIÓN: Si el timestamp está en el futuro → ES LA FECHA DE EXPIRACIÓN
+            const ahora = Date.now();
+            if (timestamp > ahora) {
+                // ✅ El timestamp YA es la fecha de expiración (generador corregido)
+                expiracion = new Date(timestamp);
+                console.log('📅 Timestamp es fecha de expiración:', expiracion.toLocaleDateString('es-MX'));
+            } else {
+                // Fallback: timestamp es creación → calcular expiración con días por plan
+                const diasValidez = this._obtenerDiasPorPlan(tipo);
+                expiracion = new Date(timestamp);
+                expiracion.setDate(expiracion.getDate() + diasValidez);
+                console.log('⚠️ Timestamp es creación, calculando expiración +', diasValidez, 'días');
+            }
+        } else {
+            // Formato DEMO o fallback
+            tipo = 'DEMO';
+            expiracion = new Date();
+            expiracion.setDate(expiracion.getDate() + 7);
+        }
+        
+        // ⚠️ VALIDAR TIPO DE PLAN
+        if (!this.PLANES[tipo]) {
+            return { activo: false, razon: 'Tipo de plan no válido: ' + tipo };
+        }
+        
+        // ⚠️ GUARDAR LICENCIA
+        const licencia = {
+            clave: clave,
+            tipo: tipo,
+            email: email || '',
+            expiracion: expiracion.toISOString(),  // ← Guardar ISO string
+            activa: true,
+            fechaActivacion: new Date().toISOString()
+        };
+        
+        localStorage.setItem('smartcot_licencia', JSON.stringify(licencia));
+        
+        console.log('✅ Licencia activada:', licencia);
+        
+        return {
+            activo: true,
+            tipo: tipo,
+            expiracion: expiracion.toISOString(),
+            diasRestantes: this._diasRestantes(expiracion)
+        };
+        
+    } catch (error) {
+        console.error('❌ Error activando licencia:', error);
+        return { activo: false, razon: 'Error: ' + error.message };
+    }
+},
     
     // ─────────────────────────────────────────────────────────────────
     // OBTENER DÍAS POR PLAN (FUNCIÓN AUXILIAR)
