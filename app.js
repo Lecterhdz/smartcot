@@ -71,7 +71,7 @@ init: async function() {
         const verificacion = await window.licencia.verificarLicenciaRevocada(licencia?.clave);
         if (verificacion.revocada) {
             console.error('❌ Licencia revocada:', verificacion.razon);
-            alert('❌ LICENCIA REVOCADA\n' + verificacion.razon + '\nContacta a lecterhdz@gmail.com para más información.');
+            alert('❌ LICENCIA REVOCADA\n' + verificacion.razon + '\nContacta a hdzlecter@gmail.com para más información.');
             window.licencia.cerrar();
             return;
         }
