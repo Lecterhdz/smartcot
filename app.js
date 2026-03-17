@@ -2553,7 +2553,7 @@ comprarPlan: function(plan) {
     var mensaje = 'Para adquirir el plan ' + plan + ':\n\n' +
         '💰 Precio: $' + info.precio + ' MXN\n' +
         '📅 Duración: ' + info.dias + ' días\n\n' +
-        'Contacta a lecterhdz@gmail.com para generar tu clave de licencia.\n\n' +
+        'Contacta a hdzlecter@gmail.com para generar tu clave de licencia.\n\n' +
     alert(mensaje);
 },
 
